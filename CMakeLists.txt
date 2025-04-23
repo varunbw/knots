@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(include)
 
+# Place the executable in the root directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
 # Add debug info
 add_compile_options(-g)
 # Enable all compiler warnings
@@ -20,4 +23,7 @@ add_compile_options(-fmax-errors=3)
 
 # Add executable
 add_executable(${PROJECT_NAME}
-    src/main.cpp)
+    src/main.cpp
+    src/HttpServer.cpp
+    src/Utils.cpp
+)

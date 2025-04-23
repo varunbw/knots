@@ -13,9 +13,21 @@
 #include <string>
 #include <vector>
 
+// Project
+#include "../include/Utils.hpp"
+#include "../include/HttpServer.hpp"
 
 
 int main(int argc, char** argv) {
-    std::cout << "Hello world\n";
+
+    constexpr int port = 8080;
+    Log::Info(std::format(
+        "Attempting to start server on port {}",
+        port
+    ));
+
+    HttpServer server(8080);
+
+    Log::Info("Stopping server...");
     return 0;
 }
