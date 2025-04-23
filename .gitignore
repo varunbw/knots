@@ -1,0 +1,20 @@
+# Executable
+*.out
+
+# Object files
+*.o
+
+# Build files
+build/
+
+# Temporary Files
+temp/
+temp.*
+*.tmp
+
+# Logs
+logs/
+*.log
+
+# VSCode
+.vscode/
