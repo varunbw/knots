@@ -14,8 +14,9 @@
 #include <vector>
 
 // Project
-#include "../include/Utils.hpp"
-#include "../include/HttpServer.hpp"
+#include "Utils.hpp"
+#include "HttpServer.hpp"
+#include "HttpMessage.hpp"
 
 
 int main(int argc, char** argv) {
