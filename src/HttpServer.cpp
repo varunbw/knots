@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "../include/Utils.hpp"
-#include "../include/HttpServer.hpp"
+#include "Utils.hpp"
+#include "HttpServer.hpp"
 
 
 HttpServer::HttpServer(const int port) {

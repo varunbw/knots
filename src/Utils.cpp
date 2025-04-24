@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "../include/Utils.hpp"
+#include "Utils.hpp"
 
 /*
     Used for coloring the output text
