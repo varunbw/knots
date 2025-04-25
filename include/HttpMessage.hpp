@@ -14,15 +14,17 @@ enum class HttpMethod {
     CONNECT = 6,
     OPTIONS = 7,
     TRACE = 8,
-    PATH = 9,
+    PATCH = 9,
 
     DEFAULT_INVALID = 10
 };
 
 enum class HttpVersion {
-    HTTP_1_0,
-    HTTP_1_1,
-    HTTP_2_0
+    HTTP_1_0 = 1,
+    HTTP_1_1 = 2,
+    HTTP_2_0 = 3,
+
+    DEFAULT_INVALID = 4
 };
 
 
