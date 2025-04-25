@@ -1,3 +1,6 @@
+#include <iostream>
+#include <format>
+
 #include "HttpMessage.hpp"
 
 /*
@@ -22,4 +25,28 @@ bool HttpRequest::IsValid() const noexcept {
 */
 bool HttpRequest::HasHeader(const std::string& header) const {
     return headers.contains(header);
+}
+
+
+void HttpRequest::PrintMessage() const {
+
+    std::cout << std::format(
+        "------- HTTP Message -------\n"
+        "  [METHOD] : {}\n"
+        "  [URL]    : {}\n"
+        "  [VERSION]: {}\n\n",
+        method, requestUrl, version
+    );
+
+    std::cout << "HEADERS\n";
+    for (auto& [key, value] : headers) {
+        std::cout << std::format("  {} : {}\n", key, value);
+    }
+    std::cout << '\n';
+
+    std::cout << "BODY\n" << body << '\n';
+
+    std::cout << "------- End Message -------\n";
+    
+    return;
 }
