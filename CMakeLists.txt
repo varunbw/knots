@@ -24,6 +24,8 @@ add_compile_options(-fmax-errors=3)
 # Add executable
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/HttpMessage.cpp
+    src/HttpParser.cpp
     src/HttpServer.cpp
     src/Utils.cpp
 )
