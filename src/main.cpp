@@ -21,13 +21,7 @@
 
 int main(int argc, char** argv) {
 
-    constexpr int port = 8080;
-    Log::Info(std::format(
-        "Attempting to start server on port {}",
-        port
-    ));
-
-    HttpServer server(8080);
+    HttpServer server;
     server.AcceptConnections();
 
     Log::Info("Stopping server...");

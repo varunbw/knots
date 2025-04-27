@@ -19,7 +19,7 @@
 #include "HttpServer.hpp"
 
 
-HttpServer::HttpServer(const int port) :
+HttpServer::HttpServer() :
     serverSocket(socket(AF_INET, SOCK_STREAM, 0)) {
 
     // Check if the socket was created successfully
@@ -29,17 +29,22 @@ HttpServer::HttpServer(const int port) :
         ));
     }
 
-    // Check if the port number is valid
-    if (port <= 0 || port > 65536) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "HttpServer(): Invalid port number: {}",
-            port
-        )));
-    }
-    
     // Parse the configuration file (no way you could've understood what this was)
     HttpServerConfiguration config;
-    ParseConfigurationFile("src/config/main.conf", config);
+    ParseConfigurationFile("config/main.conf", config);
+
+    Log::Info(std::format(
+        "Attempting to start server on port {}",
+        config.port
+    ));
+
+    // Check if the port number is valid
+    if (config.port <= 0 || config.port > 65536) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid port number: {}",
+            config.port
+        )));
+    }
 
     if (config.maxConnections <= 0) {
         throw std::invalid_argument(MakeErrorMessage(std::format(
@@ -81,9 +86,9 @@ HttpServer::HttpServer(const int port) :
     // Initialize address information
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port);
+    address.sin_port = htons(config.port);
 
-    this->serverPort = port;
+    this->serverPort = config.port;
     this->addrlen = sizeof(address);
 
     // Bind the socket to the port
@@ -128,7 +133,13 @@ void HttpServer::AcceptConnections() {
             &clientAddressLen);
 
         if (clientSocketFD < 0) {
-            Log::Error("AcceptConnection(): Could not accept connection");
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                continue;
+            }
+            
+            Log::Error(std::format(
+                "AcceptConnection(): Could not accept connection"
+            ));
         }
         else {
             Log::Info(std::format(
@@ -182,8 +193,30 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
 
         ss.write(buffer.data(), bytesRead);
         buffer.clear();
+        break; // ! ToDo remove this
     }
 
     std::cout << ss.str() << '\n';
+
+    std::ifstream file("./src/res.tmp", std::ios::binary);
+    if (!file) {
+        Log::Error("HandleConnection(): Could not open response file");
+        return;
+    }
+
+    std::vector<char> response(
+        (std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>()
+    );
+
+    if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
+        Log::Error(std::format(
+            "HandleConnection(): Error sending response to socket {}: {}",
+            clientSocketFD,
+            strerror(errno)
+        ));
+    }
+
+    
     return;
 }
