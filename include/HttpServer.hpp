@@ -1,18 +1,17 @@
 #ifndef KNOTS_HTTPSERVER_HPP
 #define KNOTS_HTTPSERVER_HPP
 
+#include "Socket.hpp"
+
 class HttpServer {
 private:
     sockaddr_in address;
     int addrlen;
-    int socketFD;
+    Socket serverSocket;
     int serverPort;
 
 public:
     explicit HttpServer(const int port);
-    ~HttpServer() {
-        close(socketFD);
-    };
 
     void AcceptConnections();
     void HandleConnection(const int);
