@@ -19,7 +19,15 @@
 #include "HttpServer.hpp"
 
 
-HttpServer::HttpServer(const int port) {
+HttpServer::HttpServer(const int port) :
+    serverSocket(socket(AF_INET, SOCK_STREAM, 0)) {
+
+    if (serverSocket.get() < 0) {
+        throw std::runtime_error(MakeErrorMessage(
+            "HttpServer(): Socket creation failed"
+        ));
+    }
+    
     // Parse the configuration file (no way you could've understood what this was)
     HttpServerConfiguration config;
     ParseConfigurationFile("src/config/main.conf", config);
@@ -32,23 +40,15 @@ HttpServer::HttpServer(const int port) {
     this->serverPort = port;
     this->addrlen = sizeof(address);
 
-    // Create an IPv4, TCP/IP socket with no additional flags
-    this->socketFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketFD == -1) {
-        throw std::runtime_error(MakeErrorMessage(
-            "HttpServer(): Socket creation failed"
-        ));
-    }
-
     // Bind the socket to the port
-    if (bind(socketFD, (struct sockaddr*)& address, sizeof(address)) < 0) {
+    if (bind(serverSocket.get(), (struct sockaddr*)& address, sizeof(address)) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket binding failed"
         ));
     };
 
     // Start listening for connections
-    if (listen(socketFD, config.maxConnections) < 0) {
+    if (listen(serverSocket.get(), config.maxConnections) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
@@ -77,7 +77,7 @@ void HttpServer::AcceptConnections() {
         socklen_t clientAddressLen = sizeof(address);
 
         int clientSocketFD = accept(
-            socketFD,
+            serverSocket.get(),
             reinterpret_cast<struct sockaddr*>(&clientAddress),
             &clientAddressLen);
 
