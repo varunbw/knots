@@ -11,7 +11,7 @@ private:
     int serverPort;
 
 public:
-    explicit HttpServer(const int port);
+    explicit HttpServer();
 
     void AcceptConnections();
     void HandleConnection(const int);
