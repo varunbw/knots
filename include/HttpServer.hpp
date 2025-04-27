@@ -13,6 +13,9 @@ public:
     ~HttpServer() {
         close(socketFD);
     };
+
+    void AcceptConnections();
+    void HandleConnection(const int);
 };
 
 #endif
