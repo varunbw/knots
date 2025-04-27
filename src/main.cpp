@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
     ));
 
     HttpServer server(8080);
+    server.AcceptConnections();
 
     Log::Info("Stopping server...");
     return 0;
