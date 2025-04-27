@@ -22,15 +22,61 @@
 HttpServer::HttpServer(const int port) :
     serverSocket(socket(AF_INET, SOCK_STREAM, 0)) {
 
+    // Check if the socket was created successfully
     if (serverSocket.get() < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket creation failed"
         ));
     }
+
+    // Check if the port number is valid
+    if (port <= 0 || port > 65536) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid port number: {}",
+            port
+        )));
+    }
     
     // Parse the configuration file (no way you could've understood what this was)
     HttpServerConfiguration config;
     ParseConfigurationFile("src/config/main.conf", config);
+
+    if (config.maxConnections <= 0) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid max connections: {}",
+            config.maxConnections
+        )));
+    }
+
+    // Set socket options
+    // Allow address reuse
+    int opt = 1;
+    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
+    }
+
+    // Allow port reuse
+    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
+    }
+
+    // Set receive timeout
+    struct timeval timeout;      
+    timeout.tv_sec = 10;  // 10 seconds timeout
+    timeout.tv_usec = 0;
+    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
+    }
+
+    // Set send timeout
+    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
+    }
+
+    // Set TCP keep-alive
+    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
+    }
 
     // Initialize address information
     address.sin_family = AF_INET;
