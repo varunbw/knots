@@ -17,7 +17,7 @@
 #include "Utils.hpp"
 #include "HttpParser.hpp"
 #include "HttpServer.hpp"
-
+#include "Router.hpp"
 
 HttpServer::HttpServer() :
     serverSocket(socket(AF_INET, SOCK_STREAM, 0)) {
@@ -198,7 +198,10 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
 
     std::cout << ss.str() << '\n';
 
-    std::ifstream file("./src/res.tmp", std::ios::binary);
+    HttpRequest req = HttpParser::ParseHttpRequest(ss);
+    std::string filePath = Router::GetFilePath(req.requestUrl);
+
+    std::ifstream file(filePath, std::ios::binary);
     if (!file) {
         Log::Error("HandleConnection(): Could not open response file");
         return;

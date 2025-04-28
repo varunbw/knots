@@ -55,14 +55,17 @@ bool ParseStartLineHttpVersion(std::stringstream& ss, HttpRequest& req) {
 
     std::string buffer;
     std::getline(ss, buffer, '\n');
+
+    if (buffer.back() == '\r')
+        buffer.pop_back();
     
     // There is a space before 'HTTP' below because the stringstream `ss` is
     // reading an additional space into buffer; ex: " HTTP 1.0"
     // This is more efficient than performing an erase operation on the buffer
     static const std::map<std::string, HttpVersion> versionMap = {
-        {" HTTP 1.0", HttpVersion::HTTP_1_0},
-        {" HTTP 1.1", HttpVersion::HTTP_1_1},
-        {" HTTP 2.0", HttpVersion::HTTP_2_0}
+        {" HTTP/1.0", HttpVersion::HTTP_1_0},
+        {" HTTP/1.1", HttpVersion::HTTP_1_1},
+        {" HTTP/2.0", HttpVersion::HTTP_2_0}
     };
 
     auto it = versionMap.find(buffer);
