@@ -8,31 +8,43 @@ knots is a multithreaded HTTP server written in C++. It is designed to handle mu
 - Serves static files
 
 # Installation
-TLDR: Quick-start snippet at the end of this document.
-To build the project, you need to have CMake installed. Follow these steps:
-1. Clone the repository:
+Quick-start snippet at the end of this document.
+
+## Dependencies
+- C++20 or later
+- CMake 3.20 or later
+- yaml-cpp
+
+## Steps to Install
+
+1. Ensure you have C++20, CMake, and yaml-cpp installed on your system.
+```bash
+sudo apt install cmake libyaml-cpp-dev
+```
+
+2. Clone the repository:
 ```bash
 git clone https://github.com/varunbw/knots.git
 cd knots
 ```
 
-2. Create a build directory:
+3. Create a build directory:
 ```bash
 mkdir build
 cd build
 ```
 
-3. Run CMake to generate the Makefile:
+4. Run CMake to generate the Makefile:
 ```bash
 cmake ..
 ```
 
-4. Build the project:
+5. Build the project:
 ```bash
 make
 ```
 
-5. Run the server after navigating to the root directory:
+6. Run the server after navigating to the root directory:
 ```bash
 ./knots
 ```
@@ -41,6 +53,7 @@ make
 # Quick Start Snippet
 Just copy paste this snippet in your terminal to get started quickly:
 ```bash
+sudo apt install libyaml-cpp-dev
 git clone https://github.com/varunbw/knots.git
 cd knots
 mkdir build && cd build

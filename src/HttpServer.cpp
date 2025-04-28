@@ -17,10 +17,11 @@
 #include "Utils.hpp"
 #include "HttpParser.hpp"
 #include "HttpServer.hpp"
-#include "Router.hpp"
 
 HttpServer::HttpServer() :
-    serverSocket(socket(AF_INET, SOCK_STREAM, 0)) {
+    serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
+    router("config/routes.yaml")
+    {
 
     // Check if the socket was created successfully
     if (serverSocket.get() < 0) {
@@ -199,7 +200,7 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
     std::cout << ss.str() << '\n';
 
     HttpRequest req = HttpParser::ParseHttpRequest(ss);
-    std::string filePath = Router::GetFilePath(req.requestUrl);
+    std::string filePath = router.GetRoute(req.requestUrl).filePath;
 
     std::ifstream file(filePath, std::ios::binary);
     if (!file) {

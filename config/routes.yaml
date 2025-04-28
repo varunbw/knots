@@ -1,0 +1,13 @@
+routes:
+  /:
+    file: static/index.html
+    type: text/html
+  /index.html:
+    file: static/index.html
+    type: text/html
+  /test.html:
+    file: static/test.html
+    type: text/html
+  /favicon.ico:
+    file: static/knots-icon.jpg
+    type: image/jpeg

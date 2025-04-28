@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.20)
 project(knots)
 
-# Set C++23 standard
-set(CMAKE_CXX_STANDARD 23)
+# Set C++20 standard
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(include)
 
 # Place the executable in the root directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+find_package(yaml-cpp REQUIRED)
 
 # Add debug info
 add_compile_options(-g)
@@ -27,5 +29,8 @@ add_executable(${PROJECT_NAME}
     src/HttpMessage.cpp
     src/HttpParser.cpp
     src/HttpServer.cpp
+    src/Router.cpp
     src/Utils.cpp
 )
+
+target_link_libraries(${PROJECT_NAME} yaml-cpp)
