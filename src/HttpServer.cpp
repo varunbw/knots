@@ -19,12 +19,12 @@
 #include "HttpServer.hpp"
 
 HttpServer::HttpServer() :
-    serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
-    router("config/routes.yaml")
+    m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
+    m_router("config/routes.yaml")
     {
 
     // Check if the socket was created successfully
-    if (serverSocket.get() < 0) {
+    if (m_serverSocket.get() < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket creation failed"
         ));
@@ -57,12 +57,12 @@ HttpServer::HttpServer() :
     // Set socket options
     // Allow address reuse
     int opt = 1;
-    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
     }
 
     // Allow port reuse
-    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
     }
 
@@ -70,37 +70,37 @@ HttpServer::HttpServer() :
     struct timeval timeout;      
     timeout.tv_sec = 10;  // 10 seconds timeout
     timeout.tv_usec = 0;
-    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
     }
 
     // Set send timeout
-    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
     }
 
     // Set TCP keep-alive
-    if (setsockopt(serverSocket.get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
     }
 
     // Initialize address information
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(config.port);
+    m_address.sin_family = AF_INET;
+    m_address.sin_addr.s_addr = INADDR_ANY;
+    m_address.sin_port = htons(config.port);
 
-    this->serverPort = config.port;
-    this->addrlen = sizeof(address);
+    this->m_serverPort = config.port;
+    this->m_addrlen = sizeof(m_address);
 
     // Bind the socket to the port
-    if (bind(serverSocket.get(), (struct sockaddr*)& address, sizeof(address)) < 0) {
+    if (bind(m_serverSocket.get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket binding failed"
         ));
     };
 
     // Start listening for connections
-    if (listen(serverSocket.get(), config.maxConnections) < 0) {
+    if (listen(m_serverSocket.get(), config.maxConnections) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
@@ -126,10 +126,10 @@ void HttpServer::AcceptConnections() {
 
     while (true) {
         sockaddr_in clientAddress{};
-        socklen_t clientAddressLen = sizeof(address);
+        socklen_t clientAddressLen = sizeof(m_address);
 
         int clientSocketFD = accept(
-            serverSocket.get(),
+            m_serverSocket.get(),
             reinterpret_cast<struct sockaddr*>(&clientAddress),
             &clientAddressLen);
 
@@ -200,7 +200,7 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
     std::cout << ss.str() << '\n';
 
     HttpRequest req = HttpParser::ParseHttpRequest(ss);
-    std::string filePath = router.GetRoute(req.requestUrl).filePath;
+    std::string filePath = m_router.GetRoute(req.requestUrl).filePath;
 
     std::ifstream file(filePath, std::ios::binary);
     if (!file) {

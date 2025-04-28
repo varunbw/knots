@@ -40,7 +40,7 @@ void Router::LoadRoutesFromConfig(const std::string& configFilePath) {
     // Load all routes in config["routes"], store them in this->routes
     for (const auto& route : config["routes"]) {
         const std::string path = route.first.as<std::string>();
-        routes[path] = {
+        m_routes[path] = {
             route.second["file"].as<std::string>(),
             route.second["type"].as<std::string>()
         };
@@ -58,8 +58,8 @@ void Router::LoadRoutesFromConfig(const std::string& configFilePath) {
 */
 Route Router::GetRoute(const std::string& requestUrl) const {
 
-    auto it = routes.find(requestUrl);
-    if (it != routes.end()) {
+    auto it = m_routes.find(requestUrl);
+    if (it != m_routes.end()) {
         return it->second;
     }
 
