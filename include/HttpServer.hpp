@@ -1,6 +1,7 @@
 #ifndef KNOTS_HTTPSERVER_HPP
 #define KNOTS_HTTPSERVER_HPP
 
+#include "Router.hpp"
 #include "Socket.hpp"
 
 class HttpServer {
@@ -9,6 +10,8 @@ private:
     int addrlen;
     Socket serverSocket;
     int serverPort;
+
+    Router router;
 
 public:
     explicit HttpServer();
