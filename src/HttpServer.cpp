@@ -203,7 +203,10 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
 
     std::ifstream file(filePath, std::ios::binary);
     if (!file) {
-        Log::Error("HandleConnection(): Could not open response file");
+        Log::Error(std::format(
+            "HandleConnection(): Could not open response file {}",
+            filePath
+        ));
         return;
     }
 

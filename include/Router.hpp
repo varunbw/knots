@@ -15,7 +15,8 @@ namespace Router {
         static const std::map<std::string, std::string> routes = {
             {"/", "index.html"},
             {"/index.html", "index.html"},
-            {"/test.html", "test.html"}
+            {"/test.html", "test.html"},
+            {"/favicon.ico", "knots-icon.jpg"}
         };
 
         auto it = routes.find(requestUrl);
