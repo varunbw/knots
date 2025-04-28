@@ -19,7 +19,7 @@ struct Route {
 
 class Router {
 private:
-    std::map<std::string, Route> routes;
+    std::map<std::string, Route> m_routes;
 
     void LoadRoutesFromConfig(const std::string& configFilePath);
 

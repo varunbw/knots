@@ -6,12 +6,12 @@
 
 class HttpServer {
 private:
-    sockaddr_in address;
-    int addrlen;
-    Socket serverSocket;
-    int serverPort;
+    sockaddr_in m_address;
+    int m_addrlen;
+    Socket m_serverSocket;
+    int m_serverPort;
 
-    Router router;
+    Router m_router;
 
 public:
     explicit HttpServer();

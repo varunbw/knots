@@ -3,20 +3,20 @@
 
 class Socket {
 private:
-    int fd;
+    int m_fd;
 
 public:
-    explicit Socket(const int fd) : fd(fd) {};
+    explicit Socket(const int fd) : m_fd(fd) {};
     ~Socket() {
-        if (fd >= 0)
-            close(fd);
+        if (m_fd >= 0)
+            close(m_fd);
     }
 
     Socket(const Socket&) = delete;
     Socket& operator=(const Socket&) = delete;
 
     int get() const {
-        return fd;
+        return m_fd;
     }
 };
 

@@ -42,11 +42,10 @@ void HttpRequest::PrintMessage() const {
     for (auto& [key, value] : headers) {
         std::cout << std::format("  {} : {}\n", key, value);
     }
-    std::cout << '\n';
-
-    std::cout << "BODY\n" << body << '\n';
-
-    std::cout << "------- End Message -------\n";
+    
+    std::cout << '\n'
+        << "BODY\n" << body << '\n'
+        << "------- End Message -------\n";
     
     return;
 }
