@@ -103,13 +103,64 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
    return true; 
 }
 
+
+/*
+    @brief Parses the headers of an HTTP request
+    @param ss The stringstream containing the raw request
+    @param req The HttpRequest structure
+
+    @return void
+*/
+void ParseHeaders(std::stringstream& ss, HttpRequest& req) {
+
+    std::string line;
+    while (std::getline(ss, line, '\n')) {
+        // Remove any trailing \r if present
+        if (line.size() && line.back() == '\r') {
+            line.pop_back();
+        }
+
+        // An empty line marks the end of headers
+        if (line.empty()) {
+            return;
+        }
+
+        size_t colonPos = line.find(':');
+        if (colonPos == line.npos) {
+            Log::Error(std::format(
+                "ParseHeaders(): Invalid header {}",
+                line
+            ));
+            continue;
+        }
+
+        const std::string name  = line.substr(0, colonPos);
+        const std::string value = line.substr(colonPos + 2);
+
+        req.headers[name] = value;
+
+        // Log::Info(std::format(
+        //     "ParseHeaders(): Added header {}: {}",
+        //     line.substr(0, colonPos), req.headers[line.substr(0, colonPos)]
+        // ));
+    }
+
+    return;
+}
+
+
 /*
     @brief Parse the HttpRequest message
 */
 HttpRequest HttpParser::ParseHttpRequest(std::stringstream& ss) {
 
     HttpRequest req;
-    ParseStartLine(ss, req);
+    if (ParseStartLine(ss, req) == false) {
+        Log::Error("ParseHttpRequest(): Error while parsing previous request's start line");
+        return {};
+    }
+
+    ParseHeaders(ss, req);
 
     req.PrintMessage();
 

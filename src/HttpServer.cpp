@@ -197,8 +197,6 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
         break; // ! ToDo remove this
     }
 
-    std::cout << ss.str() << '\n';
-
     HandleRequest(ss, clientSocketFD);
     return;
 }
@@ -257,6 +255,7 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
 void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) {
 
     // Determine the route
+    // ToDo Check if request is valid
     HttpRequest req = HttpParser::ParseHttpRequest(ss);
     Route route = m_router.GetRoute(req.requestUrl);
 

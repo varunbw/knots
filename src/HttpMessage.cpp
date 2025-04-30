@@ -31,7 +31,7 @@ bool HttpRequest::HasHeader(const std::string& header) const {
 void HttpRequest::PrintMessage() const {
 
     std::cout << std::format(
-        "------- HTTP Message -------\n"
+        "\n------- HTTP Request -------\n"
         "  [METHOD] : {}\n"
         "  [URL]    : {}\n"
         "  [VERSION]: {}\n\n",
@@ -40,12 +40,16 @@ void HttpRequest::PrintMessage() const {
 
     std::cout << "HEADERS\n";
     for (auto& [key, value] : headers) {
-        std::cout << std::format("  {} : {}\n", key, value);
+        // ToDo: Remove this
+        if (key == "Cookie")
+            std::cout << std::format("  {}: {}....\n", key, std::string_view(value.begin(), value.begin() + 16));
+        else
+        std::cout << std::format("  {}: {}\n", key, value);
     }
     
     std::cout << '\n'
         << "BODY\n" << body << '\n'
-        << "------- End Message -------\n";
+        << "------- End Request -------\n\n";
     
     return;
 }
