@@ -205,6 +205,49 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
 
 
 /*
+    @brief Handle an invalid request by sending a HTTP 400 code, along with some body
+    @param requestUrl The invalid request url
+    @param clientSocketFD The socketFD for the client
+
+    @return void
+*/
+void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int clientSocketFD) {
+
+    Log::Error(std::format(
+        "HandleRequest(): Invalid request for URL {}",
+        requestUrl
+    ));
+
+    // ! ToDo: See where this can be improved
+    const std::string invalidRequestFilePath = "static/invalid-request.html";
+    std::ifstream fileToSend(invalidRequestFilePath, std::ios::binary | std::ios::ate);
+
+    if (fileToSend.is_open() == false) {
+        Log::Error(std::format(
+            "HandleInvalidRequest(): Could not open response file {}",
+            invalidRequestFilePath
+        ));
+        return;
+    }
+
+    const auto fileSize = fileToSend.tellg();
+    fileToSend.seekg(0);
+
+    std::vector<char> response(fileSize);
+    fileToSend.read(response.data(), fileSize);
+
+    if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
+        Log::Error(std::format(
+            "HandleRequest(): Error sending response to socket {}: {}",
+            clientSocketFD,
+            strerror(errno)
+        ));
+    }
+
+    return;
+}
+
+/*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
     @param clientSocketFD The socketFD for the client
@@ -219,33 +262,12 @@ void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
 
     // If route is not valid, return early and send code 400
     if (route.IsValid() == false) {
-        Log::Error(std::format(
-            "HandleRequest(): Invalid request for URL {}",
-            req.requestUrl
-        ));
-
-        // ! ToDo: Change this
-        const std::string invalidRequestFilePath = "static/invalid-request.html";
-        std::ifstream fileToSend(invalidRequestFilePath, std::ios::binary);
-
-        std::vector<char> response(
-            (std::istreambuf_iterator<char>(fileToSend)),
-            std::istreambuf_iterator<char>()
-        );
-
-        if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
-            Log::Error(std::format(
-                "HandleRequest(): Error sending response to socket {}: {}",
-                clientSocketFD,
-                strerror(errno)
-            ));
-        }
-
+        HandleInvalidRequest(req.requestUrl, clientSocketFD);
         return;
     }
 
     // Valid route found, send the response
-    std::ifstream fileToSend(route.filePath, std::ios::binary);
+    std::ifstream fileToSend(route.filePath, std::ios::binary | std::ios::ate);
     if (fileToSend.is_open() == false) {
         Log::Error(std::format(
             "HandleConnection(): Could not open response file {}",
@@ -254,10 +276,11 @@ void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
         return;
     }
 
-    std::vector<char> response(
-        (std::istreambuf_iterator<char>(fileToSend)),
-        std::istreambuf_iterator<char>()
-    );
+    const auto fileSize = fileToSend.tellg();
+    fileToSend.seekg(0);
+
+    std::vector<char> response(fileSize);
+    fileToSend.read(response.data(), fileSize);
 
     if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
         Log::Error(std::format(
