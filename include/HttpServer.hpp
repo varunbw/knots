@@ -13,11 +13,13 @@ private:
 
     Router m_router;
 
+    void HandleConnection(const int clientSocketFD);
+    void HandleRequest(std::stringstream& ss, const int clientSocketFD);
+    
 public:
     explicit HttpServer();
 
     void AcceptConnections();
-    void HandleConnection(const int);
 };
 
 #endif

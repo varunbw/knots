@@ -199,20 +199,63 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
 
     std::cout << ss.str() << '\n';
 
-    HttpRequest req = HttpParser::ParseHttpRequest(ss);
-    std::string filePath = m_router.GetRoute(req.requestUrl).filePath;
+    HandleRequest(ss, clientSocketFD);
+    return;
+}
 
-    std::ifstream file(filePath, std::ios::binary);
-    if (!file) {
+
+/*
+    @brief Processes one HTTP request and sends the appropriate response
+    @param ss The stringstream containing the raw request
+    @param clientSocketFD The socketFD for the client
+
+    @return void
+*/
+void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) {
+
+    // Determine the route
+    HttpRequest req = HttpParser::ParseHttpRequest(ss);
+    Route route = m_router.GetRoute(req.requestUrl);
+
+    // If route is not valid, return early and send code 400
+    if (route.IsValid() == false) {
+        Log::Error(std::format(
+            "HandleRequest(): Invalid request for URL {}",
+            req.requestUrl
+        ));
+
+        // ! ToDo: Change this
+        const std::string invalidRequestFilePath = "static/invalid-request.html";
+        std::ifstream fileToSend(invalidRequestFilePath, std::ios::binary);
+
+        std::vector<char> response(
+            (std::istreambuf_iterator<char>(fileToSend)),
+            std::istreambuf_iterator<char>()
+        );
+
+        if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
+            Log::Error(std::format(
+                "HandleRequest(): Error sending response to socket {}: {}",
+                clientSocketFD,
+                strerror(errno)
+            ));
+        }
+
+        return;
+    }
+
+    // Valid route found, send the response
+    std::ifstream fileToSend(route.filePath, std::ios::binary);
+    if (fileToSend.is_open() == false) {
         Log::Error(std::format(
             "HandleConnection(): Could not open response file {}",
-            filePath
+            route.filePath
         ));
         return;
     }
 
     std::vector<char> response(
-        (std::istreambuf_iterator<char>(file)),
+        (std::istreambuf_iterator<char>(fileToSend)),
         std::istreambuf_iterator<char>()
     );
 
@@ -224,6 +267,5 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
         ));
     }
 
-    
     return;
 }
