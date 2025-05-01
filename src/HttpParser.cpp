@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -15,13 +16,20 @@
     @return `true` if method could be parsed successfully, `false` otherwise
 */
 bool ParseStartLineMethod(std::stringstream& ss, HttpRequest& req) {
+
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseStartLineMethod(): Bad stream state"
+        );
+        return false;
+    }
     
     std::string buffer;
     ss >> buffer;
 
     // Cleaner than writing if-else's
     // ToDo: Profile this against if-else statements
-    static const std::map<std::string, HttpMethod> methodMap = {
+    static const std::map<std::string_view, HttpMethod> methodMap = {
         {"POST", HttpMethod::POST},
         {"GET", HttpMethod::GET},
         {"HEAD", HttpMethod::HEAD},
@@ -52,6 +60,14 @@ bool ParseStartLineMethod(std::stringstream& ss, HttpRequest& req) {
     @return `true` if version could be parsed successfully, `false` otherwise
 */
 bool ParseStartLineHttpVersion(std::stringstream& ss, HttpRequest& req) {
+
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseStartLineHttpVersion(): Bad stream state"
+        );
+        return false;
+    }
+
 
     std::string buffer;
     std::getline(ss, buffer, '\n');
@@ -88,6 +104,13 @@ bool ParseStartLineHttpVersion(std::stringstream& ss, HttpRequest& req) {
 */
 bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseStartLine(): Bad stream state"
+        );
+        return false;
+    }
+
     // Extract method
     if (ParseStartLineMethod(ss, req) == false)
         return false;
@@ -106,12 +129,19 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
 /*
     @brief Parses the headers of an HTTP request
-    @param ss The stringstream containing the raw request
+    @param ss Message in stringstream format
     @param req The HttpRequest structure
 
     @return void
 */
-void ParseHeaders(std::stringstream& ss, HttpRequest& req) {
+bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
+
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseHeaders(): Bad stream state"
+        );
+        return false;
+    }
 
     std::string line;
     while (std::getline(ss, line, '\n')) {
@@ -122,7 +152,7 @@ void ParseHeaders(std::stringstream& ss, HttpRequest& req) {
 
         // An empty line marks the end of headers
         if (line.empty()) {
-            return;
+            return true;
         }
 
         size_t colonPos = line.find(':');
@@ -134,9 +164,11 @@ void ParseHeaders(std::stringstream& ss, HttpRequest& req) {
             continue;
         }
 
-        const std::string name  = line.substr(0, colonPos);
+        std::string name  = line.substr(0, colonPos);
         const std::string value = line.substr(colonPos + 2);
 
+        // HTTP Headers are case-insensitive
+        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
         req.headers[name] = value;
 
         // Log::Info(std::format(
@@ -145,24 +177,91 @@ void ParseHeaders(std::stringstream& ss, HttpRequest& req) {
         // ));
     }
 
-    return;
+    return false;
+}
+
+/*
+    @brief Parse the body of an HTTP Request
+    @param ss Message in stringstream format
+    @param req The HttpRequest structure
+
+    @return void
+*/
+bool ParseBody(std::stringstream& ss, HttpRequest& req) {
+
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseBody(): Bad stream state"
+        );
+        return false;
+    }
+
+    auto it = req.headers.find("content-length");
+    if (it == req.headers.end()) {
+        return true;
+    }
+
+    size_t contentLength = std::stoul(it->second);
+    std::string body(contentLength, 0);
+
+    // Read contentLength bytes of data from the stream to body
+    ss.read(body.data(), contentLength);
+
+    // gcount() returns the number of characters extracted by the previous unformatted input
+    // function dispatched for this stream.
+    // Accept the body only if this count matches expected length of `contentLength`
+    if (ss.gcount() == static_cast<std::streamsize>(contentLength)) {
+        req.body = std::move(body);
+        return true;
+    }
+    
+    Log::Error(std::format(
+        "ParseBody(): Incomplete body read, got {} bytes, expected {} from header",
+        ss.gcount(),
+        contentLength
+    ));
+
+    return false;
 }
 
 
 /*
     @brief Parse the HttpRequest message
+    @param ss Message in stringstream format
+
+    @return The request in a `HttpRequest` struct
 */
 HttpRequest HttpParser::ParseHttpRequest(std::stringstream& ss) {
 
-    HttpRequest req;
-    if (ParseStartLine(ss, req) == false) {
-        Log::Error("ParseHttpRequest(): Error while parsing previous request's start line");
+    if (ss.good() == false) {
+        Log::Error(
+            "ParseHttpRequest(): Bad stream state, discarding previous request"
+        );
         return {};
     }
 
-    ParseHeaders(ss, req);
+    HttpRequest req;
+    if (ParseStartLine(ss, req) == false) {
+        Log::Error(
+            "ParseHttpRequest(): Could not parse start line, discarding previous request"
+        );
+        return {};
+    }
+
+    if (ParseHeaders(ss, req) == false) {
+        Log::Error(
+            "ParseHttpRequest(): Could not parse headers, discarding previous request"
+        );
+        return {};
+    }
+
+    if (ParseBody(ss, req) == false) {
+        Log::Error(
+            "ParseHttpRequest(): Could not parse body, discarding previous request"
+        );
+        return {};
+    }
 
     req.PrintMessage();
-
     return req;
 }
