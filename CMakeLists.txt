@@ -33,4 +33,35 @@ add_executable(${PROJECT_NAME}
     src/Utils.cpp
 )
 
+
 target_link_libraries(${PROJECT_NAME} yaml-cpp)
+
+
+# -------- TESTING --------
+
+# Enable testing
+enable_testing()
+
+add_library(
+    knots_lib
+    src/HttpMessage.cpp
+    src/HttpParser.cpp
+    src/HttpServer.cpp
+    src/Router.cpp
+    src/Utils.cpp
+)
+
+target_include_directories(knots_lib PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Download and install GoogleTest
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+)
+FetchContent_MakeAvailable(googletest)
+
+# Add test directory: tests/CMakeLists.txt
+add_subdirectory(tests)
