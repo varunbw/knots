@@ -16,19 +16,6 @@ bool HttpRequest::IsValid() const noexcept {
     return method != HttpMethod::DEFAULT_INVALID;
 }
 
-/*
-    @brief A wrapper to std::unordered_map<>::find(), but converts the given header to lowercase
-    to ensure case-insentivity
-    @param header The header to check
-
-    @return The iterator to the header, or header.end() if not found
-
-    @note The return type is `std::unordered_map<std::string, std::string>::const_iterator`
-*/
-auto HttpRequest::FindHeader(std::string header) const {
-    std::transform(header.begin(), header.end(), header.begin(), ::tolower);
-    return headers.find(header);
-}
 
 /*
     @brief Print a formatted HTTP Response to std::cout
@@ -72,20 +59,6 @@ void HttpRequest::PrintMessage() const {
 */
 bool HttpResponse::IsValid() const noexcept {
     return version != HttpVersion::DEFAULT_INVALID;
-}
-
-/*
-    @brief A wrapper to std::unordered_map<>::find(), but converts the given header to lowercase
-    to ensure case-insentivity
-    @param header The header to check
-
-    @return The iterator to the header, or header.end() if not found
-
-    @note The return type is `std::unordered_map<std::string, std::string>::const_iterator`
-*/
-auto HttpResponse::FindHeader(std::string header) const {
-    std::transform(header.begin(), header.end(), header.begin(), ::tolower);
-    return headers.find(header);
 }
 
 

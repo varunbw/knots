@@ -30,13 +30,48 @@ enum class HttpVersion {
 };
 
 
+/*
+    Case insensitive hash function for string comparison
+    Used for the headers map in HttpRequest and HttpResponse
+
+    @note This does not actually store a lower-case key in the hashmap, the key is just treated
+          as if it were lower-case completely
+*/
+struct CaseInsensitiveHash {
+    size_t operator() (const std::string& key) const {
+        std::string lower = key;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        return std::hash<std::string>{}(lower);
+    }
+};
+
+/*
+    Case insensitive equal function for string comparison
+    Used for the headers map in HttpRequest and HttpResponse
+*/
+struct CaseInsensitiveEqual {
+    bool operator() (const std::string& left, const std::string& right) const {
+        return std::equal(
+            left.begin(), left.end(), right.begin(), right.end(),
+            [] (const char a, const char b) {
+                return ::tolower(a) == ::tolower(b);
+            }
+        );
+    }
+};
+
 struct HttpRequest {
 
     HttpMethod method;
     std::string requestUrl;
     HttpVersion version;
 
-    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<
+        std::string,
+        std::string,
+        CaseInsensitiveHash,
+        CaseInsensitiveEqual
+    > headers;
 
     std::string body;
 
@@ -52,7 +87,9 @@ struct HttpRequest {
         const HttpMethod method,
         const std::string_view requestUrl,
         const HttpVersion version,
-        const std::unordered_map<std::string, std::string> headers,
+        const std::unordered_map<
+            std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
+        > headers,
         const std::string_view body
     ) :
         method(method),
@@ -63,10 +100,8 @@ struct HttpRequest {
     {}
 
     bool IsValid() const noexcept;
-    auto FindHeader(std::string header) const;
     void PrintMessage() const;
 };
-
 
 
 struct HttpResponse {
@@ -75,7 +110,12 @@ struct HttpResponse {
     short int statusCode;
     std::string statusText;
 
-    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<
+        std::string,
+        std::string,
+        CaseInsensitiveHash,
+        CaseInsensitiveEqual
+    > headers;
 
     std::string body;
 
@@ -91,7 +131,9 @@ struct HttpResponse {
         const HttpVersion& version,
         const short int statusCode,
         const std::string_view statusText,
-        const std::unordered_map<std::string, std::string> headers,
+        const std::unordered_map<
+            std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
+        > headers,
         const std::string_view body
     ) :
         version(version),
@@ -102,7 +144,6 @@ struct HttpResponse {
     {}
 
     bool IsValid() const noexcept;
-    auto FindHeader(std::string header) const;
     void PrintMessage() const;
 };
 

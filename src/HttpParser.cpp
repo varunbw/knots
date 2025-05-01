@@ -164,11 +164,11 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
             continue;
         }
 
-        std::string name  = line.substr(0, colonPos);
+        const std::string name  = line.substr(0, colonPos);
         const std::string value = line.substr(colonPos + 2);
 
         // HTTP Headers are case-insensitive
-        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+        // std::transform(name.begin(), name.end(), name.begin(), ::tolower);
         req.headers[name] = value;
 
         // Log::Info(std::format(
