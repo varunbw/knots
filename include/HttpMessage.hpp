@@ -31,6 +31,7 @@ enum class HttpVersion {
 
 
 struct HttpRequest {
+
     HttpMethod method;
     std::string requestUrl;
     HttpVersion version;
@@ -62,9 +63,49 @@ struct HttpRequest {
     {}
 
     bool IsValid() const noexcept;
-    bool HasHeader(const std::string& header) const;
+    auto FindHeader(std::string header) const;
     void PrintMessage() const;
 };
+
+
+
+struct HttpResponse {
+
+    HttpVersion version;
+    short int statusCode;
+    std::string statusText;
+
+    std::unordered_map<std::string, std::string> headers;
+
+    std::string body;
+
+    HttpResponse() :
+        version(HttpVersion::DEFAULT_INVALID),
+        statusCode{},
+        statusText{},
+        headers{},
+        body{}
+    {}
+
+    HttpResponse(
+        const HttpVersion& version,
+        const short int statusCode,
+        const std::string_view statusText,
+        const std::unordered_map<std::string, std::string> headers,
+        const std::string_view body
+    ) :
+        version(version),
+        statusCode(statusCode),
+        statusText(statusText),
+        headers(headers),
+        body(body)
+    {}
+
+    bool IsValid() const noexcept;
+    auto FindHeader(std::string header) const;
+    void PrintMessage() const;
+};
+
 
 /*
     Special formatter to print the HttpMethod and HttpVersion enums
