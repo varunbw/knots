@@ -78,7 +78,7 @@ struct HttpRequest {
     HttpRequest() : 
         method(HttpMethod::DEFAULT_INVALID),
         requestUrl{},
-        version(HttpVersion::HTTP_1_0),
+        version(HttpVersion::DEFAULT_INVALID),
         headers{},
         body{}
     {}
