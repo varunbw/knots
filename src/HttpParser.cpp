@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 
-#include "HttpParser.hpp"
+#include "MessageHandler.hpp"
 #include "HttpMessage.hpp"
 #include "Utils.hpp"
 
@@ -231,7 +231,7 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 
     @return The request in a `HttpRequest` struct
 */
-HttpRequest HttpParser::ParseHttpRequest(std::stringstream& ss) {
+HttpRequest MessageHandler::ParseHttpRequest(std::stringstream& ss) {
 
     if (ss.good() == false) {
         Log::Error(

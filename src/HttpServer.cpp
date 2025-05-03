@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "Utils.hpp"
-#include "HttpParser.hpp"
+#include "MessageHandler.hpp"
 #include "HttpServer.hpp"
 
 HttpServer::HttpServer() :
@@ -256,7 +256,7 @@ void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
 
     // Determine the route
     // ToDo Check if request is valid
-    HttpRequest req = HttpParser::ParseHttpRequest(ss);
+    HttpRequest req = MessageHandler::ParseHttpRequest(ss);
     Route route = m_router.GetRoute(req.requestUrl);
 
     // If route is not valid, return early and send code 400
