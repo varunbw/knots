@@ -12,6 +12,7 @@ knots is a multithreaded HTTP server written in C++. It is designed to handle mu
 ## Project Structure
 - `src/` - Source files
     - `main.cpp` - Entry point of the server
+    - `HttpBuilder.cpp` - HTTP response building logic
     - `HttpMessage.cpp` - Some utility functions for HTTP messages
     - `HttpParser.cpp` - HTTP Request parsing
     - `HttpServer.cpp` - Main server implementation

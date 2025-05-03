@@ -7,7 +7,9 @@
 
 namespace MessageHandler {
     HttpRequest ParseHttpRequest(std::stringstream&);
-    HttpResponse BuildHttpResponse(const std::string& response);
+
+    HttpResponse BuildHttpResponse(const int responseCode, std::string responseBody);
+    std::string SerializeHttpResponse(HttpResponse& res);
 }
 
 #endif

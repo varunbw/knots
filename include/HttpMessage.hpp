@@ -1,6 +1,7 @@
 #ifndef KNOTS_HTTPMESSAGE_HPP
 #define KNOTS_HTTPMESSAGE_HPP
 
+#include <algorithm>
 #include <format>
 #include <map>
 #include <string>
