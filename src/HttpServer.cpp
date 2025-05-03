@@ -231,10 +231,13 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
     const auto fileSize = fileToSend.tellg();
     fileToSend.seekg(0);
 
-    std::vector<char> response(fileSize);
-    fileToSend.read(response.data(), fileSize);
+    std::string responseBody(fileSize, 0);
+    fileToSend.read(responseBody.data(), fileSize);
 
-    if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
+    HttpResponse res = MessageHandler::BuildHttpResponse(400, std::move(responseBody));
+    std::string resStr = MessageHandler::SerializeHttpResponse(res);
+
+    if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
         Log::Error(std::format(
             "HandleRequest(): Error sending response to socket {}: {}",
             clientSocketFD,
@@ -278,10 +281,13 @@ void HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
     const auto fileSize = fileToSend.tellg();
     fileToSend.seekg(0);
 
-    std::vector<char> response(fileSize);
-    fileToSend.read(response.data(), fileSize);
+    std::string responseBody(fileSize, 0);
+    fileToSend.read(responseBody.data(), fileSize);
 
-    if (send(clientSocketFD, response.data(), response.size(), 0) < 0) {
+    HttpResponse res = MessageHandler::BuildHttpResponse(200, std::move(responseBody));
+    std::string resStr = MessageHandler::SerializeHttpResponse(res);
+
+    if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
         Log::Error(std::format(
             "HandleConnection(): Error sending response to socket {}: {}",
             clientSocketFD,
