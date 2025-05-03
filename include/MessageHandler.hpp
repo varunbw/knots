@@ -5,8 +5,9 @@
 
 #include "HttpMessage.hpp"
 
-namespace HttpParser {
+namespace MessageHandler {
     HttpRequest ParseHttpRequest(std::stringstream&);
+    HttpResponse BuildHttpResponse(const std::string& response);
 }
 
 #endif

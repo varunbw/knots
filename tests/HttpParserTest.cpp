@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "HttpParser.hpp"
+#include "MessageHandler.hpp"
 #include "HttpMessage.hpp"
 
 /*
@@ -16,7 +16,7 @@ TEST(HttpParserTest, ParseValidRequest) {
        << "Connection: keep-alive\r\n\r\n"
        << "This is the body of the request";
 
-    HttpRequest req = HttpParser::ParseHttpRequest(ss);
+    HttpRequest req = MessageHandler::ParseHttpRequest(ss);
     
     // Start line
     EXPECT_EQ(req.method, HttpMethod::GET);
