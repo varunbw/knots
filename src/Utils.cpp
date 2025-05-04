@@ -1,6 +1,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 
 #include "Utils.hpp"
 
@@ -61,7 +62,11 @@ void ParseConfigurationFile(const std::string& filePath, HttpServerConfiguration
 
 
 namespace Log {
+
+    std::mutex coutMutex;        
+    
     void Error(const std::string& message) {
+        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
         std::cerr << std::format(
             RED_START "[ERROR]: {}\n" RESET_COLOR,
             message
@@ -69,6 +74,7 @@ namespace Log {
     }
 
     void Warning(const std::string& message) {
+        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
         std::cerr << std::format(
             YELLOW_START "[WARNING]: {}\n" RESET_COLOR,
             message
@@ -76,6 +82,7 @@ namespace Log {
     }
 
     void Success(const std::string& message) {
+        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
         std::cerr << std::format(
             GREEN_START "[SUCCESS]: {}\n" RESET_COLOR,
             message
@@ -83,6 +90,7 @@ namespace Log {
     }
 
     void Info(const std::string& message) {
+        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
         std::cerr << std::format(
             "[INFO]: {}\n",
             message

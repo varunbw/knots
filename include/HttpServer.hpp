@@ -13,7 +13,7 @@ private:
 
     Router m_router;
 
-    void HandleConnection(const int clientSocketFD);
+    void HandleConnection(Socket clientSocket);
     
     bool HandleRequest(std::stringstream& ss, const int clientSocketFD);
     void HandleInvalidRequest(const std::string& requestUrl, const int clientSocketFD);
