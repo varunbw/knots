@@ -1,4 +1,5 @@
 set(TEST_SOURCES
+    HttpBuilderTest.cpp
     HttpParserTest.cpp
     HttpMessageTest.cpp
     RouterTest.cpp
