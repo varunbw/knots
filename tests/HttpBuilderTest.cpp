@@ -24,10 +24,10 @@ TEST(HttpBuilderTest, BuildResponse_Code200) {
     EXPECT_EQ(res.statusText, "OK");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 4);
+    EXPECT_EQ(res.headers.size(), 3);
     EXPECT_EQ(res.headers["Content-Type"], "text/html");
     EXPECT_EQ(res.headers["Content-Length"], "12");
-    EXPECT_EQ(res.headers["Connection"], "close");
+    // EXPECT_EQ(res.headers["Connection"], "close");
     EXPECT_EQ(res.headers["Server"], "knots/0.1");
 
     // Body
@@ -52,10 +52,10 @@ TEST(HttpBuilderTest, BuildResponse_Code400) {
     EXPECT_EQ(res.statusText, "Bad Request");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 4);
+    EXPECT_EQ(res.headers.size(), 3);
     EXPECT_EQ(res.headers["Content-Type"], "text/html");
     EXPECT_EQ(res.headers["Content-Length"], "11");
-    EXPECT_EQ(res.headers["Connection"], "close");
+    // EXPECT_EQ(res.headers["Connection"], "close");
     EXPECT_EQ(res.headers["Server"], "knots/0.1");
 
     // Body
@@ -80,10 +80,10 @@ TEST(HttpBuilderTest, BuildResponse_Code404) {
     EXPECT_EQ(res.statusText, "Not Found");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 4);
+    EXPECT_EQ(res.headers.size(), 3);
     EXPECT_EQ(res.headers["Content-Type"], "text/html");
     EXPECT_EQ(res.headers["Content-Length"], "9");
-    EXPECT_EQ(res.headers["Connection"], "close");
+    // EXPECT_EQ(res.headers["Connection"], "close");
     EXPECT_EQ(res.headers["Server"], "knots/0.1");
 
     // Body

@@ -106,7 +106,7 @@ HttpResponse MessageHandler::BuildHttpResponse(const int responseCode, std::stri
     // Only limited headers added for now
     res.headers["Content-Type"] = "text/html";
     res.headers["Content-Length"] = std::to_string(responseBody.size());
-    res.headers["Connection"] = "close";
+    // res.headers["Connection"] = "keep-alive";
     res.headers["Server"] = "knots/0.1";
 
     // Body
