@@ -1,5 +1,5 @@
 # knots
-knots is a multithreaded HTTP server written in C++. It is designed to handle multiple requests concurrently using threads (coming soon), and can serve static files.
+knots is a multithreaded HTTP server written in C++. It is designed to handle multiple requests concurrently using threads, and can serve static files.
 
 ## Requirements
 - C++20 or later

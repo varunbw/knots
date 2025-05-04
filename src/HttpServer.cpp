@@ -15,6 +15,9 @@
 #include <string.h>
 #include <vector>
 
+// Multithreading
+#include <thread>
+
 #include "Utils.hpp"
 #include "MessageHandler.hpp"
 #include "HttpServer.hpp"
@@ -204,8 +207,15 @@ void HttpServer::AcceptConnections() {
             ));
         }
 
-        HandleConnection(clientSocketFD);
-        close(clientSocketFD);
+        // HandleConnection(Socket(clientSocketFD));
+
+        std::jthread connHandlerThread(
+            [this] (const int clientSocketFD) {
+                this->HandleConnection(Socket(clientSocketFD));
+            },
+            clientSocketFD
+        );
+        connHandlerThread.detach();
     }
 
     return;
@@ -218,17 +228,19 @@ void HttpServer::AcceptConnections() {
     @param clientAddress The address of the client
     @return void
 */
-void HttpServer::HandleConnection(const int clientSocketFD) {
+void HttpServer::HandleConnection(Socket clientSocket) {
 
     /*
         If the options could not be set, don't process the request further, as it
         could lead to this thread being permamently occupied by the same client if the client
         does not close the connection
     */
-    if (SetClientSocketOptions(clientSocketFD) == false) {
+    if (SetClientSocketOptions(clientSocket.get()) == false) {
+        // ToDo: Extract this, and HandleInvalidRequest() to a common function, along with any
+        // other errors
         Log::Error(std::format(
             "Failed to set socket options for socket {}",
-            clientSocketFD
+            clientSocket.get()
         ));
 
         const std::string errorFileName = "static/server-error.html";
@@ -251,14 +263,15 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
         HttpResponse res = MessageHandler::BuildHttpResponse(500, responseBody);
         std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-        if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
+        if (send(clientSocket.get(), resStr.data(), resStr.size(), 0) < 0) {
             Log::Error(std::format(
                 "HandleConnection(): Error sending response to socket {}: {}",
-                clientSocketFD,
+                clientSocket.get(),
                 strerror(errno)
             ));
         }
-        
+
+        // close(clientSocket.get());
         return;
     }
 
@@ -268,7 +281,7 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
     std::vector<char> buffer(bufferSize);
 
     while (true) {
-        ssize_t bytesRead = read(clientSocketFD, buffer.data(), bufferSize);
+        ssize_t bytesRead = read(clientSocket.get(), buffer.data(), bufferSize);
 
         if (bytesRead == 0)
             break;
@@ -280,7 +293,7 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
             else {
                 Log::Error(std::format(
                     "HandleConnection(): Error reading from socket {}: {}",
-                    clientSocketFD,
+                    clientSocket.get(),
                     strerror(errno)
                 ));
                 break;
@@ -294,14 +307,15 @@ void HttpServer::HandleConnection(const int clientSocketFD) {
             HandleRequest() returns whether or not to keep a connection alive
             If false, break the loop here and stop this connection
         */
-        if (HandleRequest(ss, clientSocketFD) == false) {
+        if (HandleRequest(ss, clientSocket.get()) == false) {
             break;
         }
     }
 
+    // close(clientSocket.get());
     Log::Warning(std::format(
         "HandleConnection(): Connection closed by client {}",
-        clientSocketFD
+        clientSocket.get()
     ));
 
     return;
@@ -364,7 +378,6 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
 bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) {
 
     // Determine the route
-    // ToDo Check if request is valid
     HttpRequest req = MessageHandler::ParseHttpRequest(ss);
     Route route = m_router.GetRoute(req.requestUrl);
 
