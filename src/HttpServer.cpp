@@ -16,11 +16,23 @@
 // Multithreading
 #include <thread>
 
-#include "Utils.hpp"
-#include "MessageHandler.hpp"
+#include "FileHandler.hpp"
 #include "HttpServer.hpp"
+#include "MessageHandler.hpp"
 #include "NetworkIO.hpp"
+#include "Utils.hpp"
 
+/*
+    @brief Set up the HTTP server
+
+    This takes no parameters for now, server options set are as follows:
+        - m_isRunning = false
+        - m_address = 
+        - m_addrlen = 
+        - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
+        - m_serverPort = 
+        - m_router = "config/routes.yaml"
+*/
 HttpServer::HttpServer() :
     m_isRunning(false),
     m_address{},
@@ -184,7 +196,13 @@ bool HttpServer::SetClientSocketOptions(const int clientSocketFD) const {
 */
 void HttpServer::AcceptConnections() {
 
+    /*
+        Only accept connections as long as m_isRunning is set to true
+        For testing purposes as of now, this is changed to false when the server receives 
+        a HTTP request with a header "CloseServer: true"
+    */
     while (m_isRunning) {
+        // Socket information for the client
         sockaddr_in clientAddress{};
         socklen_t clientAddressLen = sizeof(m_address);
 
@@ -195,10 +213,12 @@ void HttpServer::AcceptConnections() {
         );
 
         if (clientSocketFD < 0) {
+            // Timeout
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             }
             
+            // If the above condition is not satisfied, its an error
             Log::Error(std::format(
                 "AcceptConnection(): Could not accept connection"
             ));
@@ -212,6 +232,8 @@ void HttpServer::AcceptConnections() {
             ));
         }
 
+        // Spin up a new thread to handle this particular connection
+        // ToDo: Implement a thread pool
         std::jthread connHandlerThread(
             [this] (const int clientSocketFD) {
                 this->HandleConnection(Socket(clientSocketFD));
@@ -248,22 +270,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 
         const std::string errorFileName = "static/server-error.html";
 
-        std::ifstream errorFile(errorFileName, std::ios::binary | std::ios::ate);
-        if (errorFile.is_open() == false) {
-            Log::Error(std::format(
-                "HandleConnection(): Could not open {}, file to send for HTTP 500",
-                errorFileName
-            ));
-            return;
-        }
-        
-        const auto fileSize = errorFile.tellg();
-        errorFile.seekg(0);
-
-        std::string responseBody(fileSize, 0);
-        errorFile.read(responseBody.data(), fileSize);
-
-        HttpResponse res = MessageHandler::BuildHttpResponse(500, responseBody);
+        HttpResponse res = FileHandler::MakeHttpResponseFromFile(500, errorFileName);
         std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
         NetworkIO::Send(clientSocket.get(), resStr, 0);
@@ -334,23 +341,8 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
 
     // ! ToDo: See where this can be improved
     const std::string invalidRequestFilePath = "static/invalid-request.html";
-    std::ifstream fileToSend(invalidRequestFilePath, std::ios::binary | std::ios::ate);
 
-    if (fileToSend.is_open() == false) {
-        Log::Error(std::format(
-            "HandleInvalidRequest(): Could not open response file {}",
-            invalidRequestFilePath
-        ));
-        return;
-    }
-
-    const auto fileSize = fileToSend.tellg();
-    fileToSend.seekg(0);
-
-    std::string responseBody(fileSize, 0);
-    fileToSend.read(responseBody.data(), fileSize);
-
-    HttpResponse res = MessageHandler::BuildHttpResponse(400, std::move(responseBody));
+    HttpResponse res = FileHandler::MakeHttpResponseFromFile(400, invalidRequestFilePath);
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
     NetworkIO::Send(clientSocketFD, resStr, 0);
@@ -389,23 +381,8 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
         return false;
     }
 
-    // Valid route found, send the response
-    std::ifstream fileToSend(route.filePath, std::ios::binary | std::ios::ate);
-    if (fileToSend.is_open() == false) {
-        Log::Error(std::format(
-            "HandleConnection(): Could not open response file {}",
-            route.filePath
-        ));
-        return true;
-    }
-
-    const auto fileSize = fileToSend.tellg();
-    fileToSend.seekg(0);
-
-    std::string responseBody(fileSize, 0);
-    fileToSend.read(responseBody.data(), fileSize);
-
-    HttpResponse res = MessageHandler::BuildHttpResponse(200, std::move(responseBody));
+    // Valid route found
+    HttpResponse res = FileHandler::MakeHttpResponseFromFile(200, route.filePath);
 
     /*
         Determine whether to keep the connection alive or not
