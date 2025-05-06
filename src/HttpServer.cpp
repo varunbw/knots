@@ -1,19 +1,17 @@
-#include <iostream>
+#include <algorithm>
+#include <format>
 #include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <string.h>
+#include <vector>
 
 // Networking
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-// Std lib
-#include <algorithm>
-#include <format>
-#include <stdexcept>
-#include <string>
-#include <string.h>
-#include <vector>
 
 // Multithreading
 #include <thread>
@@ -23,9 +21,12 @@
 #include "HttpServer.hpp"
 
 HttpServer::HttpServer() :
+    m_isRunning(false),
+    m_address{},
+    m_addrlen{},
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
-    m_router("config/routes.yaml")
-    {
+    m_serverPort{},
+    m_router("config/routes.yaml") {
 
     // Check if the socket was created successfully
     if (m_serverSocket.get() < 0) {
@@ -110,6 +111,9 @@ HttpServer::HttpServer() :
         ));
     }
 
+    // Mark server as running
+    m_isRunning = true;
+
     // Ready to go
     Log::Info(
         std::format("HttpServer(): Server listening on port {}, max {} connections",
@@ -179,7 +183,7 @@ bool HttpServer::SetClientSocketOptions(const int clientSocketFD) const {
 */
 void HttpServer::AcceptConnections() {
 
-    while (true) {
+    while (m_isRunning) {
         sockaddr_in clientAddress{};
         socklen_t clientAddressLen = sizeof(m_address);
 
@@ -206,8 +210,6 @@ void HttpServer::AcceptConnections() {
                 clientSocketFD
             ));
         }
-
-        // HandleConnection(Socket(clientSocketFD));
 
         std::jthread connHandlerThread(
             [this] (const int clientSocketFD) {
@@ -385,6 +387,25 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
     if (route.IsValid() == false) {
         HandleInvalidRequest(req.requestUrl, clientSocketFD);
         return true;
+    }
+
+    // ! ToDo Just for testing, remove this
+    if (req.headers["CloseServer"] == "true") {
+        HttpResponse res = MessageHandler::BuildHttpResponse(200, std::string("Server shut down"));
+        std::string resStr = MessageHandler::SerializeHttpResponse(res);
+
+        if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
+            Log::Error(std::format(
+                "HandleConnection(): Error sending response to socket {}: {}",
+                clientSocketFD,
+                strerror(errno)
+            ));
+            return false;
+        }
+
+        shutdown(m_serverSocket.get(), SHUT_RD);
+        m_isRunning = false;
+        return false;
     }
 
     // Valid route found, send the response
