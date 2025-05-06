@@ -22,6 +22,7 @@ find_package(yaml-cpp REQUIRED)
 # Library Target
 add_library(
     knots_lib
+    src/FileHandler.cpp
     src/HttpBuilder.cpp
     src/HttpMessage.cpp
     src/HttpParser.cpp
