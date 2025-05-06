@@ -26,6 +26,7 @@ add_library(
     src/HttpMessage.cpp
     src/HttpParser.cpp
     src/HttpServer.cpp
+    src/NetworkIO.cpp
     src/Router.cpp
     src/Utils.cpp
 )

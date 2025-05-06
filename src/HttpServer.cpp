@@ -19,6 +19,7 @@
 #include "Utils.hpp"
 #include "MessageHandler.hpp"
 #include "HttpServer.hpp"
+#include "NetworkIO.hpp"
 
 HttpServer::HttpServer() :
     m_isRunning(false),
@@ -265,15 +266,8 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         HttpResponse res = MessageHandler::BuildHttpResponse(500, responseBody);
         std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-        if (send(clientSocket.get(), resStr.data(), resStr.size(), 0) < 0) {
-            Log::Error(std::format(
-                "HandleConnection(): Error sending response to socket {}: {}",
-                clientSocket.get(),
-                strerror(errno)
-            ));
-        }
+        NetworkIO::Send(clientSocket.get(), resStr, 0);
 
-        // close(clientSocket.get());
         return;
     }
 
@@ -359,13 +353,7 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
     HttpResponse res = MessageHandler::BuildHttpResponse(400, std::move(responseBody));
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-    if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
-        Log::Error(std::format(
-            "HandleRequest(): Error sending response to socket {}: {}",
-            clientSocketFD,
-            strerror(errno)
-        ));
-    }
+    NetworkIO::Send(clientSocketFD, resStr, 0);
 
     return;
 }
@@ -394,14 +382,7 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
         HttpResponse res = MessageHandler::BuildHttpResponse(200, std::string("Server shut down"));
         std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-        if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
-            Log::Error(std::format(
-                "HandleConnection(): Error sending response to socket {}: {}",
-                clientSocketFD,
-                strerror(errno)
-            ));
-            return false;
-        }
+        NetworkIO::Send(clientSocketFD, resStr, 0);
 
         shutdown(m_serverSocket.get(), SHUT_RD);
         m_isRunning = false;
@@ -450,14 +431,7 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
 
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-    if (send(clientSocketFD, resStr.data(), resStr.size(), 0) < 0) {
-        Log::Error(std::format(
-            "HandleConnection(): Error sending response to socket {}: {}",
-            clientSocketFD,
-            strerror(errno)
-        ));
-        return false;
-    }
+    NetworkIO::Send(clientSocketFD, resStr, 0);
 
     return keepConnectionAlive;
 }
