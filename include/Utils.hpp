@@ -11,7 +11,7 @@
 */
 struct HttpServerConfiguration {
     int port;
-    std::string rootDirectory;
+    std::string routesPath;
     int maxConnections;
 };
 
@@ -21,7 +21,7 @@ struct HttpServerConfiguration {
     @param config The configuration object to fill with the parsed values
     @return void
 */
-void ParseConfigurationFile(const std::string& filePath, HttpServerConfiguration& config);
+HttpServerConfiguration ParseConfigurationFile(const std::string& filePath);
 
 
 namespace Log {
