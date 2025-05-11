@@ -1,11 +1,14 @@
 #ifndef KNOTS_HTTPSERVER_HPP
 #define KNOTS_HTTPSERVER_HPP
 
+#include <arpa/inet.h>
+#include <mutex>
 #include <thread>
 
 #include "Router.hpp"
 #include "Socket.hpp"
 #include "HttpMessage.hpp"
+#include "ThreadPool.hpp"
 
 class HttpServer {
 private:
@@ -17,6 +20,9 @@ private:
     int m_serverPort;
 
     Router m_router;
+
+    ThreadPool m_threadPool;
+    std::mutex m_threadPoolMutex;
 
     void HandleConnection(Socket clientSocket);
     bool HandleRequest(std::stringstream& ss, const Socket& clientSocketFD);

@@ -29,6 +29,7 @@ add_library(
     src/HttpServer.cpp
     src/NetworkIO.cpp
     src/Router.cpp
+    src/ThreadPool.cpp
     src/Utils.cpp
 )
 
