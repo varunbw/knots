@@ -20,6 +20,7 @@
 #include "HttpServer.hpp"
 #include "MessageHandler.hpp"
 #include "NetworkIO.hpp"
+#include "ThreadPool.hpp"
 #include "Utils.hpp"
 
 /*
@@ -39,7 +40,8 @@ HttpServer::HttpServer() :
     m_addrlen{},
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
     m_serverPort{},
-    m_router("config/routes.yaml") {
+    m_router("config/routes.yaml"),
+    m_threadPool(5) {
 
     // Check if the socket was created successfully
     if (m_serverSocket.get() < 0) {
@@ -232,15 +234,15 @@ void HttpServer::AcceptConnections() {
             ));
         }
 
-        // Spin up a new thread to handle this particular connection
-        // ToDo: Implement a thread pool
-        std::jthread connHandlerThread(
-            [this] (const int clientSocketFD) {
-                this->HandleConnection(Socket(clientSocketFD));
-            },
-            clientSocketFD
-        );
-        connHandlerThread.detach();
+        // Enqueue a job in the thread pool
+        {
+            std::scoped_lock<std::mutex> lock(m_threadPoolMutex);
+            m_threadPool.EnqueueJob(
+                [this, clientSocketFD] () {
+                    HandleConnection(Socket(clientSocketFD));
+                }
+            );
+        }
     }
 
     return;
