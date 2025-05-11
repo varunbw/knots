@@ -9,6 +9,7 @@
 #include "Socket.hpp"
 #include "HttpMessage.hpp"
 #include "ThreadPool.hpp"
+#include "Utils.hpp"
 
 class HttpServer {
 private:
@@ -32,7 +33,7 @@ private:
     bool SetClientSocketOptions(const Socket& clientSocket) const;
     
 public:
-    explicit HttpServer();
+    explicit HttpServer(HttpServerConfiguration& config);
 
     void AcceptConnections();
 };

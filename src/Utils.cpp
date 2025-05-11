@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
+#include <yaml-cpp/yaml.h>
 
 #include "Utils.hpp"
 
@@ -21,42 +22,38 @@
     @param config The configuration object to fill with the parsed values
     @return void
 */
-void ParseConfigurationFile(const std::string& filePath, HttpServerConfiguration& config) {
+HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
 
-    std::ifstream configFile(filePath);
-    if (configFile.is_open() == false) {
-        throw std::runtime_error(MakeErrorMessage(
-            std::format("ParseConfigurationFile(): Failed to open {}", filePath)
-        ));
+    YAML::Node yaml;
+    HttpServerConfiguration config;
+    
+    try {
+        yaml = YAML::LoadFile(filePath);
+    }
+    catch (YAML::ParserException& e) {
+        throw std::runtime_error(MakeErrorMessage(std::format(
+            "Failed to parse configuration file: {}",
+            e.what()
+        )));
+    }
+    catch (YAML::BadFile& e) {
+        throw std::runtime_error(MakeErrorMessage(std::format(
+            "Configuration file not found: {}",
+            filePath
+        )));
+    }
+    catch (YAML::Exception& e) {
+        throw std::runtime_error(MakeErrorMessage(std::format(
+            "Unknown error while parsing configuration file: {}",
+            filePath
+        )));
     }
 
-    std::string line;
-    while (getline(configFile, line)) {
-        try {
-            if (line.find("port") != std::string::npos) {
-                config.port = stoi(line.substr(line.find("=") + 1));
-            }
-            else if (line.find("root-directory") != std::string::npos) {
-                // ToDo Sanitize input
-                config.rootDirectory = line.substr(line.find("=") + 1);
+    config.port = yaml["port"].as<int>();
+    config.routesPath = yaml["routes-path"].as<std::string>();
+    config.maxConnections = yaml["max-connections"].as<int>();
 
-                // Remove leading and trailing `"`
-                config.rootDirectory.erase(config.rootDirectory.begin());
-                config.rootDirectory.pop_back();
-            }
-            else if (line.find("max-connections") != std::string::npos) {
-                config.maxConnections = stoi(line.substr(line.find("=") + 1));
-            }
-        }
-        catch (const std::invalid_argument& e) {
-            throw std::invalid_argument(MakeErrorMessage(
-                std::format("ParseConfigurationFile(): Failed to parse parameter: {}", line)
-            ));
-        }
-    }
-
-    configFile.close();
-    return;
+    return config;
 }
 
 

@@ -28,20 +28,14 @@
 
     This takes no parameters for now, server options set are as follows:
         - m_isRunning = false
-        - m_address = 
-        - m_addrlen = 
         - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
-        - m_serverPort = 
         - m_router = "config/routes.yaml"
 */
-HttpServer::HttpServer() :
+HttpServer::HttpServer(HttpServerConfiguration& config) :
     m_isRunning(false),
-    m_address{},
-    m_addrlen{},
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
-    m_serverPort{},
-    m_router("config/routes.yaml"),
-    m_threadPool(5) {
+    m_router(config.routesPath),
+    m_threadPool(config.maxConnections) {
 
     // Check if the socket was created successfully
     if (m_serverSocket.get() < 0) {
@@ -51,8 +45,8 @@ HttpServer::HttpServer() :
     }
 
     // Parse the configuration file (no way you could've understood what this was)
-    HttpServerConfiguration config;
-    ParseConfigurationFile("config/main.conf", config);
+    // HttpServerConfiguration config;
+    // ParseConfigurationFile("config/main.conf", config);
 
     Log::Info(std::format(
         "Attempting to start server on port {}",

@@ -61,5 +61,5 @@ FetchContent_MakeAvailable(googletest)
 add_subdirectory(tests)
 
 # Copy configuration files to the build directory
+configure_file(${CMAKE_SOURCE_DIR}/config/config.yaml ${CMAKE_BINARY_DIR}/config/config.yaml COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/config/routes.yaml ${CMAKE_BINARY_DIR}/config/routes.yaml COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/config/main.conf ${CMAKE_BINARY_DIR}/config/main.conf COPYONLY)

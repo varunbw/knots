@@ -4,7 +4,9 @@
 
 int main(void) {
 
-    HttpServer server;
+    HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
+
+    HttpServer server(config);
     server.AcceptConnections();
 
     Log::Info("Stopping server...");
