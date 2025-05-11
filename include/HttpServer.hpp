@@ -5,6 +5,7 @@
 
 #include "Router.hpp"
 #include "Socket.hpp"
+#include "HttpMessage.hpp"
 
 class HttpServer {
 private:
@@ -18,11 +19,11 @@ private:
     Router m_router;
 
     void HandleConnection(Socket clientSocket);
-    
-    bool HandleRequest(std::stringstream& ss, const int clientSocketFD);
-    void HandleInvalidRequest(const std::string& requestUrl, const int clientSocketFD);
+    bool HandleRequest(std::stringstream& ss, const Socket& clientSocketFD);
 
-    bool SetClientSocketOptions(const int clientSocketFD) const;
+    void HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const;
+    
+    bool SetClientSocketOptions(const Socket& clientSocket) const;
     
 public:
     explicit HttpServer();
