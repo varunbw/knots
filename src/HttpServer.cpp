@@ -142,7 +142,7 @@ HttpServer::HttpServer() :
 
     @return `true` if options could be set successfully, `false` otherwise
 */
-bool HttpServer::SetClientSocketOptions(const int clientSocketFD) const {
+bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
 
     // Set receive timeout
     constexpr struct timeval timeout{
@@ -174,10 +174,10 @@ bool HttpServer::SetClientSocketOptions(const int clientSocketFD) const {
     };
 
     for (const SocketOption& opt : options) {
-        if (setsockopt(clientSocketFD, opt.level, opt.option, opt.value, opt.len) < 0) {
+        if (setsockopt(clientSocket.get(), opt.level, opt.option, opt.value, opt.len) < 0) {
             Log::Error(std::format(
                 "SetClientSocketOptions(): Could not set options for socket {}",
-                clientSocketFD
+                clientSocket.get()
             ));
             return false;
         }
@@ -260,20 +260,13 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         could lead to this thread being permamently occupied by the same client if the client
         does not close the connection
     */
-    if (SetClientSocketOptions(clientSocket.get()) == false) {
-        // ToDo: Extract this, and HandleInvalidRequest() to a common function, along with any
-        // other errors
+    if (SetClientSocketOptions(clientSocket) == false) {
         Log::Error(std::format(
             "Failed to set socket options for socket {}",
             clientSocket.get()
         ));
 
-        const std::string errorFileName = "static/server-error.html";
-
-        HttpResponse res = FileHandler::MakeHttpResponseFromFile(500, errorFileName);
-        std::string resStr = MessageHandler::SerializeHttpResponse(res);
-
-        NetworkIO::Send(clientSocket.get(), resStr, 0);
+        HandleError(500, {}, clientSocket);
 
         return;
     }
@@ -310,7 +303,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             HandleRequest() returns whether or not to keep a connection alive
             If false, break the loop here and stop this connection
         */
-        if (HandleRequest(ss, clientSocket.get()) == false) {
+        if (HandleRequest(ss, clientSocket) == false) {
             break;
         }
     }
@@ -325,27 +318,61 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 }
 
 
-/*
-    @brief Handle an invalid request by sending a HTTP 400 code, along with some body
-    @param requestUrl The invalid request url
-    @param clientSocketFD The socketFD for the client
+void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
 
-    @return void
-*/
-void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int clientSocketFD) {
+    HttpResponse res;
 
-    Log::Error(std::format(
-        "HandleRequest(): Invalid request for URL {}",
-        requestUrl
-    ));
+    switch (statusCode) {
+        // HTTP 400 - Bad Request
+        case 400:
+            res = MessageHandler::BuildHttpResponse(400, std::format(
+                "<!DOCTYPE html>\n<html>\n<body>\n"
+                "    <h1 align='center'>400 Bad Request</h1>\n"
+                "    <p align='center'>The request URL <b>{}</b> is invalid.</p>\n"
+                "    <p align='center'>Please check the URL and try again.</p>\n"
+                "</body>\n</html>\n",
+                req.requestUrl
+            ));
 
-    // ! ToDo: See where this can be improved
-    const std::string invalidRequestFilePath = "static/invalid-request.html";
+            break;
 
-    HttpResponse res = FileHandler::MakeHttpResponseFromFile(400, invalidRequestFilePath);
+        // HTTP 500 - Internal Server Error
+        case 500:
+            res = MessageHandler::BuildHttpResponse(500, std::string(
+                "<!DOCTYPE html>\n<html>\n<body>\n"
+                "   <h1 align='center'>500 Internal Server Error</h1>\n"
+                "   <p align='center'>The server encountered an error while processing your request.</p>\n"
+                "   <p align='center'>Please try again later.</p>\n"
+                "</body>\n</html>\n"
+            ));
+            
+            res.headers["Connection"] = "close";
+        break;
+
+        // Some other error
+        default:
+            Log::Error(std::format(
+                "Server encounted error {} that's not specifically handled",
+                statusCode
+            ));
+        
+            res = MessageHandler::BuildHttpResponse(statusCode, "");
+            res.body = std::format(
+                "<!DOCTYPE html>\n<html>\n<body>\n"
+                "   <h1 align='center'>HTTP Code {}</h1>\n"
+                "   <p align='center'>The server encountered an unexpected error.</p>\n"
+                "   <p align='center'>Please try again later.</p>\n"
+                "</body>\n</html>\n",
+                statusCode
+            );
+            break;
+
+            res.headers["Connection"] = "close";
+            break;
+    }
+
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
-
-    NetworkIO::Send(clientSocketFD, resStr, 0);
+    NetworkIO::Send(clientSocket.get(), resStr, 0);
 
     return;
 }
@@ -357,15 +384,15 @@ void HttpServer::HandleInvalidRequest(const std::string& requestUrl, const int c
 
     @return `true` if connection is to be kept alive, `false` if not
 */
-bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) {
+bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket) {
 
     // Determine the route
     HttpRequest req = MessageHandler::ParseHttpRequest(ss);
     Route route = m_router.GetRoute(req.requestUrl);
 
-    // If route is not valid, return early and send code 400
+    // If route is not valid, send code 400 and return
     if (route.IsValid() == false) {
-        HandleInvalidRequest(req.requestUrl, clientSocketFD);
+        HandleError(400, {}, clientSocket);
         return true;
     }
 
@@ -374,7 +401,7 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
         HttpResponse res = MessageHandler::BuildHttpResponse(200, std::string("Server shut down"));
         std::string resStr = MessageHandler::SerializeHttpResponse(res);
 
-        NetworkIO::Send(clientSocketFD, resStr, 0);
+        NetworkIO::Send(clientSocket.get(), resStr, 0);
 
         shutdown(m_serverSocket.get(), SHUT_RD);
         m_isRunning = false;
@@ -407,8 +434,7 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const int clientSocketFD) 
     }
 
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
-
-    NetworkIO::Send(clientSocketFD, resStr, 0);
+    NetworkIO::Send(clientSocket.get(), resStr, 0);
 
     return keepConnectionAlive;
 }
