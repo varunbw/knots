@@ -33,6 +33,7 @@ private:
     bool SetClientSocketOptions(const Socket& clientSocket) const;
     
 public:
+    ~HttpServer();
     explicit HttpServer(HttpServerConfiguration& config);
 
     void AcceptConnections();
