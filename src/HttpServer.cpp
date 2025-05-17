@@ -132,6 +132,10 @@ HttpServer::HttpServer(HttpServerConfiguration& config) :
 }
 
 
+HttpServer::~HttpServer() {
+    m_threadPool.Stop();
+}
+
 /*
     @brief Set various socket options for the client's socket, check note for more details
     @param clientSocketFD The socket FD for the client
@@ -212,6 +216,11 @@ void HttpServer::AcceptConnections() {
             // Timeout
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
+            }
+
+            if (errno == EINVAL) {
+                Log::Info("AcceptConnections(): Server socket has been closed");
+                break;
             }
             
             // If the above condition is not satisfied, its an error
@@ -295,12 +304,20 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         ss.write(buffer.data(), bytesRead);
         buffer.clear();
 
-        /*
-            HandleRequest() returns whether or not to keep a connection alive
-            If false, break the loop here and stop this connection
-        */
-        if (HandleRequest(ss, clientSocket) == false) {
-            break;
+        try {
+            /*
+                HandleRequest() returns whether or not to keep a connection alive
+                If false, break the loop here and stop this connection
+            */
+            if (HandleRequest(ss, clientSocket) == false) {
+                break;
+            }
+        }
+        catch (std::system_error& e) {
+            Log::Warning(std::format(
+                "Caught system error: {}",
+                e.what()
+            ));
         }
     }
 
@@ -399,8 +416,18 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket
 
         NetworkIO::Send(clientSocket.get(), resStr, 0);
 
+        /*
+            Shutdown the server socket and set its running state to false
+            - Shutting down the socket makes the blocking `accept()` return in `AcceptConnections()`
+            - Setting `m_isRunning` to false makes the loop terminate in above mentioned function
+
+            @note Since a worker thread is running this function, calling `m_threadPool.Stop()` here
+            would result in a deadlock since it would try to join itself
+            Hence, its not called here, and the thread pool cleanup is left to the server destructor
+        */
         shutdown(m_serverSocket.get(), SHUT_RD);
         m_isRunning = false;
+
         return false;
     }
 
