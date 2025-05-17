@@ -120,6 +120,14 @@ HttpServer::HttpServer(HttpServerConfiguration& config) :
         ));
     }
 
+    // Spin up a thread to listen to console input
+    std::jthread consoleInputHandlerThread(
+        [this] () {
+            this->HandleConsoleInput();
+        }
+    );
+    consoleInputHandlerThread.detach();
+
     // Mark server as running
     m_isRunning = true;
 
@@ -128,13 +136,60 @@ HttpServer::HttpServer(HttpServerConfiguration& config) :
         std::format("HttpServer(): Server listening on port {}, max {} connections",
         config.port, config.maxConnections
     ));
+    
     return;
 }
 
 
+/*
+    @brief Destructor for HttpServer, handles thread pool cleanup
+*/
 HttpServer::~HttpServer() {
     m_threadPool.Stop();
 }
+
+
+/*
+    @brief Listen for console input
+    @return void
+*/
+void HttpServer::HandleConsoleInput() {
+
+    std::string buffer;
+    while (std::cin >> buffer) {
+        if (buffer == "stop" || buffer == "exit" || buffer == "quit") {
+            Shutdown();
+            return;
+        }
+    }
+
+    return;
+}
+
+
+/*
+    @brief Gracefully shutdown the server
+    @return void
+
+    Calls shutdown() on the server socket, and sets m_isRunning to false
+*/
+void HttpServer::Shutdown() {
+
+    m_isRunning = false;
+
+    // Shut down all active connections
+    {
+        std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+        for (int clientSocketFd : m_activeClientSockets)
+            shutdown(clientSocketFd, SHUT_RD);
+    }
+    
+    // Shutdown the server socket
+    shutdown(m_serverSocket.get(), SHUT_RD);
+
+    return;
+}
+
 
 /*
     @brief Set various socket options for the client's socket, check note for more details
@@ -237,6 +292,11 @@ void HttpServer::AcceptConnections() {
             ));
         }
 
+        {
+            std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+            m_activeClientSockets.insert(clientSocketFD);
+        }
+
         // Enqueue a job in the thread pool
         {
             std::scoped_lock<std::mutex> lock(m_threadPoolMutex);
@@ -281,7 +341,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
     constexpr int bufferSize = 32768;
     std::vector<char> buffer(bufferSize);
 
-    while (true) {
+    while (m_isRunning) {
         ssize_t bytesRead = read(clientSocket.get(), buffer.data(), bufferSize);
 
         if (bytesRead == 0)
@@ -304,26 +364,19 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         ss.write(buffer.data(), bytesRead);
         buffer.clear();
 
-        try {
-            /*
-                HandleRequest() returns whether or not to keep a connection alive
-                If false, break the loop here and stop this connection
-            */
-            if (HandleRequest(ss, clientSocket) == false) {
-                break;
-            }
-        }
-        catch (std::system_error& e) {
-            Log::Warning(std::format(
-                "Caught system error: {}",
-                e.what()
-            ));
+        /*
+            HandleRequest() returns whether or not to keep a connection alive
+            If false, break the loop here and stop this connection
+        */
+        if (HandleRequest(ss, clientSocket) == false) {
+            break;
         }
     }
 
-    // close(clientSocket.get());
+    m_activeClientSockets.erase(clientSocket.get());
+
     Log::Warning(std::format(
-        "HandleConnection(): Connection closed by client {}",
+        "HandleConnection(): Connection closed to client {}",
         clientSocket.get()
     ));
 
@@ -409,55 +462,26 @@ bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket
         return true;
     }
 
-    // ! ToDo Just for testing, remove this
-    if (req.headers["CloseServer"] == "true") {
-        HttpResponse res = MessageHandler::BuildHttpResponse(200, std::string("Server shut down"));
-        std::string resStr = MessageHandler::SerializeHttpResponse(res);
-
-        NetworkIO::Send(clientSocket.get(), resStr, 0);
-
-        /*
-            Shutdown the server socket and set its running state to false
-            - Shutting down the socket makes the blocking `accept()` return in `AcceptConnections()`
-            - Setting `m_isRunning` to false makes the loop terminate in above mentioned function
-
-            @note Since a worker thread is running this function, calling `m_threadPool.Stop()` here
-            would result in a deadlock since it would try to join itself
-            Hence, its not called here, and the thread pool cleanup is left to the server destructor
-        */
-        shutdown(m_serverSocket.get(), SHUT_RD);
-        m_isRunning = false;
-
-        return false;
-    }
-
     // Valid route found
     HttpResponse res = FileHandler::MakeHttpResponseFromFile(200, route.filePath);
 
-    /*
-        Determine whether to keep the connection alive or not
-        This long, convoluted way of checking and setting the Connection header is better than
-            writing `res.headers["Connection"] = req.headers["Connection"]`,
-        because the above one will create the key "Connection" in `req`, which is not ideal
-
-        Below method will not create the "Connection" header if it is not present in the
-        hashmap, saving memory
-    */
-    bool keepConnectionAlive = false;
+    // Determine whether to keep the connection alive or not
     auto it = req.headers.find("Connection");
     if (it != req.headers.end()) {
-        keepConnectionAlive = (it->second == "keep-alive");
-    }
-
-    if (keepConnectionAlive) {
-        res.headers["Connection"] = "keep-alive";
-    }
-    else {
-        res.headers["Connection"] = "close";
+        res.headers["Connection"] = it->second;
     }
 
     std::string resStr = MessageHandler::SerializeHttpResponse(res);
     NetworkIO::Send(clientSocket.get(), resStr, 0);
 
-    return keepConnectionAlive;
+    /*
+        This function returns whether to keep this connection alive or not
+        
+        If `it` points to valid data (ie, "Connection" key could be found),
+        return whether its value is "keep-alive"
+        
+        `it` would point to `req.headers.end()` in case "Connection" key could not be found though
+        In this case, intended behaviour is to close the connection, hence returning `false`
+    */
+    return it != req.headers.end() ? (it->second == "keep-alive") : false;
 }
