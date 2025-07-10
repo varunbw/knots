@@ -10,18 +10,21 @@ knots is a multithreaded HTTP server written in C++. It is designed to handle mu
 - GoogleTest
 
 ## Project Structure
+- `config/` - Configuration files
+- `include/` - Header files
 - `src/` - Source files
     - `main.cpp` - Entry point of the server
+    - `FileHandler.cpp` - Handles file reading logic
     - `HttpBuilder.cpp` - HTTP response building logic
     - `HttpMessage.cpp` - Some utility functions for HTTP messages
     - `HttpParser.cpp` - HTTP Request parsing
     - `HttpServer.cpp` - Main server implementation
+    - `NetworkIO.cpp` - Network I/O operations
     - `Router.cpp` - URL routing logic
+    - `ThreadPool.cpp` - Thread pool for request management
     - `Utils.cpp` - Utility functions
-- `include/` - Header files
 - `static/` - Static files served by the server
 - `tests/` - Unit tests
-- `config/` - Configuration files
 
 # Installation
 Quick-start snippet at the end of this document.
@@ -79,16 +82,19 @@ This will execute all the tests defined in the `tests` directory.
 
 
 # Configuration
-The server can be configured using a `.conf` configuration file, located at `config/main.conf`.
+The server can be configured using a YAML configuration file, located at `config/config.yaml`.
 
-- `config/main.conf` - Main server configuration including port settings and max simultaneous connections.
-```conf
-port=8686
-root-directory="../static/"
-max-connections=10
+- `config/config.yaml` - Main server configuration for:
+    - `port`: The port on which the server listens.
+    - `routes-path`: Path to the routes configuration file.
+    - `max-connections`: Maximum number of concurrent connections the server can handle.
+```yaml
+port: 8686
+routes-path: config/routes.yaml
+max-connections: 10
 ```
 
-- `config/routes.yaml` - Routes configuration for the server.
+- `config/routes.yaml` - Routes configuration for the server. (The type field currently does nothing :))
 ```yaml
 routes:
   /:
