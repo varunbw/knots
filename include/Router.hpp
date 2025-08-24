@@ -1,35 +1,72 @@
-#ifndef KNOTS_ROUTER_HPP
-#define KNOTS_ROUTER_HPP
+#pragma once
 
+#include <functional>
 #include <map>
+#include <optional>
 #include <string>
 
+#include "HttpMessage.hpp"
+
+/*
+    A combination of a HTTP Method (GET, POST, etc.) and the request URL
+    This will act as the key to the map in the router later on to fetch the
+    corresponding handler function
+*/
 struct Route {
-    std::string filePath;
-    std::string contentType;
+    HttpMethod method;
+    std::string requestUrl;
 
-    Route() : filePath{}, contentType{} {};
-    Route(const std::string& filePath, const std::string& contentType)
-        : filePath(filePath), contentType(contentType) {};
-
-    bool IsValid() {
-        return filePath.size() && contentType.size();
+    bool operator== (const Route& other) const {
+        return method == other.method && requestUrl == other.requestUrl;
     }
 };
 
+/*
+    Custom hasher for the Routes struct
+*/
+struct RouteHasher {
+    std::size_t operator() (const Route& route) const {
+        return std::hash<HttpMethod>()(route.method) ^
+               std::hash<std::string>()(route.requestUrl);
+    }
+};
+
+/*
+    Alias for the handler functions
+*/
+using HandlerFunction = std::function<void(
+    HttpRequest, HttpResponse
+)>;
+
+/*
+    `m_routes` stores a key-value pairing of Routes to their corresponding
+    handler functions
+
+    Add routes to the router using `AddRoute()`, and get the handler function
+    using `FetchRoute()`
+*/
 class Router {
 private:
-    std::map<std::string, Route> m_routes;
-
-    void LoadRoutesFromConfig(const std::string& configFilePath);
+    std::unordered_map<Route, HandlerFunction, RouteHasher> m_routes;
 
 public:
-    explicit Router(const std::string& configFilePath) {
-        LoadRoutesFromConfig(configFilePath);
-    }
+    void AddRoute(
+        const HttpMethod& method,
+        const std::string& requestUrl, 
+        const HandlerFunction& handler
+    );
 
-    Route GetRoute(const std::string& requestUrl) const;
+    void AddRoute(
+        const Route& route,
+        const HandlerFunction& handler
+    );
+
+    const HandlerFunction* FetchRoute(
+        const HttpMethod& method,
+        const std::string& requestUrl
+    ) const;
+
+    const HandlerFunction* FetchRoute(
+        const Route& route
+    ) const;
 };
-
-
-#endif

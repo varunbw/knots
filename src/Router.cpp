@@ -1,68 +1,65 @@
-#include <format>
-#include <fstream>
-#include <yaml-cpp/yaml.h>
+#include "RouterNew.hpp"
 
-#include "Router.hpp"
-#include "Utils.hpp"
+// Big brain comments up ahead
 
 /*
-    @brief Loads the routes specified in the configuration file into a std::map
-    @param configFilePath Path to the configuration file
-
-    @return void
+    @brief Add a route to the Router
+    @param method HTTP Method
+    @param requestUrl Request URL
+    @param handler The handler function
 */
-void Router::LoadRoutesFromConfig(const std::string& configFilePath) {
-
-    YAML::Node config;
-
-    try {
-        config = YAML::LoadFile(configFilePath);
-    }
-    catch (YAML::ParserException& e) {
-        throw std::runtime_error(MakeErrorMessage(std::format(
-            "Failed to parse configuration file: {}",
-            e.what()
-        )));
-    }
-    catch (YAML::BadFile& e) {
-        throw std::runtime_error(MakeErrorMessage(std::format(
-            "Configuration file not found: {}",
-            configFilePath
-        )));
-    }
-    catch (YAML::Exception& e) {
-        throw std::runtime_error(MakeErrorMessage(std::format(
-            "Unknown error while parsing configuration file: {}",
-            configFilePath
-        )));
-    }
-
-    // Load all routes in config["routes"], store them in this->routes
-    for (const auto& route : config["routes"]) {
-        const std::string path = route.first.as<std::string>();
-        m_routes[path] = {
-            route.second["file"].as<std::string>(),
-            route.second["type"].as<std::string>()
-        };
-    }
-
+void Router::AddRoute(
+    const HttpMethod& method,
+    const std::string& requestUrl,
+    const HandlerFunction& handler
+) {
+    m_routes[Route(method, requestUrl)] = handler;
     return;
 }
 
+/*
+    @brief Add a route to the Router
+    @param route The route
+    @param handler The handler function
+*/
+void Router::AddRoute(const Route& route, const HandlerFunction& handler) {
+    m_routes[route] = handler;
+    return;
+}
 
 /*
-    @brief Return the requested route
-    @param requestUrl The request URL (damn)
+    @brief Get a const pointer to the handler function for the given route
+    @param method HTTP Method
+    @param requestUrl Request URL
 
-    @return The route associated with the URL if found, empty Route struct if not
+    @return const pointer to handler function
 */
-Route Router::GetRoute(const std::string& requestUrl) const {
+const HandlerFunction* Router::FetchRoute(
+    const HttpMethod& method,
+    const std::string& requestUrl
+) const {
 
-    auto it = m_routes.find(requestUrl);
-    if (it != m_routes.end()) {
-        return it->second;
+    auto it = m_routes.find(Route(method, requestUrl));
+    if (it == m_routes.end()) {
+        return nullptr;
     }
-
-    // Return empty route if not found
-    return Route();
+    
+    return &(it->second);
 }
+
+/*
+    @brief Get a const pointer to the handler function for the given route
+    @param route The route
+
+    @return const pointer to handler function
+*/
+const HandlerFunction* Router::FetchRoute(
+    const Route& route
+) const {
+    auto it = m_routes.find(route);
+    if (it == m_routes.end()) {
+        return nullptr;
+    }
+    
+    return &(it->second);
+} 
