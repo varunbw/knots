@@ -20,7 +20,7 @@ int main(void) {
             "</body></html>";
         res.headers["Content-Length"] = std::to_string(res.body.size());
 
-        Log::Info(std::format("in function {}", res.body));
+        return;
     });
 
     HttpServer server(config, router);
