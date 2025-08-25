@@ -1,6 +1,8 @@
 set(TEST_SOURCES
-    HttpParserTest.cpp
+    HttpBuilderTest.cpp
     HttpMessageTest.cpp
+    HttpParserTest.cpp
+    RouterTest.cpp
 )
 
 add_executable(unit_tests ${TEST_SOURCES})
