@@ -6,7 +6,24 @@ int main(void) {
 
     HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
 
-    HttpServer server(config);
+    Router router;
+    HttpRequest req;
+    HttpResponse res;
+
+    // Example route
+    router.AddRoute(
+        HttpMethod::GET, "/",
+        [] (const HttpRequest& req, HttpResponse& res) {
+            
+        res.body = "<html><body>"
+            "<h1>Hello world</h1>"
+            "</body></html>";
+        res.headers["Content-Length"] = std::to_string(res.body.size());
+
+        Log::Info(std::format("in function {}", res.body));
+    });
+
+    HttpServer server(config, router);
     server.AcceptConnections();
 
     Log::Info("Stopping server...");

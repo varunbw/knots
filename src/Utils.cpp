@@ -50,7 +50,6 @@ HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
     }
 
     config.port = yaml["port"].as<int>();
-    config.routesPath = yaml["routes-path"].as<std::string>();
     config.maxConnections = yaml["max-connections"].as<int>();
 
     return config;

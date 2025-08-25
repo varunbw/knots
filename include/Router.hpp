@@ -35,7 +35,7 @@ struct RouteHasher {
     Alias for the handler functions
 */
 using HandlerFunction = std::function<void(
-    HttpRequest, HttpResponse
+    const HttpRequest&, HttpResponse&
 )>;
 
 /*
