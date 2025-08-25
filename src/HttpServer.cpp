@@ -31,10 +31,10 @@
         - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
         - m_router = "config/routes.yaml"
 */
-HttpServer::HttpServer(HttpServerConfiguration& config) :
+HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
     m_isRunning(false),
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
-    m_router(config.routesPath),
+    m_router(router),
     m_threadPool(config.maxConnections) {
 
     // Check if the socket was created successfully
@@ -391,27 +391,29 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     switch (statusCode) {
         // HTTP 400 - Bad Request
         case 400:
-            res = MessageHandler::BuildHttpResponse(400, std::format(
+            res = MessageHandler::BuildHttpResponse(400);
+            
+            res.body = std::format(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
                 "    <h1 align='center'>400 Bad Request</h1>\n"
                 "    <p align='center'>The request URL <b>{}</b> is invalid.</p>\n"
                 "    <p align='center'>Please check the URL and try again.</p>\n"
                 "</body>\n</html>\n",
                 req.requestUrl
-            ));
-
+            );
             break;
 
         // HTTP 500 - Internal Server Error
         case 500:
-            res = MessageHandler::BuildHttpResponse(500, std::string(
+            res = MessageHandler::BuildHttpResponse(500);
+
+            res.body = std::string(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
                 "   <h1 align='center'>500 Internal Server Error</h1>\n"
                 "   <p align='center'>The server encountered an error while processing your request.</p>\n"
                 "   <p align='center'>Please try again later.</p>\n"
                 "</body>\n</html>\n"
-            ));
-            
+            );
             res.headers["Connection"] = "close";
         break;
 
@@ -422,7 +424,8 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
                 statusCode
             ));
         
-            res = MessageHandler::BuildHttpResponse(statusCode, "");
+            res = MessageHandler::BuildHttpResponse(statusCode);
+
             res.body = std::format(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
                 "   <h1 align='center'>HTTP Code {}</h1>\n"
@@ -431,9 +434,8 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
                 "</body>\n</html>\n",
                 statusCode
             );
-            break;
-
             res.headers["Connection"] = "close";
+
             break;
     }
 
@@ -443,6 +445,49 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     return;
 }
 
+// /*
+//     @brief Processes one HTTP request and sends the appropriate response
+//     @param ss The stringstream containing the raw request
+//     @param clientSocketFD The socketFD for the client
+
+//     @return `true` if connection is to be kept alive, `false` if not
+// */
+// bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket) {
+
+//     // Determine the route
+//     HttpRequest req = MessageHandler::ParseHttpRequest(ss);
+//     Route route = m_router.GetRoute(req.requestUrl);
+
+//     // If route is not valid, send code 400 and return
+//     if (route.IsValid() == false) {
+//         HandleError(400, {}, clientSocket);
+//         return true;
+//     }
+
+//     // Valid route found
+//     HttpResponse res = FileHandler::MakeHttpResponseFromFile(200, route.filePath);
+
+//     // Determine whether to keep the connection alive or not
+//     auto it = req.headers.find("Connection");
+//     if (it != req.headers.end()) {
+//         res.headers["Connection"] = it->second;
+//     }
+
+//     std::string resStr = MessageHandler::SerializeHttpResponse(res);
+//     NetworkIO::Send(clientSocket.get(), resStr, 0);
+
+//     /*
+//         This function returns whether to keep this connection alive or not
+        
+//         If `it` points to valid data (ie, "Connection" key could be found),
+//         return whether its value is "keep-alive"
+        
+//         `it` would point to `req.headers.end()` in case "Connection" key could not be found though
+//         In this case, intended behaviour is to close the connection, hence returning `false`
+//     */
+//     return it != req.headers.end() ? (it->second == "keep-alive") : false;
+// }
+
 /*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
@@ -450,38 +495,41 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
 
     @return `true` if connection is to be kept alive, `false` if not
 */
-bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket) {
-
-    // Determine the route
+bool HttpServer::HandleRequest(
+    std::stringstream& ss,
+    const Socket& clientSocket
+) {
     HttpRequest req = MessageHandler::ParseHttpRequest(ss);
-    Route route = m_router.GetRoute(req.requestUrl);
-
-    // If route is not valid, send code 400 and return
-    if (route.IsValid() == false) {
-        HandleError(400, {}, clientSocket);
-        return true;
+    const HandlerFunction* handler = m_router.FetchRoute(
+        req.method, req.requestUrl
+    );
+    
+    if (handler == nullptr) {
+        HandleError(400, req, clientSocket);
+        return false;
     }
 
-    // Valid route found
-    HttpResponse res = FileHandler::MakeHttpResponseFromFile(200, route.filePath);
+    HttpResponse res = MessageHandler::BuildHttpResponse(200);
+    (*handler)(req, res);
 
-    // Determine whether to keep the connection alive or not
     auto it = req.headers.find("Connection");
     if (it != req.headers.end()) {
         res.headers["Connection"] = it->second;
     }
 
-    std::string resStr = MessageHandler::SerializeHttpResponse(res);
+    const std::string resStr = MessageHandler::SerializeHttpResponse(res);
     NetworkIO::Send(clientSocket.get(), resStr, 0);
 
+
+    Log::Info(std::format("Out of function string {}", resStr));
+    Log::Info(std::format("Out of function {}", res.body));
+
     /*
-        This function returns whether to keep this connection alive or not
-        
-        If `it` points to valid data (ie, "Connection" key could be found),
-        return whether its value is "keep-alive"
-        
-        `it` would point to `req.headers.end()` in case "Connection" key could not be found though
-        In this case, intended behaviour is to close the connection, hence returning `false`
+        Return true if connection header is "keep-alive",
+        false if not
     */
-    return it != req.headers.end() ? (it->second == "keep-alive") : false;
+    return it != req.headers.end() ?
+        (it->second == "keep-alive"):
+        false;
+    // return false;
 }

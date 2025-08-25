@@ -29,5 +29,5 @@ HttpResponse FileHandler::MakeHttpResponseFromFile(const int statusCode, const s
     std::string responseBody(fileSize, 0);
     infile.read(responseBody.data(), fileSize);
 
-    return MessageHandler::BuildHttpResponse(statusCode, std::move(responseBody));
+    return MessageHandler::BuildHttpResponse(statusCode);
 }

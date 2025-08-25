@@ -86,7 +86,7 @@ namespace HttpResponseCodes {
     This method does give up ownership of the contents of `body` however, use this only when
     you no longer need them.
 */
-HttpResponse MessageHandler::BuildHttpResponse(const int responseCode, std::string responseBody) {
+HttpResponse MessageHandler::BuildHttpResponse(const int responseCode) {
 
     HttpResponse res;
 
@@ -105,12 +105,7 @@ HttpResponse MessageHandler::BuildHttpResponse(const int responseCode, std::stri
     // Headers
     // Only limited headers added for now
     res.headers["Content-Type"] = "text/html";
-    res.headers["Content-Length"] = std::to_string(responseBody.size());
-    // res.headers["Connection"] = "keep-alive";
-    res.headers["Server"] = "knots/0.1";
-
-    // Body
-    res.body = std::move(responseBody);
+    res.headers["Server"] = "knots";
     
     return res;
 }

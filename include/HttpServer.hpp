@@ -48,7 +48,7 @@ private:
     
     
 public:
-    explicit HttpServer(HttpServerConfiguration& config);
+    explicit HttpServer(HttpServerConfiguration& config, const Router& router);
     ~HttpServer();
 
     void AcceptConnections();

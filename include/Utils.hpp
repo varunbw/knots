@@ -11,7 +11,6 @@
 */
 struct HttpServerConfiguration {
     int port;
-    std::string routesPath;
     int maxConnections;
 };
 
