@@ -445,49 +445,6 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     return;
 }
 
-// /*
-//     @brief Processes one HTTP request and sends the appropriate response
-//     @param ss The stringstream containing the raw request
-//     @param clientSocketFD The socketFD for the client
-
-//     @return `true` if connection is to be kept alive, `false` if not
-// */
-// bool HttpServer::HandleRequest(std::stringstream& ss, const Socket& clientSocket) {
-
-//     // Determine the route
-//     HttpRequest req = MessageHandler::ParseHttpRequest(ss);
-//     Route route = m_router.GetRoute(req.requestUrl);
-
-//     // If route is not valid, send code 400 and return
-//     if (route.IsValid() == false) {
-//         HandleError(400, {}, clientSocket);
-//         return true;
-//     }
-
-//     // Valid route found
-//     HttpResponse res = FileHandler::MakeHttpResponseFromFile(200, route.filePath);
-
-//     // Determine whether to keep the connection alive or not
-//     auto it = req.headers.find("Connection");
-//     if (it != req.headers.end()) {
-//         res.headers["Connection"] = it->second;
-//     }
-
-//     std::string resStr = MessageHandler::SerializeHttpResponse(res);
-//     NetworkIO::Send(clientSocket.get(), resStr, 0);
-
-//     /*
-//         This function returns whether to keep this connection alive or not
-        
-//         If `it` points to valid data (ie, "Connection" key could be found),
-//         return whether its value is "keep-alive"
-        
-//         `it` would point to `req.headers.end()` in case "Connection" key could not be found though
-//         In this case, intended behaviour is to close the connection, hence returning `false`
-//     */
-//     return it != req.headers.end() ? (it->second == "keep-alive") : false;
-// }
-
 /*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
@@ -520,10 +477,6 @@ bool HttpServer::HandleRequest(
     const std::string resStr = MessageHandler::SerializeHttpResponse(res);
     NetworkIO::Send(clientSocket.get(), resStr, 0);
 
-
-    Log::Info(std::format("Out of function string {}", resStr));
-    Log::Info(std::format("Out of function {}", res.body));
-
     /*
         Return true if connection header is "keep-alive",
         false if not
@@ -531,5 +484,4 @@ bool HttpServer::HandleRequest(
     return it != req.headers.end() ?
         (it->second == "keep-alive"):
         false;
-    // return false;
 }
