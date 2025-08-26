@@ -25,7 +25,7 @@ add_library(
     src/FileHandler.cpp
     src/HttpBuilder.cpp
     src/HttpMessage.cpp
-    src/HttpParser.cpp
+    src/HttpRequest.cpp
     src/HttpServer.cpp
     src/NetworkIO.cpp
     src/Router.cpp
