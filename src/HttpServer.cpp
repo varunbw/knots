@@ -456,7 +456,14 @@ bool HttpServer::HandleRequest(
     std::stringstream& ss,
     const Socket& clientSocket
 ) {
-    HttpRequest req = MessageHandler::ParseHttpRequest(ss);
+    HttpRequest req;
+    const bool parseResult = req.ParseFrom(ss);
+
+    if (parseResult == false) {
+        HandleError(500, req, clientSocket);
+        return false;
+    }
+    
     const HandlerFunction* handler = m_router.FetchRoute(
         req.method, req.requestUrl
     );
