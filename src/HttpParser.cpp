@@ -180,6 +180,7 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
     return false;
 }
 
+
 /*
     @brief Parse the body of an HTTP Request
     @param ss Message in stringstream format
@@ -231,37 +232,37 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 
     @return The request in a `HttpRequest` struct
 */
-HttpRequest MessageHandler::ParseHttpRequest(std::stringstream& ss) {
+bool HttpRequest::ParseFrom(std::stringstream& ss) {
 
     if (ss.good() == false) {
         Log::Error(
-            "ParseHttpRequest(): Bad stream state, discarding previous request"
+            "HttpRequest::ParseFrom(): Bad stream state, discarding previous request"
         );
-        return {};
+        return false;
     }
 
-    HttpRequest req;
-    if (ParseStartLine(ss, req) == false) {
+    // HttpRequest req;
+    if (ParseStartLine(ss, *this) == false) {
         Log::Error(
-            "ParseHttpRequest(): Could not parse start line, discarding previous request"
+            "HttpRequest::ParseFrom(): Could not parse start line, discarding previous request"
         );
-        return {};
+        return false;
     }
 
-    if (ParseHeaders(ss, req) == false) {
+    if (ParseHeaders(ss, *this) == false) {
         Log::Error(
-            "ParseHttpRequest(): Could not parse headers, discarding previous request"
+            "HttpRequest::ParseFrom(): Could not parse headers, discarding previous request"
         );
-        return {};
+        return false;
     }
 
-    if (ParseBody(ss, req) == false) {
+    if (ParseBody(ss, *this) == false) {
         Log::Error(
-            "ParseHttpRequest(): Could not parse body, discarding previous request"
+            "HttpRequest::ParseFrom(): Could not parse body, discarding previous request"
         );
-        return {};
+        return false;
     }
 
-    req.PrintMessage();
-    return req;
+    this->PrintMessage();
+    return true;
 }

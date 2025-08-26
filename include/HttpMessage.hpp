@@ -102,6 +102,7 @@ struct HttpRequest {
 
     bool IsValid() const noexcept;
     void PrintMessage() const;
+    bool ParseFrom(std::stringstream&);
 };
 
 
