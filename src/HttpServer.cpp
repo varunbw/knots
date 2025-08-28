@@ -391,7 +391,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     switch (statusCode) {
         // HTTP 400 - Bad Request
         case 400:
-            res = MessageHandler::BuildHttpResponse(400);
+            res.SetStatus(400);
             
             res.body = std::format(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
@@ -405,7 +405,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
 
         // HTTP 500 - Internal Server Error
         case 500:
-            res = MessageHandler::BuildHttpResponse(500);
+            res.SetStatus(500);
 
             res.body = std::string(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
@@ -424,7 +424,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
                 statusCode
             ));
         
-            res = MessageHandler::BuildHttpResponse(statusCode);
+            res.SetStatus(statusCode);
 
             res.body = std::format(
                 "<!DOCTYPE html>\n<html>\n<body>\n"
@@ -473,7 +473,9 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    HttpResponse res = MessageHandler::BuildHttpResponse(200);
+    // HttpResponse res = MessageHandler::BuildHttpResponse(200);
+    HttpResponse res;
+    res.SetStatus(200);
     (*handler)(req, res);
 
     auto it = req.headers.find("Connection");
