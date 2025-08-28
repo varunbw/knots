@@ -6,7 +6,6 @@
 #include "HttpMessage.hpp"
 
 namespace MessageHandler {
-    HttpResponse BuildHttpResponse(const int responseCode);
 }
 
 #endif

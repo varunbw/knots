@@ -86,14 +86,14 @@ TEST(HttpMessageTest, HttpResponse_DefaultConstructor) {
 
     HttpResponse res;
     
-    EXPECT_EQ(res.version, HttpVersion::DEFAULT_INVALID);
-    EXPECT_EQ(res.statusCode, 0);
-    EXPECT_EQ(res.statusText, "");
+    EXPECT_EQ(res.version, HttpVersion::HTTP_1_1);
+    EXPECT_EQ(res.statusCode, 200);
+    EXPECT_EQ(res.statusText, "OK");
     
     EXPECT_EQ(res.headers.size(), 0);
     EXPECT_EQ(res.body, "");
 
-    EXPECT_FALSE(res.IsValid());
+    EXPECT_TRUE(res.IsValid());
 }
 
 /*

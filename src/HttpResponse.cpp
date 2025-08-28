@@ -75,40 +75,29 @@ namespace HttpResponseCodes {
     };
 }
 
-/*
-    @brief Build an HttpResponse structure based on given parameters
-    @param responseCode The HTTP Response Code to use (ex: 200, 404, etc)
-    @param responseBody The body of the HTTP response
 
-    @return An `HttpResponse` structure
+HttpResponse::HttpResponse() {
+    version = HttpVersion::HTTP_1_1;
+    statusCode = 200;
+    statusText = "OK";
+}
 
-    @note Recommended use of this function is
-    `BuildHttpResponse(code, std::move(body))`, to utilize move semantics.
-    This method does give up ownership of the contents of `body` however, use this only when
-    you no longer need them.
-*/
-HttpResponse MessageHandler::BuildHttpResponse(const int responseCode) {
 
-    HttpResponse res;
+void HttpResponse::SetStatus(const int statusCode) {
 
-    // Start Line
-    res.version = HttpVersion::HTTP_1_1;
-    res.statusCode = responseCode;
-    
-    auto it = HttpResponseCodes::statusText.find(responseCode);
+    auto it = HttpResponseCodes::statusText.find(statusCode);
     if (it != HttpResponseCodes::statusText.end()) {
-        res.statusText = it->second;
+        statusText = it->second;
     }
     else {
-        res.statusText = "Invalid HTTP Response Status Code";
+        statusText = "Invalid HTTP Response Status Code";
+        throw std::invalid_argument(std::format(
+            "Invalid status code: {} in HttpResponse::SetStatus",
+            statusCode
+        ));
     }
     
-    // Headers
-    // Only limited headers added for now
-    res.headers["Content-Type"] = "text/html";
-    res.headers["Server"] = "knots";
-    
-    return res;
+    return;
 }
 
 

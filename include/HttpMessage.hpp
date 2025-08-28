@@ -122,13 +122,7 @@ struct HttpResponse {
 
     std::string body;
 
-    HttpResponse() :
-        version(HttpVersion::DEFAULT_INVALID),
-        statusCode{},
-        statusText{},
-        headers{},
-        body{}
-    {}
+    HttpResponse();
 
     HttpResponse(
         const HttpVersion& version,
@@ -148,6 +142,7 @@ struct HttpResponse {
 
     bool IsValid() const noexcept;
     void PrintMessage() const;
+    void SetStatus(const int statusCode);
     std::string Serialize() const;
 };
 
