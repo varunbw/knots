@@ -2,8 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 
-#include "MessageHandler.hpp"
 #include "HttpMessage.hpp"
 #include "Utils.hpp"
 

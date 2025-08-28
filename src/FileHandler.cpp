@@ -1,7 +1,6 @@
 #include <fstream>
 
 #include "FileHandler.hpp"
-#include "MessageHandler.hpp"
 #include "Utils.hpp"
 
 /*

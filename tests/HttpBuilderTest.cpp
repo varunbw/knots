@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "MessageHandler.hpp"
 #include "HttpMessage.hpp"
 
 
@@ -16,7 +15,8 @@ TEST(HttpBuilderTest, BuildResponse_Code200) {
 
     const std::string body = "Hello World!";
 
-    HttpResponse res = MessageHandler::BuildHttpResponse(200);
+    HttpResponse res;
+    res.SetStatus(200);
     res.body = body;
 
     // Start line
@@ -40,7 +40,8 @@ TEST(HttpBuilderTest, BuildResponse_Code400) {
 
     std::string body = "Bad Request";
 
-    HttpResponse res = MessageHandler::BuildHttpResponse(400);
+    HttpResponse res;
+    res.SetStatus(400);
     res.body = body;
 
     // Start line
@@ -64,7 +65,8 @@ TEST(HttpBuilderTest, BuildResponse_Code404) {
 
     std::string body = "Not Found";
 
-    HttpResponse res = MessageHandler::BuildHttpResponse(404);
+    HttpResponse res;
+    res.SetStatus(404);
     res.body = body;
 
     // Start line

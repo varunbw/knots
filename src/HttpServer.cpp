@@ -2,6 +2,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string.h>
@@ -18,7 +19,6 @@
 
 #include "FileHandler.hpp"
 #include "HttpServer.hpp"
-#include "MessageHandler.hpp"
 #include "NetworkIO.hpp"
 #include "ThreadPool.hpp"
 #include "Utils.hpp"
