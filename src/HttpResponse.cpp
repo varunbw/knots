@@ -1,7 +1,7 @@
 #include <iostream>
 #include <map>
 
-#include "MessageHandler.hpp"
+#include "HttpMessage.hpp"
 
 namespace HttpResponseCodes {
     const std::map<int, std::string> statusText = {
