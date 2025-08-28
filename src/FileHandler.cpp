@@ -10,7 +10,7 @@
 
     @return A `HttpResponse` object with the file contents as the body
 */
-HttpResponse FileHandler::MakeHttpResponseFromFile(const int statusCode, const std::string& fileName) {
+HttpResponse FileHandler::MakeHttpResponseFromFile(const std::string& fileName) {
 
     std::ifstream infile(fileName, std::ios::binary | std::ios::ate);
 

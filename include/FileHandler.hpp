@@ -5,5 +5,5 @@
 #include "HttpMessage.hpp"
 
 namespace FileHandler {
-    HttpResponse MakeHttpResponseFromFile(const int statusCode, const std::string& fileName);
+    HttpResponse MakeHttpResponseFromFile(const std::string& fileName);
 }
