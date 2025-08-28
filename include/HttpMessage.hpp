@@ -101,7 +101,6 @@ struct HttpRequest {
         body(body)
     {}
 
-    bool IsValid() const noexcept;
     void PrintMessage() const;
     bool ParseFrom(std::stringstream&);
 };
@@ -140,7 +139,6 @@ struct HttpResponse {
         body(body)
     {}
 
-    bool IsValid() const noexcept;
     void PrintMessage() const;
     void SetStatus(const int statusCode);
     std::string Serialize() const;

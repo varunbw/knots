@@ -34,9 +34,6 @@ TEST(HttpParserTest, ParseValidRequest) {
     
     // Body
     EXPECT_EQ(req.body, "");
-
-    // Validity
-    EXPECT_TRUE(req.IsValid());
 }
 
 /*
@@ -61,7 +58,4 @@ TEST(HttpParserTest, ParseInvalidRequest) {
     
     // Body
     EXPECT_EQ(req.body, "");
-
-    // Validity
-    EXPECT_FALSE(req.IsValid());
 }
