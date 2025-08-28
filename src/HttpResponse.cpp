@@ -77,20 +77,21 @@ namespace HttpResponseCodes {
 
 
 HttpResponse::HttpResponse() {
-    version = HttpVersion::HTTP_1_1;
-    statusCode = 200;
-    statusText = "OK";
+    this->version = HttpVersion::HTTP_1_1;
+    this->statusCode = 200;
+    this->statusText = "OK";
 }
 
 
 void HttpResponse::SetStatus(const int statusCode) {
 
+    this->statusCode = statusCode;
+
     auto it = HttpResponseCodes::statusText.find(statusCode);
     if (it != HttpResponseCodes::statusText.end()) {
-        statusText = it->second;
+        this->statusText = it->second;
     }
     else {
-        statusText = "Invalid HTTP Response Status Code";
         throw std::invalid_argument(std::format(
             "Invalid status code: {} in HttpResponse::SetStatus",
             statusCode
@@ -109,7 +110,7 @@ void HttpResponse::SetStatus(const int statusCode) {
 std::string HttpResponse::Serialize() const {
 
     size_t totalHeadersSize = 0;
-    for (const auto& header : headers) {
+    for (const auto& header : this->headers) {
         // "Key: Value\r\n"
         // Key + Value + 4 (1 colon, 1 space, 1 \r, 1 \n)
         totalHeadersSize += header.first.size() + header.second.size() + 4;
@@ -119,17 +120,17 @@ std::string HttpResponse::Serialize() const {
     size_t estimatedResSize = 32 // Start line
         + totalHeadersSize // Headers
         + 2 // CRLF
-        + body.size(); // Body
+        + this->body.size(); // Body
     res.reserve(estimatedResSize);
 
     // Start line
     res = std::format(
         "{} {} {}\r\n",
-        version, statusCode, statusText
+        this->version, this->statusCode, this->statusText
     );
 
     // Headers
-    for (const auto& header : headers) {
+    for (const auto& header : this->headers) {
         res += std::format(
             "{}: {}\r\n",
             header.first, header.second
@@ -137,7 +138,7 @@ std::string HttpResponse::Serialize() const {
     }
 
     res += "\r\n";
-    res += body;
+    res += this->body;
     
     return res;
 }
@@ -156,20 +157,23 @@ void HttpResponse::PrintMessage() const {
         "  [VERSION]     : {}\n"
         "  [STATUS CODE] : {}\n"
         "  [STATUS TEXT] : {}\n\n",
-        version, statusCode, statusText
+        this->version, this->statusCode, this->statusText
     );
 
     std::cout << "HEADERS\n";
-    for (auto& [key, value] : headers) {
+    for (const auto& [key, value] : this->headers) {
         // ToDo: Remove this
         if (key == "Cookie")
-            std::cout << std::format("  {}: {}....\n", key, std::string_view(value.begin(), value.begin() + 16));
+            std::cout << std::format(
+                "  {}: {}....\n",
+                key, std::string_view(value.begin(), value.begin() + 16)
+            );
         else
-        std::cout << std::format("  {}: {}\n", key, value);
+            std::cout << std::format("  {}: {}\n", key, value);
     }
     
     std::cout << '\n'
-        << "BODY\n" << body << '\n'
+        << "BODY\n" << this->body << '\n'
         << "------- End Response -------\n\n";
     
     return;
