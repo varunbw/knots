@@ -4,14 +4,14 @@
 
 
 /*
-    @brief Test suite for the HttpBuilder class
+    @brief Test suite for the Httper class
     @note This test suite is not exhaustive, but it covers the most important cases
 */
 
 /*
     @brief HTTP Response with 200 OK
 */
-TEST(HttpBuilderTest, BuildResponse_Code200) {
+TEST(HttpResponseTest, ResponseCode_200) {
 
     const std::string body = "Hello World!";
 
@@ -25,9 +25,7 @@ TEST(HttpBuilderTest, BuildResponse_Code200) {
     EXPECT_EQ(res.statusText, "OK");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 2);
-    EXPECT_EQ(res.headers["Content-Type"], "text/html");
-    EXPECT_EQ(res.headers["Server"], "knots");
+    EXPECT_EQ(res.headers.size(), 0);
 
     // Body
     EXPECT_EQ(res.body, body);
@@ -36,9 +34,9 @@ TEST(HttpBuilderTest, BuildResponse_Code200) {
 /*
     @brief HTTP Response with 400 Bad Request
 */
-TEST(HttpBuilderTest, BuildResponse_Code400) {
+TEST(HttpResponseTest, ResponseCode_400) {
 
-    std::string body = "Bad Request";
+    const std::string body = "A bad request message";
 
     HttpResponse res;
     res.SetStatus(400);
@@ -50,9 +48,7 @@ TEST(HttpBuilderTest, BuildResponse_Code400) {
     EXPECT_EQ(res.statusText, "Bad Request");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 2);
-    EXPECT_EQ(res.headers["Content-Type"], "text/html");
-    EXPECT_EQ(res.headers["Server"], "knots");
+    EXPECT_EQ(res.headers.size(), 0);
 
     // Body
     EXPECT_EQ(res.body, body);
@@ -61,9 +57,9 @@ TEST(HttpBuilderTest, BuildResponse_Code400) {
 /*
     @brief HTTP Response with 404 Not Found
 */
-TEST(HttpBuilderTest, BuildResponse_Code404) {
+TEST(HttpResponseTest, ResponseCode_404) {
 
-    std::string body = "Not Found";
+    const std::string body = "A not found message";
 
     HttpResponse res;
     res.SetStatus(404);
@@ -75,9 +71,7 @@ TEST(HttpBuilderTest, BuildResponse_Code404) {
     EXPECT_EQ(res.statusText, "Not Found");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 2);
-    EXPECT_EQ(res.headers["Content-Type"], "text/html");
-    EXPECT_EQ(res.headers["Server"], "knots");
+    EXPECT_EQ(res.headers.size(), 0);
 
     // Body
     EXPECT_EQ(res.body, body);

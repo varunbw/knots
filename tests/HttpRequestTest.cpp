@@ -12,7 +12,7 @@
 /*
     @brief Parse a valid HTTP request
 */
-TEST(HttpParserTest, ParseValidRequest) {
+TEST(HttpRequestTest, ParseValidRequest) {
     std::stringstream ss;
     ss << "GET /test.html HTTP/1.1\r\n"
        << "Host: localhost:8080\r\n"
@@ -39,7 +39,7 @@ TEST(HttpParserTest, ParseValidRequest) {
 /*
     @brief Parse an invalid HTTP request
 */
-TEST(HttpParserTest, ParseInvalidRequest) {
+TEST(HttpRequestTest, ParseInvalidRequest) {
     std::stringstream ss;
     ss << "INVALID REQUEST LINE\r\n"
        << "Host: localhost:8080\r\n"
