@@ -30,6 +30,7 @@ enum class HttpVersion {
     DEFAULT_INVALID = 4
 };
 
+using Header = std::pair<std::string, std::string>;
 
 /*
     Case insensitive hash function for string comparison
@@ -147,6 +148,7 @@ struct HttpResponse {
 
     bool IsValid() const noexcept;
     void PrintMessage() const;
+    std::string Serialize() const;
 };
 
 

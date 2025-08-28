@@ -439,7 +439,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
             break;
     }
 
-    std::string resStr = MessageHandler::SerializeHttpResponse(res);
+    const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket.get(), resStr, 0);
 
     return;
@@ -481,7 +481,7 @@ bool HttpServer::HandleRequest(
         res.headers["Connection"] = it->second;
     }
 
-    const std::string resStr = MessageHandler::SerializeHttpResponse(res);
+    const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket.get(), resStr, 0);
 
     /*

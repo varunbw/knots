@@ -114,44 +114,45 @@ HttpResponse MessageHandler::BuildHttpResponse(const int responseCode) {
 
 /*
     @brief Serialize `res` into a std::string, with the standard HTTP response format
-    @param `res` The HttpResponse structure
 
     @return The serialized response
-
-    @note `res.body` will be empty after this operation, since `std::move()` is on it.
-    Keep a copy beforehand if you need it
 */
-std::string MessageHandler::SerializeHttpResponse(HttpResponse& res) {
+std::string HttpResponse::Serialize() const {
 
-    std::string resStr;
+    size_t totalHeadersSize = 0;
+    for (const auto& header : headers) {
+        // "Key: Value\r\n"
+        // Key + Value + 4 (1 colon, 1 space, 1 \r, 1 \n)
+        totalHeadersSize += header.first.size() + header.second.size() + 4;
+    }
     
-    size_t estimatedSize = 32 // Start line
-        + res.headers.size() * 32 // Headers
-        + 4 // CRLFCRLF
-        + res.body.size(); // Body
-
-    resStr.reserve(estimatedSize);
+    std::string res;
+    size_t estimatedResSize = 32 // Start line
+        + totalHeadersSize // Headers
+        + 2 // CRLF
+        + body.size(); // Body
+    res.reserve(estimatedResSize);
 
     // Start line
-    resStr = std::format(
+    res = std::format(
         "{} {} {}\r\n",
-        res.version, res.statusCode, res.statusText
+        version, statusCode, statusText
     );
 
     // Headers
-    for (const auto& [key, value] : res.headers) {
-        resStr += std::format(
+    for (const auto& header : headers) {
+        res += std::format(
             "{}: {}\r\n",
-            key, value
+            header.first, header.second
         );
     }
 
-    // Body
-    resStr += "\r\n";
-    resStr += std::move(res.body);
-
-    return resStr;
+    res += "\r\n";
+    res += body;
+    
+    return res;
 }
+
 
 /*
     @brief Check if the request is valid
