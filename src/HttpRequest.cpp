@@ -243,20 +243,23 @@ void HttpRequest::PrintMessage() const {
         "  [METHOD] : {}\n"
         "  [URL]    : {}\n"
         "  [VERSION]: {}\n\n",
-        method, requestUrl, version
+        this->method, this->requestUrl, this->version
     );
 
     std::cout << "HEADERS\n";
     for (auto& [key, value] : headers) {
         // ToDo: Remove this
         if (key == "Cookie")
-            std::cout << std::format("  {}: {}....\n", key, std::string_view(value.begin(), value.begin() + 16));
+            std::cout << std::format(
+                "  {}: {}....\n", 
+                key, std::string_view(value.begin(), value.begin() + 16)
+            );
         else
-        std::cout << std::format("  {}: {}\n", key, value);
+            std::cout << std::format("  {}: {}\n", key, value);
     }
     
     std::cout << '\n'
-        << "BODY\n" << body << '\n'
+        << "BODY\n" << this->body << '\n'
         << "------- End Request -------\n\n";
     
     return;
