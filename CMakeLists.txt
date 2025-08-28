@@ -23,9 +23,8 @@ find_package(yaml-cpp REQUIRED)
 add_library(
     knots_lib
     src/FileHandler.cpp
-    src/HttpBuilder.cpp
-    src/HttpMessage.cpp
     src/HttpRequest.cpp
+    src/HttpResponse.cpp
     src/HttpServer.cpp
     src/NetworkIO.cpp
     src/Router.cpp
