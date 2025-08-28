@@ -230,18 +230,6 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 // -- Helper functions end
 
 // -- HttpRequest functions start
-/*
-    @brief Check if the request is valid
-    @return true if the request is valid\\
-    @return false if the request is invalid
-
-    @note A request is valid if the method is not DEFAULT_INVALID
-    Crazy, ik
-*/
-bool HttpRequest::IsValid() const noexcept {
-    return method != HttpMethod::DEFAULT_INVALID;
-}
-
 
 /*
     @brief Print a formatted HTTP Response to std::cout

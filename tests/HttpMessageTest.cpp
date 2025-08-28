@@ -17,8 +17,6 @@ TEST(HttpMessageTest, HttpRequest_DefaultConstructor) {
     EXPECT_EQ(req.headers.size(), 0);
     
     EXPECT_EQ(req.body, "");
-
-    EXPECT_FALSE(req.IsValid());
 }
 
 /*
@@ -42,8 +40,6 @@ TEST(HttpMessageTest, HttpRequest_ParameterizedConstructor) {
     EXPECT_EQ(req.headers["Host"], "localhost:8686");
     
     EXPECT_EQ(req.body, "body");
-
-    EXPECT_TRUE(req.IsValid());
 }
 
 /*
@@ -73,7 +69,6 @@ TEST(HttpMessageTest, HttpRequest_CaseInsensitiveHeader) {
     EXPECT_EQ(req.headers["cOnNeCtIoN"], "keep-alive");
 
     EXPECT_EQ(req.headers.size(), 2);
-    EXPECT_TRUE(req.IsValid());
 }
 
 
@@ -92,8 +87,6 @@ TEST(HttpMessageTest, HttpResponse_DefaultConstructor) {
     
     EXPECT_EQ(res.headers.size(), 0);
     EXPECT_EQ(res.body, "");
-
-    EXPECT_TRUE(res.IsValid());
 }
 
 /*
@@ -117,8 +110,6 @@ TEST(HttpMessageTest, HttpResponse_ParameterizedConstructor) {
     EXPECT_EQ(res.headers["Content-Type"], "text/html");
     
     EXPECT_EQ(res.body, "<html></html>");
-
-    EXPECT_TRUE(res.IsValid());
 }
 
 /*
@@ -148,8 +139,6 @@ TEST(HttpMessageTest, HttpResponse_CaseInsensitiveHeader) {
     EXPECT_EQ(res.headers["cOnNeCtIoN"], "keep-alive");
 
     EXPECT_EQ(res.headers.size(), 2);
-    
-    EXPECT_TRUE(res.IsValid());
 }
 
 // -- Formatters

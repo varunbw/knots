@@ -143,18 +143,6 @@ std::string HttpResponse::Serialize() const {
 }
 
 
-/*
-    @brief Check if the request is valid
-    @return true if the request is valid\\
-    @return false if the request is invalid
-
-    @note A request is valid if the method is not DEFAULT_INVALID
-    Crazy, ik
-*/
-bool HttpResponse::IsValid() const noexcept {
-    return version != HttpVersion::DEFAULT_INVALID;
-}
-
 
 /*
     @brief Print a formatted HTTP Response to std::cout

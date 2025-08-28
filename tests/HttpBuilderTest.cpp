@@ -31,9 +31,6 @@ TEST(HttpBuilderTest, BuildResponse_Code200) {
 
     // Body
     EXPECT_EQ(res.body, body);
-
-    // Validity
-    EXPECT_TRUE(res.IsValid());
 }
 
 /*
@@ -58,9 +55,6 @@ TEST(HttpBuilderTest, BuildResponse_Code400) {
 
     // Body
     EXPECT_EQ(res.body, body);
-
-    // Validity
-    EXPECT_TRUE(res.IsValid());
 }
 
 /*
@@ -85,7 +79,4 @@ TEST(HttpBuilderTest, BuildResponse_Code404) {
 
     // Body
     EXPECT_EQ(res.body, body);
-
-    // Validity
-    EXPECT_TRUE(res.IsValid());
 }
