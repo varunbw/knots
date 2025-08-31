@@ -1,5 +1,8 @@
 # knots
-knots is a multithreaded HTTP server written in C++. It is designed to handle multiple requests concurrently using threads, and can serve static files.
+
+A general-purpose multi-threaded HTTP server written in C++. Designed to handle HTTP messages I/O over the network, it provides functionality for concurrent networking and routing. knots gives you the ability to define your own functions for API endpoints, while also providing an easy file handler meant to deal with static files.
+
+Currently works with the HTTP/1.1 version.
 
 ## Requirements
 - C++20 or later
@@ -15,15 +18,13 @@ knots is a multithreaded HTTP server written in C++. It is designed to handle mu
 - `src/` - Source files
     - `main.cpp` - Entry point of the server
     - `FileHandler.cpp` - Handles file reading logic
-    - `HttpBuilder.cpp` - HTTP response building logic
-    - `HttpMessage.cpp` - Some utility functions for HTTP messages
-    - `HttpParser.cpp` - HTTP Request parsing
+    - `HttpRequest.cpp` - Methods for `HttpRequest` struct and HTTP Request parsing
+    - `HttpResponse.cpp` - Methods for `HttpResponse` struct and HTTP Response parsing
     - `HttpServer.cpp` - Main server implementation
     - `NetworkIO.cpp` - Network I/O operations
     - `Router.cpp` - URL routing logic
     - `ThreadPool.cpp` - Thread pool for request management
     - `Utils.cpp` - Utility functions
-- `static/` - Static files served by the server
 - `tests/` - Unit tests
 
 # Installation
@@ -31,6 +32,7 @@ Quick-start snippet at the end of this document.
 
 ## Steps to Install
 1. Ensure you have the dependencies installed on your system.
+#### Ubuntu/Debian
 ```bash
 sudo apt install libyaml-cpp-dev libgtest-dev
 ```
@@ -59,7 +61,7 @@ make
 
 6. Run the server after navigating to the root directory:
 ```bash
-./knots
+cd .. && ./knots
 ```
 
 
@@ -86,34 +88,13 @@ The server can be configured using a YAML configuration file, located at `config
 
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
-    - `routes-path`: Path to the routes configuration file.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
 ```yaml
 port: 8686
-routes-path: config/routes.yaml
 max-connections: 10
 ```
 
-- `config/routes.yaml` - Routes configuration for the server. (The type field currently does nothing :))
-```yaml
-routes:
-  /:
-    file: static/index.html
-    type: text/html
-  /index.html:
-    file: static/index.html
-    type: text/html
-  /test.html:
-    file: static/test.html
-    type: text/html
-  /favicon.ico:
-    file: static/knots-icon.jpg
-    type: image/jpeg
-```
-
-
 # Quick Start Snippet
-You can copy paste this snippet in your terminal to get started quickly:
 ```bash
 sudo apt install libyaml-cpp-dev libgtest-dev
 git clone https://github.com/varunbw/knots.git
