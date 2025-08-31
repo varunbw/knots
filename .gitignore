@@ -23,3 +23,6 @@ logs/
 
 # Tests
 unit_tests
+
+# Other stuff
+static/
