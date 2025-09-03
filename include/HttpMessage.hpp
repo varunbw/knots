@@ -69,20 +69,20 @@ struct HttpRequest {
     HttpVersion version;
 
     std::unordered_map<
-        std::string,
-        std::string,
-        CaseInsensitiveHash,
-        CaseInsensitiveEqual
+        std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
     > headers;
 
     std::string body;
+    
+    std::unordered_map<std::string, std::string> params;
 
     HttpRequest() : 
         method(HttpMethod::DEFAULT_INVALID),
         requestUrl{},
         version(HttpVersion::DEFAULT_INVALID),
         headers{},
-        body{}
+        body{},
+        params{}
     {}
     
     HttpRequest(
@@ -92,13 +92,15 @@ struct HttpRequest {
         const std::unordered_map<
             std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
         > headers,
-        const std::string_view body
+        const std::string_view body,
+        const std::unordered_map<std::string, std::string> params
     ) :
         method(method),
         requestUrl(requestUrl),
         version(version),
         headers(headers),
-        body(body)
+        body(body),
+        params(params)
     {}
 
     void PrintMessage() const;
