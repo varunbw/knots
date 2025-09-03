@@ -17,11 +17,11 @@
 
     @return `true` if method could be parsed successfully, `false` otherwise
 */
-bool ParseStartLineMethod(std::stringstream& ss, HttpRequest& req) {
+bool ParseHttpMethod(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
         Log::Error(
-            "ParseStartLineMethod(): Bad stream state"
+            "ParseHttpMethod(): Bad stream state"
         );
         return false;
     }
@@ -55,17 +55,85 @@ bool ParseStartLineMethod(std::stringstream& ss, HttpRequest& req) {
 }
 
 /*
+    @brief Parses the Request URL and any parameters from the start line
+    @param ss Message in stringstream format
+    @param req HttpRequest structure to parse message into
+
+    @return `true` if method could be parsed successfully, `false` otherwise
+*/
+bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
+
+    std::string urlAndParamsString;
+    ss >> urlAndParamsString;
+
+    // Request URL
+    const std::size_t questionPos = urlAndParamsString.find('?');
+
+    // URL Parsing
+    // No params or trailing '?'
+    if (questionPos == std::string::npos) {
+        req.requestUrl = urlAndParamsString;
+        return true;
+    }
+
+    // Basic parse
+    req.requestUrl = urlAndParamsString.substr(0, questionPos);
+    
+    // Traling '?', no params, end here
+    if (questionPos == urlAndParamsString.size() - 1) {
+        return true;
+    }
+
+    // Parameter parsing
+    // `left` and `right` are the left and right bounds of param respectively
+    std::size_t left  = questionPos + 1;
+    while (left < urlAndParamsString.size()) {
+        std::size_t right = urlAndParamsString.find('&', left);
+        if (right == std::string::npos) {
+            right = urlAndParamsString.size();
+        }
+
+        // Move `right` to correctly be at the right bound of param from its
+        // current position of either being at '&', or 1 beyond last index
+        right--;
+        
+        std::string param = urlAndParamsString.substr(left, right - left + 1);
+        std::size_t equalPos = param.find('=');
+
+        Log::Info(std::format(
+            "param: `{}`",
+            param
+        ));
+
+        if (equalPos == std::string::npos) {
+            if (param.size()) {
+                req.params[param] = "";
+            }
+        }
+        else {
+            req.params[param.substr(0, equalPos)] = param.substr(equalPos + 1);
+        }
+
+        // Skip over '&' and go to next param's start
+        left = right + 2;
+    }
+
+    return true;
+}
+
+
+/*
     @brief Parses the HTTP Version in the start line of a HTTP Request
     @param ss Message in stringstream format
     @param req HttpRequest structure to parse message into
 
     @return `true` if version could be parsed successfully, `false` otherwise
 */
-bool ParseStartLineHttpVersion(std::stringstream& ss, HttpRequest& req) {
+bool ParseHttpVersion(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
         Log::Error(
-            "ParseStartLineHttpVersion(): Bad stream state"
+            "ParseHttpVersion(): Bad stream state"
         );
         return false;
     }
@@ -114,15 +182,15 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
     }
 
     // Extract method
-    if (ParseStartLineMethod(ss, req) == false)
+    if (ParseHttpMethod(ss, req) == false)
         return false;
 
-    // Extract URL
-    // ToDo: See where this can be improved
-    ss >> req.requestUrl;
+    // Extract URL and parameters
+    if (ParseUrlAndParameters(ss, req) == false)
+        return false;
 
     // Extract version
-    if (ParseStartLineHttpVersion(ss, req) == false)
+    if (ParseHttpVersion(ss, req) == false)
         return false;
 
    return true; 
@@ -170,13 +238,7 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
         const std::string value = line.substr(colonPos + 2);
 
         // HTTP Headers are case-insensitive
-        // std::transform(name.begin(), name.end(), name.begin(), ::tolower);
         req.headers[name] = value;
-
-        // Log::Info(std::format(
-        //     "ParseHeaders(): Added header {}: {}",
-        //     line.substr(0, colonPos), req.headers[line.substr(0, colonPos)]
-        // ));
     }
 
     return false;
@@ -257,11 +319,19 @@ void HttpRequest::PrintMessage() const {
         else
             std::cout << std::format("  {}: {}\n", key, value);
     }
+
+    std::cout << "\nPARAMETERS\n";
+    for (const auto& [param, value] : this->params) {
+        std::cout << std::format(
+            "  {}: {}\n",
+            param, value
+        );
+    }
     
     std::cout << '\n'
         << "BODY\n" << this->body << '\n'
         << "------- End Request -------\n\n";
-    
+
     return;
 }
 
