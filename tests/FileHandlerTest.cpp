@@ -86,7 +86,7 @@ TEST(FileHandlerTest, ReadFromInvalidFile) {
     const std::string invalidFileName = "NonExistingFile.txt";
     HttpResponse res = FileHandler::MakeHttpResponseFromFile(invalidFileName);
 
-    EXPECT_EQ(res.statusCode, 200);
-    EXPECT_EQ(res.statusText, "OK");
+    EXPECT_EQ(res.statusCode, 404);
+    EXPECT_EQ(res.statusText, "Not Found");
     EXPECT_TRUE(res.body.empty());
 }
