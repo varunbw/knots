@@ -19,7 +19,10 @@ HttpResponse FileHandler::MakeHttpResponseFromFile(const std::string& fileName) 
             "MakeHttpResponseFromFile(): Could not open file {}",
             fileName
         ));
-        return {};
+
+        HttpResponse res;
+        res.SetStatus(404);
+        return res;
     }
 
     const auto fileSize = infile.tellg();
