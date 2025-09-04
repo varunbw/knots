@@ -13,8 +13,19 @@
     corresponding handler function
 */
 struct Route {
+
     HttpMethod method;
     std::string requestUrl;
+
+    Route() :
+        method(HttpMethod::DEFAULT_INVALID),
+        requestUrl{}
+    {};
+
+    Route(const HttpMethod method, const std::string& requestUrl) :
+        method(method),
+        requestUrl(requestUrl)
+    {}
 
     bool operator== (const Route& other) const {
         return method == other.method && requestUrl == other.requestUrl;
@@ -26,8 +37,8 @@ struct Route {
 */
 struct RouteHasher {
     std::size_t operator() (const Route& route) const {
-        return std::hash<HttpMethod>()(route.method) ^
-               std::hash<std::string>()(route.requestUrl);
+        return std::hash<HttpMethod>()(route.method)
+               ^ std::hash<std::string>()(route.requestUrl);
     }
 };
 

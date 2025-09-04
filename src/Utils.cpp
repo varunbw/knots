@@ -20,13 +20,12 @@
     @breif Parse the given configuration file
     @param filePath Path to the configuration file
     @param config The configuration object to fill with the parsed values
-    @return void
 */
 HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
 
     YAML::Node yaml;
     HttpServerConfiguration config;
-    
+
     try {
         yaml = YAML::LoadFile(filePath);
     }
@@ -60,7 +59,7 @@ HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
 namespace Log {
 
     std::mutex coutMutex;        
-    
+
     void Error(const std::string& message) {
         std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
         std::cerr << std::format(
@@ -100,6 +99,7 @@ namespace Log {
         );
     }
 }
+
 
 std::string MakeErrorMessage(const std::string& message) {
     return std::format(

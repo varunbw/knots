@@ -9,15 +9,25 @@
     @param maxConnections Maximum number of connections to accept
 */
 struct HttpServerConfiguration {
+
     int port;
     int maxConnections;
+
+    HttpServerConfiguration() :
+        port(-1),
+        maxConnections(-1)
+    {};
+
+    HttpServerConfiguration(const int port, const int maxConnections) :
+        port(port),
+        maxConnections(maxConnections)
+    {};
 };
 
 /*
     @brief Parse the given configuration file
     @param filePath Path to the configuration file
     @param config The configuration object to fill with the parsed values
-    @return void
 */
 HttpServerConfiguration ParseConfigurationFile(const std::string& filePath);
 

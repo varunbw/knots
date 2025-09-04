@@ -21,11 +21,8 @@ ThreadPool::ThreadPool(const int threadCount) :
 
 /*
     @brief Infinite loop function that waits for jobs in m_jobs
-
-    @return void
 */
 void ThreadPool::ThreadLoop() {
-
     while (true) {
         std::function<void()> job;
         {
@@ -42,10 +39,10 @@ void ThreadPool::ThreadLoop() {
             job = m_jobs.front();
             m_jobs.pop();
         }
-        
+
         job();
     }
-    
+
     return;
 }
 
@@ -53,11 +50,8 @@ void ThreadPool::ThreadLoop() {
 /*
     @brief Enqueue the job in m_jobs
     @param job The function to execute, of signature `void ()`
-
-    @return void
 */
 void ThreadPool::EnqueueJob(const std::function<void()>& job) {
-
     {
         std::scoped_lock<std::mutex> lock(m_jobsMutex);
         m_jobs.push(job);
@@ -76,21 +70,18 @@ void ThreadPool::EnqueueJob(const std::function<void()>& job) {
     @note The pool is "busy" if there is even one job in the m_jobs
 */
 bool ThreadPool::IsBusy() {
-    
     bool isBusy = false;
     {
         std::scoped_lock<std::mutex> lock(m_jobsMutex);
         isBusy = m_jobs.empty() == false;
     }
-    
+
     return isBusy;
 }
 
 /*
     @brief Stop the thread pool
     Joins all the threads
-
-    @return void
 */
 void ThreadPool::Stop() {
     m_isRunning = false;

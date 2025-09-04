@@ -14,7 +14,7 @@ public:
     Socket(const Socket&) = delete;
     Socket& operator=(const Socket&) = delete;
 
-    int get() const {
+    int Get() const {
         return m_fd;
     }
 };

@@ -1,8 +1,6 @@
-
 #include <format>
 #include <string.h>
 #include <string_view>
-
 #include <sys/socket.h>
 
 #include "Utils.hpp"
@@ -30,7 +28,7 @@ bool NetworkIO::Send(const int socketFD, const std::string& buffer, const int fl
         ));
         return false;
     }
-    
+
     return true;
 }
 
@@ -57,6 +55,6 @@ bool NetworkIO::Send(const int socketFD, const std::vector<char>& buffer, const 
         ));
         return false;
     }
-    
+
     return true;
 }

@@ -29,8 +29,6 @@ enum class HttpVersion {
     DEFAULT_INVALID = 4
 };
 
-using Header = std::pair<std::string, std::string>;
-
 /*
     Case insensitive hash function for string comparison
     Used for the headers map in HttpRequest and HttpResponse
@@ -83,7 +81,7 @@ struct HttpRequest {
         body{},
         params{}
     {}
-    
+
     HttpRequest(
         const HttpMethod method,
         const std::string_view requestUrl,
@@ -122,7 +120,13 @@ struct HttpResponse {
 
     std::string body;
 
-    HttpResponse();
+    HttpResponse() :
+        version(HttpVersion::HTTP_1_1),
+        statusCode(200),
+        statusText("OK"),
+        headers{},
+        body{}
+    {}
 
     HttpResponse(
         const HttpVersion& version,

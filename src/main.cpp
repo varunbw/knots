@@ -7,8 +7,6 @@ int main(void) {
     HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
 
     Router router;
-    HttpRequest req;
-    HttpResponse res;
 
     // Example route
     router.AddRoute(
