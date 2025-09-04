@@ -1,5 +1,4 @@
-#ifndef KNOTS_HTTPSERVER_HPP
-#define KNOTS_HTTPSERVER_HPP
+#pragma once
 
 #include <arpa/inet.h>
 #include <mutex>
@@ -53,5 +52,3 @@ public:
 
     void AcceptConnections();
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef KNOTS_SOCKET_HPP
-#define KNOTS_SOCKET_HPP
+#pragma once
 
 class Socket {
 private:
@@ -19,6 +18,3 @@ public:
         return m_fd;
     }
 };
-
-
-#endif
