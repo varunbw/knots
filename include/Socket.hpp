@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unistd.h>
+
 class Socket {
 private:
     int m_fd;

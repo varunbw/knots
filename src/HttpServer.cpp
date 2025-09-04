@@ -438,7 +438,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     }
 
     const std::string resStr = res.Serialize();
-    NetworkIO::Send(clientSocket.Get(), resStr, 0);
+    NetworkIO::Send(clientSocket, resStr, 0);
 
     return;
 }
@@ -466,7 +466,7 @@ bool HttpServer::HandleRequest(
     const HandlerFunction* handler = m_router.FetchRoute(
         req.method, req.requestUrl
     );
-    
+
     if (handler == nullptr) {
         HandleError(400, req, clientSocket);
         return false;
@@ -482,7 +482,7 @@ bool HttpServer::HandleRequest(
     }
 
     const std::string resStr = res.Serialize();
-    NetworkIO::Send(clientSocket.Get(), resStr, 0);
+    NetworkIO::Send(clientSocket, resStr, 0);
 
     /*
         Return true if connection header is "keep-alive",
