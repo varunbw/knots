@@ -20,6 +20,8 @@ private:
     std::mutex m_activeClientSocketsMutex;
     std::set<int> m_activeClientSockets;
 
+    std::jthread m_consoleInputHandlerThread;
+
     // Server information
     sockaddr_in m_address;
     int m_addrlen;
@@ -35,7 +37,6 @@ private:
 
     // Miscellaneous
     void HandleConsoleInput();
-    void Shutdown();
     
     // Handle client connection
     bool SetClientSocketOptions(const Socket& clientSocket) const;
@@ -48,6 +49,7 @@ private:
 public:
     explicit HttpServer(const HttpServerConfiguration& config, const Router& router);
     ~HttpServer();
+    void Shutdown();
 
     void AcceptConnections();
 };

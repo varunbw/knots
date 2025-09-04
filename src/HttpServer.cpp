@@ -117,12 +117,13 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
     }
 
     // Spin up a thread to listen to console input
-    std::jthread consoleInputHandlerThread(
-        [this] () {
-            this->HandleConsoleInput();
-        }
-    );
-    consoleInputHandlerThread.detach();
+    if (config.runConsoleInputThread) {
+        m_consoleInputHandlerThread = std::jthread(
+            [this] () {
+                this->HandleConsoleInput();
+            }
+        );
+    }
 
     // Mark server as running
     m_isRunning = true;
@@ -151,11 +152,16 @@ HttpServer::~HttpServer() {
 void HttpServer::HandleConsoleInput() {
 
     std::string buffer;
-    while (std::cin >> buffer) {
+    while (m_isRunning && std::cin >> buffer) {
         if (buffer == "stop" || buffer == "exit" || buffer == "quit") {
             Shutdown();
             return;
         }
+
+        std::cout << std::format(
+            "inputhandlingthread, input: `{}`\n",
+            buffer
+        );
     }
 
     return;

@@ -12,15 +12,22 @@ struct HttpServerConfiguration {
 
     int port;
     int maxConnections;
+    bool runConsoleInputThread;
 
-    HttpServerConfiguration() :
+    constexpr HttpServerConfiguration() :
         port(-1),
-        maxConnections(-1)
+        maxConnections(-1),
+        runConsoleInputThread(true)
     {};
 
-    HttpServerConfiguration(const int port, const int maxConnections) :
+    constexpr HttpServerConfiguration(
+        const int port,
+        const int maxConnections,
+        const bool runConsoleInputThread
+    ) :
         port(port),
-        maxConnections(maxConnections)
+        maxConnections(maxConnections),
+        runConsoleInputThread(runConsoleInputThread)
     {};
 };
 
