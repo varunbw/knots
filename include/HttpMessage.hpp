@@ -1,5 +1,4 @@
-#ifndef KNOTS_HTTPMESSAGE_HPP
-#define KNOTS_HTTPMESSAGE_HPP
+#pragma once
 
 #include <algorithm>
 #include <format>
@@ -186,6 +185,3 @@ struct std::formatter<HttpVersion> : std::formatter<std::string> {
         return std::formatter<std::string>::format(std::string(name), ctx);
     }
 };
-
-
-#endif

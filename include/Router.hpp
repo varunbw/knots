@@ -34,9 +34,9 @@ struct RouteHasher {
 /*
     Alias for the handler functions
 */
-using HandlerFunction = std::function<void(
-    const HttpRequest&, HttpResponse&
-)>;
+using HandlerFunction = std::function<
+    void(const HttpRequest&, HttpResponse&)
+>;
 
 /*
     `m_routes` stores a key-value pairing of Routes to their corresponding

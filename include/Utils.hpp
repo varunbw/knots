@@ -1,5 +1,4 @@
-#ifndef KNOTS_UTILS_HPP
-#define KNOTS_UTILS_HPP
+#pragma once
 
 #include <string>
 
@@ -41,5 +40,3 @@ namespace Log {
     If printed to stdout, it will be colored red
 */
 std::string MakeErrorMessage(const std::string& message);
-
-#endif
