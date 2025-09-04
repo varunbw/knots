@@ -22,7 +22,10 @@ void Router::AddRoute(
     @param route The route
     @param handler The handler function
 */
-void Router::AddRoute(const Route& route, const HandlerFunction& handler) {
+void Router::AddRoute(
+    const Route& route,
+    const HandlerFunction& handler
+) {
     m_routes[route] = handler;
     return;
 }
@@ -38,12 +41,11 @@ const HandlerFunction* Router::FetchRoute(
     const HttpMethod& method,
     const std::string& requestUrl
 ) const {
-
-auto it = m_routes.find(Route(method, requestUrl));
+    auto it = m_routes.find(Route(method, requestUrl));
     if (it == m_routes.end()) {
         return nullptr;
     }
-    
+
     return &(it->second);
 }
 
@@ -60,6 +62,6 @@ const HandlerFunction* Router::FetchRoute(
     if (it == m_routes.end()) {
         return nullptr;
     }
-    
+
     return &(it->second);
 } 

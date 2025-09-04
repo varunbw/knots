@@ -25,7 +25,7 @@ bool ParseHttpMethod(std::stringstream& ss, HttpRequest& req) {
         );
         return false;
     }
-    
+
     std::string buffer;
     ss >> buffer;
 
@@ -78,7 +78,7 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
 
     // Basic parse
     req.requestUrl = urlAndParamsString.substr(0, questionPos);
-    
+
     // Traling '?', no params, end here
     if (questionPos == urlAndParamsString.size() - 1) {
         return true;
@@ -138,13 +138,12 @@ bool ParseHttpVersion(std::stringstream& ss, HttpRequest& req) {
         return false;
     }
 
-
     std::string buffer;
     std::getline(ss, buffer, '\n');
 
     if (buffer.back() == '\r')
         buffer.pop_back();
-    
+
     // There is a space before 'HTTP' below because the stringstream `ss` is
     // reading an additional space into buffer; ex: " HTTP 1.0"
     // This is more efficient than performing an erase operation on the buffer
@@ -201,8 +200,6 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
     @brief Parses the headers of an HTTP request
     @param ss Message in stringstream format
     @param req The HttpRequest structure
-
-    @return void
 */
 bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
 
@@ -249,8 +246,6 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
     @brief Parse the body of an HTTP Request
     @param ss Message in stringstream format
     @param req The HttpRequest structure
-
-    @return void
 */
 bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 
@@ -279,7 +274,7 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
         req.body = std::move(body);
         return true;
     }
-    
+
     Log::Error(std::format(
         "ParseBody(): Incomplete body read, got {} bytes, expected {} from header",
         ss.gcount(),
@@ -295,8 +290,6 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 
 /*
     @brief Print a formatted HTTP Response to std::cout
-    
-    @return void
 */
 void HttpRequest::PrintMessage() const {
 
@@ -327,7 +320,7 @@ void HttpRequest::PrintMessage() const {
             param, value
         );
     }
-    
+
     std::cout << '\n'
         << "BODY\n" << this->body << '\n'
         << "------- End Request -------\n\n";
@@ -350,7 +343,6 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
         return false;
     }
 
-    // HttpRequest req;
     if (ParseStartLine(ss, *this) == false) {
         Log::Error(
             "HttpRequest::ParseFrom(): Could not parse start line, discarding previous request"

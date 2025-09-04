@@ -76,13 +76,10 @@ namespace HttpResponseCodes {
 }
 
 
-HttpResponse::HttpResponse() {
-    this->version = HttpVersion::HTTP_1_1;
-    this->statusCode = 200;
-    this->statusText = "OK";
-}
-
-
+/*
+    @brief Set status code and its corresponding text
+    @param statusCode Code to set for this response object
+*/
 void HttpResponse::SetStatus(const int statusCode) {
 
     this->statusCode = statusCode;
@@ -97,7 +94,7 @@ void HttpResponse::SetStatus(const int statusCode) {
             statusCode
         ));
     }
-    
+
     return;
 }
 
@@ -115,7 +112,7 @@ std::string HttpResponse::Serialize() const {
         // Key + Value + 4 (1 colon, 1 space, 1 \r, 1 \n)
         totalHeadersSize += header.first.size() + header.second.size() + 4;
     }
-    
+
     std::string res;
     size_t estimatedResSize = 32 // Start line
         + totalHeadersSize // Headers
@@ -147,8 +144,6 @@ std::string HttpResponse::Serialize() const {
 
 /*
     @brief Print a formatted HTTP Response to std::cout
-
-    @return void
 */
 void HttpResponse::PrintMessage() const {
 
@@ -171,10 +166,10 @@ void HttpResponse::PrintMessage() const {
         else
             std::cout << std::format("  {}: {}\n", key, value);
     }
-    
+
     std::cout << '\n'
         << "BODY\n" << this->body << '\n'
         << "------- End Response -------\n\n";
-    
+
     return;
 }

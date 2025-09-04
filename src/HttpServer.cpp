@@ -31,22 +31,18 @@
         - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
         - m_router = "config/routes.yaml"
 */
-HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
+HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& router) :
     m_isRunning(false),
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
     m_router(router),
     m_threadPool(config.maxConnections) {
 
     // Check if the socket was created successfully
-    if (m_serverSocket.get() < 0) {
+    if (m_serverSocket.Get() < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket creation failed"
         ));
     }
-
-    // Parse the configuration file (no way you could've understood what this was)
-    // HttpServerConfiguration config;
-    // ParseConfigurationFile("config/main.conf", config);
 
     Log::Info(std::format(
         "Attempting to start server on port {}",
@@ -71,12 +67,12 @@ HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
     // Set socket options
     // Allow address reuse
     int opt = 1;
-    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
     }
 
     // Allow port reuse
-    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
     }
 
@@ -84,17 +80,17 @@ HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
     struct timeval timeout;      
     timeout.tv_sec = 10;  // 10 seconds timeout
     timeout.tv_usec = 0;
-    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
     }
 
     // Set send timeout
-    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
     }
 
     // Set TCP keep-alive
-    if (setsockopt(m_serverSocket.get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
     }
 
@@ -107,14 +103,14 @@ HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
     this->m_addrlen = sizeof(m_address);
 
     // Bind the socket to the port
-    if (bind(m_serverSocket.get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
+    if (bind(m_serverSocket.Get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Socket binding failed"
         ));
     };
 
     // Start listening for connections
-    if (listen(m_serverSocket.get(), config.maxConnections) < 0) {
+    if (listen(m_serverSocket.Get(), config.maxConnections) < 0) {
         throw std::runtime_error(MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
@@ -136,7 +132,7 @@ HttpServer::HttpServer(HttpServerConfiguration& config, const Router& router) :
         std::format("HttpServer(): Server listening on port {}, max {} connections",
         config.port, config.maxConnections
     ));
-    
+
     return;
 }
 
@@ -151,7 +147,6 @@ HttpServer::~HttpServer() {
 
 /*
     @brief Listen for console input
-    @return void
 */
 void HttpServer::HandleConsoleInput() {
 
@@ -169,7 +164,6 @@ void HttpServer::HandleConsoleInput() {
 
 /*
     @brief Gracefully shutdown the server
-    @return void
 
     Calls shutdown() on the server socket, and sets m_isRunning to false
 */
@@ -183,9 +177,9 @@ void HttpServer::Shutdown() {
         for (int clientSocketFd : m_activeClientSockets)
             shutdown(clientSocketFd, SHUT_RD);
     }
-    
+
     // Shutdown the server socket
-    shutdown(m_serverSocket.get(), SHUT_RD);
+    shutdown(m_serverSocket.Get(), SHUT_RD);
 
     return;
 }
@@ -229,10 +223,10 @@ bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
     };
 
     for (const SocketOption& opt : options) {
-        if (setsockopt(clientSocket.get(), opt.level, opt.option, opt.value, opt.len) < 0) {
+        if (setsockopt(clientSocket.Get(), opt.level, opt.option, opt.value, opt.len) < 0) {
             Log::Error(std::format(
                 "SetClientSocketOptions(): Could not set options for socket {}",
-                clientSocket.get()
+                clientSocket.Get()
             ));
             return false;
         }
@@ -244,7 +238,6 @@ bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
 
 /*
     @brief Accept incoming connections
-    @return void
 
     This function accepts incoming connections and creates a new socket for each connection.
     It will block until a connection is accepted.
@@ -262,7 +255,7 @@ void HttpServer::AcceptConnections() {
         socklen_t clientAddressLen = sizeof(m_address);
 
         int clientSocketFD = accept(
-            m_serverSocket.get(),
+            m_serverSocket.Get(),
             reinterpret_cast<struct sockaddr*>(&clientAddress),
             &clientAddressLen
         );
@@ -316,7 +309,6 @@ void HttpServer::AcceptConnections() {
     @brief Handle incoming connections
     @param clientSocketFD The socket file descriptor for the client connection
     @param clientAddress The address of the client
-    @return void
 */
 void HttpServer::HandleConnection(Socket clientSocket) {
 
@@ -328,7 +320,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
     if (SetClientSocketOptions(clientSocket) == false) {
         Log::Error(std::format(
             "Failed to set socket options for socket {}",
-            clientSocket.get()
+            clientSocket.Get()
         ));
 
         HandleError(500, {}, clientSocket);
@@ -342,7 +334,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
     std::vector<char> buffer(bufferSize);
 
     while (m_isRunning) {
-        ssize_t bytesRead = read(clientSocket.get(), buffer.data(), bufferSize);
+        ssize_t bytesRead = read(clientSocket.Get(), buffer.data(), bufferSize);
 
         if (bytesRead == 0)
             break;
@@ -354,7 +346,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             else {
                 Log::Error(std::format(
                     "HandleConnection(): Error reading from socket {}: {}",
-                    clientSocket.get(),
+                    clientSocket.Get(),
                     strerror(errno)
                 ));
                 break;
@@ -373,17 +365,23 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         }
     }
 
-    m_activeClientSockets.erase(clientSocket.get());
+    m_activeClientSockets.erase(clientSocket.Get());
 
     Log::Warning(std::format(
         "HandleConnection(): Connection closed to client {}",
-        clientSocket.get()
+        clientSocket.Get()
     ));
 
     return;
 }
 
 
+/*
+    @brief Handle the error and send appropriate response to client based on the code
+    @param statusCode Status code of the response
+    @param req Request object
+    @param clientSocket Socket object corresponding to the client
+*/
 void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
 
     HttpResponse res;
@@ -440,10 +438,11 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     }
 
     const std::string resStr = res.Serialize();
-    NetworkIO::Send(clientSocket.get(), resStr, 0);
+    NetworkIO::Send(clientSocket.Get(), resStr, 0);
 
     return;
 }
+
 
 /*
     @brief Processes one HTTP request and sends the appropriate response
@@ -473,7 +472,6 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    // HttpResponse res = MessageHandler::BuildHttpResponse(200);
     HttpResponse res;
     res.SetStatus(200);
     (*handler)(req, res);
@@ -484,7 +482,7 @@ bool HttpServer::HandleRequest(
     }
 
     const std::string resStr = res.Serialize();
-    NetworkIO::Send(clientSocket.get(), resStr, 0);
+    NetworkIO::Send(clientSocket.Get(), resStr, 0);
 
     /*
         Return true if connection header is "keep-alive",
