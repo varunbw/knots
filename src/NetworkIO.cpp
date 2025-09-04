@@ -14,9 +14,9 @@
 
     @return `true` if message was sent successfully, `false` otherwise
 */
-bool NetworkIO::Send(const int socketFD, const std::string& buffer, const int flags) {
+bool NetworkIO::Send(const Socket& socket, const std::string& buffer, const int flags) {
 
-    if (send(socketFD, buffer.data(), buffer.size(), flags) < 0) {
+    if (send(socket.Get(), buffer.data(), buffer.size(), flags) < 0) {
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
@@ -24,7 +24,7 @@ bool NetworkIO::Send(const int socketFD, const std::string& buffer, const int fl
             "NetworkIO::Send(): Error sending message {}... of size {} to socket {}\n",
             std::string_view(buffer.begin(), buffer.begin() + maxSize),
             buffer.size(),
-            socketFD
+            socket.Get()
         ));
         return false;
     }
@@ -40,9 +40,9 @@ bool NetworkIO::Send(const int socketFD, const std::string& buffer, const int fl
 
     @return `true` if message was sent successfully, `false` otherwise
 */
-bool NetworkIO::Send(const int socketFD, const std::vector<char>& buffer, const int flags) {
+bool NetworkIO::Send(const Socket& socket, const std::vector<char>& buffer, const int flags) {
 
-    if (send(socketFD, buffer.data(), buffer.size(), flags) < 0) {
+    if (send(socket.Get(), buffer.data(), buffer.size(), flags) < 0) {
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
@@ -50,7 +50,7 @@ bool NetworkIO::Send(const int socketFD, const std::vector<char>& buffer, const 
             "NetworkIO::Send(): Error sending message {}... of size {} to socket {} : {}\n",
             std::string_view(buffer.begin(), buffer.begin() + maxSize),
             buffer.size(),
-            socketFD,
+            socket.Get(),
             strerror(errno)
         ));
         return false;
