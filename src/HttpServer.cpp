@@ -397,10 +397,20 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
         case 400:
             res.SetStatus(400);
             
-            res.body = std::format(
+            res.body = 
                 "<!DOCTYPE html>\n<html>\n<body>\n"
                 "    <h1 align='center'>400 Bad Request</h1>\n"
-                "    <p align='center'>The request URL <b>{}</b> is invalid.</p>\n"
+                "</body>\n</html>\n";
+            break;
+
+        // HTTP 404 - Not Found
+        case 404:
+            res.SetStatus(404);
+            
+            res.body = std::format(
+                "<!DOCTYPE html>\n<html>\n<body>\n"
+                "    <h1 align='center'>404 Not Found</h1>\n"
+                "    <p align='center'>The request URL <b>{}</b> does not exist.</p>\n"
                 "    <p align='center'>Please check the URL and try again.</p>\n"
                 "</body>\n</html>\n",
                 req.requestUrl
@@ -474,7 +484,7 @@ bool HttpServer::HandleRequest(
     );
 
     if (handler == nullptr) {
-        HandleError(400, req, clientSocket);
+        HandleError(404, req, clientSocket);
         return false;
     }
 
