@@ -157,11 +157,6 @@ void HttpServer::HandleConsoleInput() {
             Shutdown();
             return;
         }
-
-        std::cout << std::format(
-            "inputhandlingthread, input: `{}`\n",
-            buffer
-        );
     }
 
     return;
