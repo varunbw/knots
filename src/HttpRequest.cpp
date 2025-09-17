@@ -181,16 +181,28 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
     }
 
     // Extract method
-    if (ParseHttpMethod(ss, req) == false)
+    if (ParseHttpMethod(ss, req) == false) {
+        Log::Error(std::format(
+            "failed here on ParseHttpMethod"
+        ));
         return false;
+    }
 
     // Extract URL and parameters
-    if (ParseUrlAndParameters(ss, req) == false)
+    if (ParseUrlAndParameters(ss, req) == false) {
+        Log::Error(std::format(
+            "failed here on ParseUrlAndParameters"
+        ));
         return false;
+    }
 
     // Extract version
-    if (ParseHttpVersion(ss, req) == false)
+    if (ParseHttpVersion(ss, req) == false) {
+        Log::Error(std::format(
+            "failed here on ParseHttpVersion"
+        ));
         return false;
+    }
 
    return true; 
 }
@@ -365,6 +377,9 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
     }
 
     this->PrintMessage();
+
+    ss.str("");
+
     return true;
 }
 

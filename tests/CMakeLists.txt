@@ -3,6 +3,7 @@ set(TEST_SOURCES
     HttpMessageTest.cpp
     HttpRequestTest.cpp
     HttpResponseTest.cpp
+    HttpServerTest.cpp
     RouterTest.cpp
 )
 
