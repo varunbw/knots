@@ -376,8 +376,15 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
         return false;
     }
 
-    this->PrintMessage();
+    Log::Info(std::format(
+        "{} \"{}\", {} params, {} body length",
+        this->method,
+        this->requestUrl,
+        this->params.size(),
+        this->body.size()
+    ));
 
+    // Clear stringstream for next request
     ss.str("");
 
     return true;
