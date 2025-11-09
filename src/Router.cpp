@@ -65,3 +65,51 @@ const HandlerFunction* Router::FetchRoute(
 
     return &(it->second);
 } 
+
+
+// Individual functions for request types
+void Router::Post(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::POST, requestUrl, handler);
+    return;
+};
+
+void Router::Get(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::GET, requestUrl, handler);
+    return;
+};
+
+void Router::Head(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::HEAD, requestUrl, handler);
+    return;
+};
+
+void Router::Put(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::PUT, requestUrl, handler);
+    return;
+};
+
+void Router::Delete(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::DELETE, requestUrl, handler);
+    return;
+};
+
+void Router::Connect(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::CONNECT, requestUrl, handler);
+    return;
+};
+
+void Router::Options(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::OPTIONS, requestUrl, handler);
+    return;
+};
+
+void Router::Trace(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::TRACE, requestUrl, handler);
+    return;
+};
+
+void Router::Patch(const std::string& requestUrl, const HandlerFunction& handler) {
+    this->AddRoute(HttpMethod::PATCH, requestUrl, handler);
+    return;
+};
+

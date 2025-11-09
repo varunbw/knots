@@ -9,17 +9,16 @@ int main(void) {
     Router router;
 
     // Example route
-    router.AddRoute(
-        HttpMethod::GET, "/",
+    router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
-            
-        res.body = "<html><body>"
-            "<h1>Hello world</h1>"
-            "</body></html>";
-        res.headers["Content-Length"] = std::to_string(res.body.size());
+            res.body = "<html><body>"
+                "<h1>Hello world</h1>"
+                "</body></html>";
+            res.headers["Content-Length"] = std::to_string(res.body.size());
 
-        return;
-    });
+            return;
+        }
+    );
 
     HttpServer server(config, router);
     server.AcceptConnections();

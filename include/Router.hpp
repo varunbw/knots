@@ -80,4 +80,15 @@ public:
     const HandlerFunction* FetchRoute(
         const Route& route
     ) const;
+
+    // Individual functions for request types
+    void Post(const std::string& requestUrl, const HandlerFunction& handler);
+    void Get(const std::string& requestUrl, const HandlerFunction& handler);
+    void Head(const std::string& requestUrl, const HandlerFunction& handler);
+    void Put(const std::string& requestUrl, const HandlerFunction& handler);
+    void Delete(const std::string& requestUrl, const HandlerFunction& handler);
+    void Connect(const std::string& requestUrl, const HandlerFunction& handler);
+    void Options(const std::string& requestUrl, const HandlerFunction& handler);
+    void Trace(const std::string& requestUrl, const HandlerFunction& handler);
+    void Patch(const std::string& requestUrl, const HandlerFunction& handler);
 };
