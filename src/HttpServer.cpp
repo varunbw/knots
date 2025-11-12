@@ -130,7 +130,7 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
 
     // Ready to go
     Log::Info(
-        std::format("HttpServer(): Server listening on port {}, max {} connections",
+        std::format("HttpServer(): Server listening on port {}, max {} connections\n",
         config.port, config.maxConnections
     ));
 
@@ -277,14 +277,6 @@ void HttpServer::AcceptConnections() {
                 "AcceptConnection(): Could not accept connection"
             ));
         }
-        else {
-            Log::Info(std::format(
-                "AcceptConnection(): Accepted connection from {}:{}, socket FD {}",
-                inet_ntoa(clientAddress.sin_addr),
-                ntohs(clientAddress.sin_port),
-                clientSocketFD
-            ));
-        }
 
         {
             std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
@@ -368,8 +360,8 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 
     m_activeClientSockets.erase(clientSocket.Get());
 
-    Log::Warning(std::format(
-        "HandleConnection(): Connection closed to client {}",
+    Log::Info(std::format(
+        "Connection closed to socket {}",
         clientSocket.Get()
     ));
 

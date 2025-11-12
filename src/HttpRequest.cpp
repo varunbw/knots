@@ -100,11 +100,6 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
         std::string param = urlAndParamsString.substr(left, right - left + 1);
         std::size_t equalPos = param.find('=');
 
-        Log::Info(std::format(
-            "param: `{}`",
-            param
-        ));
-
         if (equalPos == std::string::npos) {
             if (param.size()) {
                 req.params[param] = "";
