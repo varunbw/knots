@@ -20,6 +20,13 @@ int main(void) {
     );
 
     HttpServer server(config, router);
+
+    server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
+        FileHandler::ReadFileIntoBody("static/not-found.html", res);
+        
+        return;
+    });
+
     server.AcceptConnections();
 
     Log::Info("Stopping server...");

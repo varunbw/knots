@@ -28,8 +28,9 @@ private:
     Socket m_serverSocket;
     int m_serverPort;
 
-    // Router
+    // Routers
     Router m_router;
+    std::unordered_map<short int, HandlerFunction> m_errorRouter;
 
     // Thread Pool
     ThreadPool m_threadPool;
@@ -52,4 +53,7 @@ public:
     void Shutdown();
 
     void AcceptConnections();
+
+    void AddErrorRoute(short int responseStatusCode, HandlerFunction handler);
+    const HandlerFunction* FetchErrorRoute(short int responseStatusCode) const;
 };

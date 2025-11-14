@@ -370,7 +370,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 
 
 /*
-    @brief Handle the error and send appropriate response to client based on the code
+    @brief Wrapper for handling any custom behavior for response codes along with `m_errorRouter`
     @param statusCode Status code of the response
     @param req Request object
     @param clientSocket Socket object corresponding to the client
@@ -378,72 +378,30 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
 
     HttpResponse res;
+    res.SetStatus(statusCode);
 
-    switch (statusCode) {
-        // HTTP 400 - Bad Request
-        case 400:
-            res.SetStatus(400);
-            
-            res.body = 
-                "<!DOCTYPE html>\n<html>\n<body>\n"
-                "    <h1 align='center'>400 Bad Request</h1>\n"
-                "</body>\n</html>\n";
-            break;
+    const HandlerFunction* handler = FetchErrorRoute(statusCode);
 
-        // HTTP 404 - Not Found
-        case 404:
-            res.SetStatus(404);
-            
-            res.body = std::format(
-                "<!DOCTYPE html>\n<html>\n<body>\n"
-                "    <h1 align='center'>404 Not Found</h1>\n"
-                "    <p align='center'>The request URL <b>{}</b> does not exist.</p>\n"
-                "    <p align='center'>Please check the URL and try again.</p>\n"
-                "</body>\n</html>\n",
-                req.requestUrl
-            );
-            break;
-
-        // HTTP 500 - Internal Server Error
-        case 500:
-            res.SetStatus(500);
-
-            res.body = std::string(
-                "<!DOCTYPE html>\n<html>\n<body>\n"
-                "   <h1 align='center'>500 Internal Server Error</h1>\n"
-                "   <p align='center'>The server encountered an error while processing your request.</p>\n"
-                "   <p align='center'>Please try again later.</p>\n"
-                "</body>\n</html>\n"
-            );
-            res.headers["Connection"] = "close";
-        break;
-
-        // Some other error
-        default:
-            Log::Error(std::format(
-                "Server encounted error {} that's not specifically handled",
-                statusCode
-            ));
-        
-            res.SetStatus(statusCode);
-
-            res.body = std::format(
-                "<!DOCTYPE html>\n<html>\n<body>\n"
-                "   <h1 align='center'>HTTP Code {}</h1>\n"
-                "   <p align='center'>The server encountered an unexpected error.</p>\n"
-                "   <p align='center'>Please try again later.</p>\n"
-                "</body>\n</html>\n",
-                statusCode
-            );
-            res.headers["Connection"] = "close";
-
-            break;
+    if (handler != nullptr) {
+        (*handler)(req, res);
     }
 
-    const std::string resStr = res.Serialize();
-    NetworkIO::Send(clientSocket, resStr, 0);
-
+    NetworkIO::Send(clientSocket, res.Serialize(), 0);
     return;
+}
+
+void HttpServer::AddErrorRoute(short int responseStatusCode, HandlerFunction handler) {
+    m_errorRouter[responseStatusCode] = handler;
+    return;
+}
+
+const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode) const {
+    auto it = m_errorRouter.find(responseStatusCode);
+    if (it == m_errorRouter.end()) {
+        return nullptr;
+    }
+
+    return &(it->second);
 }
 
 
@@ -461,8 +419,9 @@ bool HttpServer::HandleRequest(
     HttpRequest req;
     const bool parseResult = req.ParseFrom(ss);
 
+    // HTTP 400 - Bad Request
     if (parseResult == false) {
-        HandleError(500, req, clientSocket);
+        HandleError(400, req, clientSocket);
         return false;
     }
     
@@ -470,6 +429,7 @@ bool HttpServer::HandleRequest(
         req.method, req.requestUrl
     );
 
+    // HTTP 404 - Not Found
     if (handler == nullptr) {
         HandleError(404, req, clientSocket);
         return false;
