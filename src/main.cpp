@@ -1,6 +1,7 @@
 // Project
-#include "Utils.hpp"
+#include "FileHandler.hpp"
 #include "HttpServer.hpp"
+#include "Utils.hpp"
 
 int main(void) {
 
@@ -11,9 +12,7 @@ int main(void) {
     // Example route
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
-            res.body = "<html><body>"
-                "<h1>Hello world</h1>"
-                "</body></html>";
+            FileHandler::ReadFileIntoBody("static/index.html", res);
             res.headers["Content-Length"] = std::to_string(res.body.size());
 
             return;
