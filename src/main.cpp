@@ -10,7 +10,7 @@ int main(void) {
     Router router;
 
     // Example route
-    router.Get("/",
+    router.Get("/tasks/{id}/{data}",
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
             res.headers["Content-Length"] = std::to_string(res.body.size());

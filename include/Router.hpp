@@ -32,6 +32,8 @@ struct Route {
     }
 };
 
+using UrlSegment = std::string;
+
 /*
     Custom hasher for the Routes struct
 */
@@ -59,6 +61,7 @@ using HandlerFunction = std::function<
 class Router {
 private:
     std::unordered_map<Route, HandlerFunction, RouteHasher> m_routes;
+    std::unordered_map<std::string, std::string> genericToOriginalUrlLinks;
 
 public:
     void AddRoute(

@@ -1,4 +1,5 @@
 #include "Router.hpp"
+#include "Utils.hpp"
 
 // Big brain comments up ahead
 
@@ -13,7 +14,50 @@ void Router::AddRoute(
     const std::string& requestUrl,
     const HandlerFunction& handler
 ) {
-    m_routes[Route(method, requestUrl)] = handler;
+
+    const int openBraceCount  = std::count(requestUrl.begin(), requestUrl.end(), '{');
+    const int closeBraceCount = std::count(requestUrl.begin(), requestUrl.end(), '}');
+    
+    // Validate structure
+    if (openBraceCount != closeBraceCount) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "Router::AddRoute(): Invalid URL, mismatch in {} and {} count: {}",
+            // Hacky workaround because std::format cries about stray curly braces
+            "{",
+            "}",
+            requestUrl
+        )));
+    }
+
+    if (openBraceCount > 0) {
+        std::string genericRouteUrl  = requestUrl;
+        int routeParamCount = openBraceCount;
+
+        int startSearchFromIndex = 0;
+        while (routeParamCount--) {
+            const int routeParamStartIndex = genericRouteUrl.find("{", startSearchFromIndex);
+            const int routeParamEndIndex = genericRouteUrl.find("}", startSearchFromIndex);
+            const int routeParamLength = routeParamEndIndex - routeParamStartIndex - 1;
+
+            const std::string routeParam = genericRouteUrl.substr(routeParamStartIndex + 1, routeParamLength);
+
+            genericRouteUrl.erase(routeParamStartIndex + 1, routeParamLength);
+            
+            startSearchFromIndex = genericRouteUrl.find("}", startSearchFromIndex) + 1;
+        }
+
+        Log::Info(std::format(
+            "gru: {}",
+            genericRouteUrl
+        ));
+
+        genericToOriginalUrlLinks[genericRouteUrl] = requestUrl;
+        m_routes[Route(method, genericRouteUrl)] = handler;
+    }
+    else {
+        m_routes[Route(method, requestUrl)] = handler;
+    }
+
     return;
 }
 
@@ -41,12 +85,23 @@ const HandlerFunction* Router::FetchRoute(
     const HttpMethod& method,
     const std::string& requestUrl
 ) const {
+    // auto it = m_routes.find(Route(method, requestUrl));
+    // if (it == m_routes.end()) {
+    //     return nullptr;
+    // }
+
+    // return &(it->second);
+
     auto it = m_routes.find(Route(method, requestUrl));
-    if (it == m_routes.end()) {
-        return nullptr;
+    if (it != m_routes.end()) {
+        return &(it->second);
     }
 
-    return &(it->second);
+    // ex: /task/123
+    // route: /task/{} (redirected to /task/{id} (redirection handled later))
+    // Replace 123 with {}
+    const int last{};
+
 }
 
 /*
