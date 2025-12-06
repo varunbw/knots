@@ -1,7 +1,118 @@
+#include <stack>
+
 #include "Router.hpp"
 #include "Utils.hpp"
 
-// Big brain comments up ahead
+
+Router::Router() {
+    m_root = std::make_shared<UrlSegment>();
+    m_root->segment = "/"; 
+    return;
+}
+
+std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
+
+    std::vector<UrlSegment> res;
+
+    const HttpMethod& method = route.method;
+    const std::string& requestUrl = route.requestUrl;
+
+    size_t findFromPosition = 0;
+    const size_t urlLength = requestUrl.size();
+
+    // The root endpoint should be at the 0'th index
+    res.push_back(UrlSegment(method, "/"));
+
+    while (findFromPosition < urlLength) {
+        const size_t left = requestUrl.find('/', findFromPosition);
+        const size_t right = [requestUrl, urlLength, left] () {
+            const size_t res = requestUrl.find('/', left + 1);
+
+            return (
+                res == std::string::npos ? 
+                urlLength :
+                res - 1
+            );
+        } ();
+
+        res.push_back(UrlSegment(method, requestUrl.substr(left + 1, right - left)));
+
+        UrlSegment& lastSegment = res.back();
+        lastSegment.method = route.method;
+
+        findFromPosition = right + 1;
+    }
+
+    res.back().isEndpoint = true;
+        
+    return res;
+}
+
+std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const {
+
+    std::shared_ptr<UrlSegment> currNode = m_root;
+
+    const Route route = Route(req.method, req.requestUrl + "/");
+    Route currRoute(route.method, "/");
+
+    std::vector<UrlSegment> segments = BreakRouteIntoSegments(route);
+    const size_t segmentsSize = segments.size();
+
+    for (size_t i = 0; i < segmentsSize; i++) {
+        // Substitute params for dynamic routes
+        if (currNode->isDynamic()) {
+            const std::string key = [currNode] () {
+                std::string res = currNode->segment;
+                res.pop_back();
+                res.erase(res.begin());
+                return res;
+            } ();
+
+            const std::string value = segments[i].segment;
+            req.routeParams[key] = value;
+        }
+                
+        if (currRoute == route) {
+            return currNode;
+        }
+
+        // If a route is not found even at the last segment, there is no matching route
+        if (i == segmentsSize - 1) {
+            return nullptr;
+        }
+
+        bool nextStaticNodeFound = false;
+        bool nextDynamicNodeFound = false;
+
+        // Look for a static node
+        for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
+            if (nextNode->segment == segments[i + 1].segment) {
+                currNode = nextNode;
+                nextStaticNodeFound = true;
+                currRoute.requestUrl += currNode->segment + "/";
+                break;
+            }
+        }
+
+        // Look for a dynamic node
+        if (nextStaticNodeFound == false) {
+            for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
+                if (nextNode->isDynamic()) {
+                    currNode = nextNode;
+                    nextDynamicNodeFound = true;
+                    currRoute.requestUrl += segments[i + 1].segment + "/";
+                    break;
+                }
+            }
+
+            // Neither a static or dynamic route from here onwards was found
+            if (nextDynamicNodeFound == false) {
+            }
+        }
+    }
+
+    return nullptr;
+}
 
 /*
     @brief Add a route to the Router
@@ -15,64 +126,47 @@ void Router::AddRoute(
     const HandlerFunction& handler
 ) {
 
-    const int openBraceCount  = std::count(requestUrl.begin(), requestUrl.end(), '{');
-    const int closeBraceCount = std::count(requestUrl.begin(), requestUrl.end(), '}');
-    
-    // Validate structure
-    if (openBraceCount != closeBraceCount) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "Router::AddRoute(): Invalid URL, mismatch in {} and {} count: {}",
-            // Hacky workaround because std::format cries about stray curly braces
-            "{",
-            "}",
-            requestUrl
-        )));
-    }
+    Route route(method, requestUrl);
 
-    if (openBraceCount > 0) {
-        std::string genericRouteUrl  = requestUrl;
-        int routeParamCount = openBraceCount;
+    std::shared_ptr<UrlSegment> prevNode = nullptr;
+    std::shared_ptr<UrlSegment> currNode = m_root;
 
-        int startSearchFromIndex = 0;
-        while (routeParamCount--) {
-            const int routeParamStartIndex = genericRouteUrl.find("{", startSearchFromIndex);
-            const int routeParamEndIndex = genericRouteUrl.find("}", startSearchFromIndex);
-            const int routeParamLength = routeParamEndIndex - routeParamStartIndex - 1;
+    std::vector<UrlSegment> segments = BreakRouteIntoSegments(route);
+    const size_t segmentsSize = segments.size();
 
-            const std::string routeParam = genericRouteUrl.substr(routeParamStartIndex + 1, routeParamLength);
-
-            genericRouteUrl.erase(routeParamStartIndex + 1, routeParamLength);
-            
-            startSearchFromIndex = genericRouteUrl.find("}", startSearchFromIndex) + 1;
+    for (size_t i = 0; i < segmentsSize; i++) {
+        // If current node does not exist, create and link it
+        if (currNode == nullptr && prevNode != nullptr) {
+            currNode = std::make_shared<UrlSegment>(segments[i]);
+            prevNode->next.push_back(currNode);
         }
 
-        Log::Info(std::format(
-            "gru: {}",
-            genericRouteUrl
-        ));
+        bool nextNodeExists = false;
+        for (const std::shared_ptr<UrlSegment>& nextNode : currNode->next) {
 
-        genericToOriginalUrlLinks[genericRouteUrl] = requestUrl;
-        m_routes[Route(method, genericRouteUrl)] = handler;
-    }
-    else {
-        m_routes[Route(method, requestUrl)] = handler;
+            if (i == segmentsSize) {
+                break;
+            }
+
+            if (nextNode->segment == segments[i + 1].segment) {
+                nextNodeExists = true;
+                prevNode = currNode;
+                currNode = nextNode;
+                break;
+            }
+        }
+
+        if (nextNodeExists == false) {
+            prevNode = currNode;
+            currNode = nullptr;
+        }
     }
 
+    prevNode->isEndpoint = true;
+    prevNode->handler = handler;
     return;
 }
 
-/*
-    @brief Add a route to the Router
-    @param route The route
-    @param handler The handler function
-*/
-void Router::AddRoute(
-    const Route& route,
-    const HandlerFunction& handler
-) {
-    m_routes[route] = handler;
-    return;
-}
 
 /*
     @brief Get a const pointer to the handler function for the given route
@@ -81,45 +175,16 @@ void Router::AddRoute(
 
     @return const pointer to handler function
 */
+// todo Fix this to remove raw pointer
 const HandlerFunction* Router::FetchRoute(
-    const HttpMethod& method,
-    const std::string& requestUrl
+    HttpRequest& req
 ) const {
-    // auto it = m_routes.find(Route(method, requestUrl));
-    // if (it == m_routes.end()) {
-    //     return nullptr;
-    // }
+    std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
 
-    // return &(it->second);
-
-    auto it = m_routes.find(Route(method, requestUrl));
-    if (it != m_routes.end()) {
-        return &(it->second);
-    }
-
-    // ex: /task/123
-    // route: /task/{} (redirected to /task/{id} (redirection handled later))
-    // Replace 123 with {}
-    const int last{};
-
+    return (segment && segment->handler.has_value()) ?
+        &segment->handler.value() :
+        nullptr;
 }
-
-/*
-    @brief Get a const pointer to the handler function for the given route
-    @param route The route
-
-    @return const pointer to handler function
-*/
-const HandlerFunction* Router::FetchRoute(
-    const Route& route
-) const {
-    auto it = m_routes.find(route);
-    if (it == m_routes.end()) {
-        return nullptr;
-    }
-
-    return &(it->second);
-} 
 
 
 // Individual functions for request types
@@ -167,4 +232,3 @@ void Router::Patch(const std::string& requestUrl, const HandlerFunction& handler
     this->AddRoute(HttpMethod::PATCH, requestUrl, handler);
     return;
 };
-
