@@ -49,6 +49,11 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
         findFromPosition = right + 1;
     }
 
+    // In case of trailing `/`s in the URL, a blank segment is inserted
+    if (res.back().segment == "") {
+        res.pop_back();
+    }
+
     res.back().isEndpoint = true;
     return res;
 }
@@ -57,14 +62,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
 
     std::shared_ptr<UrlSegment> currNode = m_root;
 
-    // const Route route = Route(
-    //     req.method,
-    //     [req] () {
-    //         return req.requestUrl.back() == '/' ?
-    //             req.requestUrl :
-    //             req.requestUrl + "/";
-    //     } ()
-    // );
     const Route route = Route(req.method, req.requestUrl);
     Route currRoute(req.method, "");
 
@@ -86,24 +83,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
         }
 
         currRoute.method = currNode->method;
-        Log::Info(std::format(
-            "croute: {}, {}",
-            currRoute.method, currRoute.requestUrl
-        ));
-        Log::Info(std::format(
-            "route:  {}, {}",
-            route.method, route.requestUrl
-        ));
-
         if (currRoute == route) {
-            Log::Success(std::format(
-                "route `{}` `{}`", 
-                currRoute.method, currRoute.requestUrl
-            ));
-            Log::Success(std::format(
-                "node `{}` `{}`",
-                route.method, route.requestUrl
-            ));
             return currNode;
         }
 
@@ -128,7 +108,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                 ) {
                     currNode = nextNode;
                     nextStaticNodeFound = true;
-                    if (currRoute.requestUrl.back() != '/') {
+                    if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                         currRoute.requestUrl += "/";
                     }
                     currRoute.requestUrl += currNode->segment;
@@ -139,7 +119,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                 if (nextNode->segment == segments[i + 1].segment) {
                     currNode = nextNode;
                     nextStaticNodeFound = true;
-                    if (currRoute.requestUrl.back() != '/') {
+                    if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                         currRoute.requestUrl += "/";
                     }
                     currRoute.requestUrl += currNode->segment;
@@ -151,7 +131,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
         // Look for a dynamic node
         if (nextStaticNodeFound == false) {
             for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
-
                 if (i == segmentsSize - 2) {
                     if (
                         nextNode->isDynamic() &&
@@ -159,7 +138,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                     ) {
                         currNode = nextNode;
                         nextDynamicNodeFound = true;
-                        if (currRoute.requestUrl.back() != '/') {
+                        if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                             currRoute.requestUrl += "/";
                         }
                         currRoute.requestUrl += segments[i + 1].segment;
@@ -170,7 +149,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                     if (nextNode->isDynamic()) {
                         currNode = nextNode;
                         nextDynamicNodeFound = true;
-                        if (currRoute.requestUrl.back() != '/') {
+                        if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                             currRoute.requestUrl += "/";
                         }
                         currRoute.requestUrl += segments[i + 1].segment;
@@ -265,19 +244,18 @@ void Router::AddRoute(
 const HandlerFunction* Router::FetchRoute(
     HttpRequest& req
 ) const {
+
     std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
+    if (segment == nullptr) {
+        if (req.requestUrl.back() == '/') {
+            req.requestUrl.pop_back();
+        }
+        else {
+            req.requestUrl += "/";
+        }
 
-    // Log::Info(std::format(
-    //     "m_root: `{}`, `{}`",
-    //     m_root->method, m_root->segment
-    // ));
-
-    // for (auto ele : m_root->next) {
-    //     Log::Info(std::format(
-    //         "m_root next: `{}`, `{}`",
-    //         ele->method, ele->segment
-    //     ));
-    // }
+        segment = FindSegmentForRoute(req);
+    }
 
     return (segment && segment->handler.has_value()) ?
         &segment->handler.value() :

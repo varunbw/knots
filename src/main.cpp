@@ -42,7 +42,15 @@ int main(void) {
             return;
         }
     );
-    router.Get("/users",
+    router.Post("/users",
+        [] (const HttpRequest& req, HttpResponse& res) {
+            FileHandler::ReadFileIntoBody("static/index.html", res);
+            res.headers["Content-Length"] = std::to_string(res.body.size());
+
+            return;
+        }
+    );
+    router.Get("/users/",
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
             res.headers["Content-Length"] = std::to_string(res.body.size());
@@ -104,11 +112,13 @@ int main(void) {
         }
     );
 
+    
+
     HttpServer server(config, router);
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
         FileHandler::ReadFileIntoBody("static/not-found.html", res);
-
+        res.SetStatus(404);
         return;
     });
 
