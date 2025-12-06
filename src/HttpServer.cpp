@@ -390,6 +390,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
     return;
 }
 
+// todo wrap handler around custom function to set response code
 void HttpServer::AddErrorRoute(short int responseStatusCode, HandlerFunction handler) {
     m_errorRouter[responseStatusCode] = handler;
     return;

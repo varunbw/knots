@@ -4,6 +4,7 @@ set(TEST_SOURCES
     HttpRequestTest.cpp
     HttpResponseTest.cpp
     HttpServerTest.cpp
+    RouterTest.cpp
 )
 
 add_executable(unit_tests ${TEST_SOURCES})

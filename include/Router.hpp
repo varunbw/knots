@@ -1,10 +1,8 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
 
 #include "HttpMessage.hpp"
@@ -22,7 +20,6 @@ using HandlerFunction = std::function<
     corresponding handler function
 */
 struct Route {
-
     HttpMethod method;
     std::string requestUrl;
 
@@ -89,8 +86,8 @@ private:
     std::shared_ptr<UrlSegment> m_root;
 
     std::shared_ptr<UrlSegment> FindSegmentForRoute(HttpRequest& req) const;
-public:
 
+public:
     Router();
 
     void AddRoute(

@@ -40,19 +40,17 @@ TEST(RouterTest, FetchValidRoutes) {
         }
     );
 
-    const HandlerFunction* handlerPtr1 = router.FetchRoute(
-        HttpMethod::GET,
-        "/index.html"
-    );
+    req = HttpRequest(HttpMethod::GET, "/index.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
+
+    const HandlerFunction* handlerPtr1 = router.FetchRoute(req);
 
     EXPECT_TRUE(handlerPtr1);
     (*handlerPtr1)(req, res);
     EXPECT_EQ(res.body, "GET for /index.html");
+
+    req = HttpRequest(HttpMethod::POST, "/contact.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
     
-    const HandlerFunction* handlerPtr2 = router.FetchRoute(
-        HttpMethod::POST,
-        "/contact.html"
-    );
+    const HandlerFunction* handlerPtr2 = router.FetchRoute(req);
 
     EXPECT_TRUE(handlerPtr2);
     (*handlerPtr2)(req, res);
@@ -82,21 +80,15 @@ TEST(RouterTest, FetchInvalidRoutes) {
         }
     );
 
-    const HandlerFunction* handlerPtr1 = router.FetchRoute(
-        HttpMethod::PATCH,
-        "/index.html"
-    );
+    req = HttpRequest(HttpMethod::PATCH, "/index.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
+    const HandlerFunction* handlerPtr1 = router.FetchRoute(req);
     EXPECT_FALSE(handlerPtr1);
 
-    const HandlerFunction* handlerPtr2 = router.FetchRoute(
-        HttpMethod::GET,
-        "/about.html"
-    );
+    req = HttpRequest(HttpMethod::GET, "/contact.html", HttpVersion::HTTP_1_1, {}, {},  {}, {});
+    const HandlerFunction* handlerPtr2 = router.FetchRoute(req);
     EXPECT_FALSE(handlerPtr2);
 
-    const HandlerFunction* handlerPtr3 = router.FetchRoute(
-        HttpMethod::PATCH,
-        "/about.html"
-    );
+    req = HttpRequest(HttpMethod::PATCH, "/about.html", HttpVersion::HTTP_1_1, {}, {},  {}, {});
+    const HandlerFunction* handlerPtr3 = router.FetchRoute(req);
     EXPECT_FALSE(handlerPtr3);
 }
