@@ -3,6 +3,59 @@
 #include "HttpServer.hpp"
 #include "Utils.hpp"
 
+const std::vector<std::string> urls = {
+    "/users",
+    "/users/{userId}",
+    "/users/{userId}/profile",
+    "/users/{userId}/settings",
+    "/users/{userId}/orders",
+    "/users/{userId}/orders/{orderId}",
+    "/users/details",
+    "/users/details/{detailId}",
+    "/users/search",
+    "/users/search/{query}",
+    "/login",
+    "/logout",
+    "/auth/{provider}",
+    "/auth/{provider}/callback",
+    "/session/{sessionId}",
+    "/products",
+    "/products/{productId}",
+    "/products/{productId}/reviews",
+    "/products/{productId}/reviews/{reviewId}",
+    "/products/category/{categoryName}",
+    "/products/category/{categoryName}/page/{page}",
+    "/blog",
+    "/blog/{slug}",
+    "/blog/{slug}/comments",
+    "/blog/{slug}/comments/{commentId}",
+    "/blog/archive/{year}/{month}",
+    "/blog/tags/{tag}",
+    "/admin",
+    "/admin/users",
+    "/admin/users/{userId}",
+    "/admin/settings",
+    "/admin/logs/{date}",
+    "/files/{fileId}",
+    "/files/{fileId}/download",
+    "/media/images",
+    "/media/images/{imageId}",
+    "/cart",
+    "/cart/items",
+    "/cart/items/{itemId}",
+    "/checkout",
+    "/notifications",
+    "/notifications/{notificationId}",
+    "/search/{query}/page/{page}",
+    "/status/{code}",
+    "/settings",
+    "/settings/{section}",
+    "/cities/{cityName}/weather",
+    "/v1/{resource}/{id}",
+    "/api/{version}/users/{userId}",
+    "/healthcheck",
+};
+
 int main(void) {
 
     HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
@@ -10,14 +63,6 @@ int main(void) {
     Router router;
 
     // Example route
-    router.Post("/",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-
-            return;
-        }
-    );
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
@@ -26,93 +71,52 @@ int main(void) {
             return;
         }
     );
-    router.Patch("/",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
 
-            return;
-        }
-    );
-    router.Delete("/",
+    HandlerFunction function = 
         [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
 
-            return;
-        }
-    );
-    router.Post("/users",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
+            std::string finalString{};
+            for (const auto& routeParam : req.routeParams) {
+                finalString += std::format(
+                    "<div style='color: white;'>{} : {}</div>",
+                    routeParam.first, routeParam.second
+                );
+            }
 
-            return;
-        }
-    );
-    router.Get("/users/",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-
-            return;
-        }
-    );
-    router.Get("/users/{userId}/orders/{orderId}/details/{detailId}/yetAnotherPage",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            const std::string userId = req.routeParams.at("userId");
-            const std::string orderId = req.routeParams.at("orderId");
-            const std::string detailId = req.routeParams.at("detailId");
-
-            const std::string body = std::format(
-                "<!DOCTYPE html>\n"
-                "<html>\n"
-                    "<body style='background-color: black'>\n"
-                        "<h1 align='center'>\n"
-                            "<div style='color: white;'>Hello World</div>\n"
-                            "<div style='color: white;'>userId   : {}</div>\n"
-                            "<div style='color: white;'>orderId  : {}</div>\n"
-                            "<div style='color: white;'>detailsId: {}</div>\n"
-                        "</h1>\n"
-                    "</body>\n"
+            res.body = std::format(
+                "<!DOCTYPE html>"
+                "<html lang='en'>"
+                    "<head>"
+                        "<meta charset='UTF-8' />"
+                        "<meta name='viewport' content='width=device-width, initial-scale=1.0' />"
+                        "<title>Index Page</title>"
+                    "</head>"
+                    "<body style='background-color: black'>"
+                        "<h1 align='center'>"
+                            "<div style='color: white;'>Hello World</div>"
+                            "{}"
+                        "</h1>"
+                    "</body>"
                 "</html>",
-                userId,
-                orderId,
-                detailId
+                finalString
             );
 
-            res.body = body;
             res.headers["Content-Length"] = std::to_string(res.body.size());
-
+            res.headers["Content-Type"] = "text/html";
             return;
-        }
-    );
-    router.Get("/users/{userId}",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            // FileHandler::ReadFileIntoBody("static/index.html", res);
-            const std::string userId = req.routeParams.at("userId");
+        };
 
-            const std::string body = std::format(
-                "<!DOCTYPE html>\n"
-                "<html>\n"
-                    "<body style='background-color: black'>\n"
-                        "<h1 align='center'>\n"
-                            "<div style='color: white;'>Hello World</div>\n"
-                            "<div style='color: white;'>userId   : {}</div>\n"
-                        "</h1>\n"
-                    "</body>\n"
-                "</html>",
-                userId
-            );
-
-            res.body = body;
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-
-            return;
-        }
-    );
-
-    
+    for (const std::string& url : urls) {
+        router.Post(url, function);
+        router.Get(url, function);
+        router.Head(url, function);
+        router.Put(url, function);
+        router.Delete(url, function);
+        router.Connect(url, function);
+        router.Options(url, function);
+        router.Trace(url, function);
+        router.Patch(url, function);
+    }
 
     HttpServer server(config, router);
 

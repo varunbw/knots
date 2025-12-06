@@ -372,11 +372,10 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
     }
 
     Log::Info(std::format(
-        "{} \"{}\", {} queryParams, {} routeParams, {} body length",
+        "{} \"{}\", {} queryParams, {} body length",
         this->method,
         this->requestUrl,
         this->queryParams.size(),
-        this->routeParams.size(),
         this->body.size()
     ));
 
