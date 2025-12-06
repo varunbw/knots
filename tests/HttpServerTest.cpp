@@ -236,6 +236,8 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
     buffer = buffer.substr(0, bytesReceived);
 
     // Received correct response?
+    // This is the expected response because an explicit error route has not been added
+    // Without a custom response, this is all that's sent by default
     const std::string expectedResponse = "HTTP/1.1 404 Not Found\r\n\r\n";
     EXPECT_EQ(buffer, expectedResponse)
         << MakeErrorMessage("Wrong message received");

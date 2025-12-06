@@ -96,9 +96,7 @@ public:
         const HandlerFunction& handler
     );
 
-    const HandlerFunction* FetchRoute(
-        HttpRequest& req
-    ) const;
+    const HandlerFunction* FetchRoute(HttpRequest& req) const;
 
     // Individual functions for request types
     void Post(const std::string& requestUrl, const HandlerFunction& handler);
