@@ -70,7 +70,7 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
     const std::size_t questionPos = urlAndParamsString.find('?');
 
     // URL Parsing
-    // No params or trailing '?'
+    // No queryParams or trailing '?'
     if (questionPos == std::string::npos) {
         req.requestUrl = urlAndParamsString;
         return true;
@@ -79,7 +79,7 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
     // Basic parse
     req.requestUrl = urlAndParamsString.substr(0, questionPos);
 
-    // Traling '?', no params, end here
+    // Traling '?', no queryParams, end here
     if (questionPos == urlAndParamsString.size() - 1) {
         return true;
     }
@@ -102,11 +102,11 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
 
         if (equalPos == std::string::npos) {
             if (param.size()) {
-                req.params[param] = "";
+                req.queryParams[param] = "";
             }
         }
         else {
-            req.params[param.substr(0, equalPos)] = param.substr(equalPos + 1);
+            req.queryParams[param.substr(0, equalPos)] = param.substr(equalPos + 1);
         }
 
         // Skip over '&' and go to next param's start
@@ -321,7 +321,7 @@ void HttpRequest::PrintMessage() const {
     }
 
     std::cout << "\nPARAMETERS\n";
-    for (const auto& [param, value] : this->params) {
+    for (const auto& [param, value] : this->queryParams) {
         std::cout << std::format(
             "  {}: {}\n",
             param, value
@@ -372,10 +372,10 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
     }
 
     Log::Info(std::format(
-        "{} \"{}\", {} params, {} body length",
+        "{} \"{}\", {} queryParams, {} body length",
         this->method,
         this->requestUrl,
-        this->params.size(),
+        this->queryParams.size(),
         this->body.size()
     ));
 

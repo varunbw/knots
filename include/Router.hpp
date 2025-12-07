@@ -1,11 +1,18 @@
 #pragma once
 
 #include <functional>
-#include <map>
+#include <memory>
 #include <optional>
 #include <string>
 
 #include "HttpMessage.hpp"
+
+/*
+    Alias for the handler functions
+*/
+using HandlerFunction = std::function<
+    void(const HttpRequest&, HttpResponse&)
+>;
 
 /*
     A combination of a HTTP Method (GET, POST, etc.) and the request URL
@@ -13,7 +20,6 @@
     corresponding handler function
 */
 struct Route {
-
     HttpMethod method;
     std::string requestUrl;
 
@@ -27,27 +33,46 @@ struct Route {
         requestUrl(requestUrl)
     {}
 
-    bool operator== (const Route& other) const {
+    constexpr bool operator== (const Route& other) const {
         return method == other.method && requestUrl == other.requestUrl;
     }
 };
 
-/*
-    Custom hasher for the Routes struct
-*/
-struct RouteHasher {
-    std::size_t operator() (const Route& route) const {
-        return std::hash<HttpMethod>()(route.method)
-               ^ std::hash<std::string>()(route.requestUrl);
+struct UrlSegment {
+    HttpMethod method;
+    std::string segment;
+
+    bool isEndpoint;
+
+    std::optional<HandlerFunction> handler;
+    std::vector<std::shared_ptr<UrlSegment>> next;
+
+    UrlSegment() :
+        method(HttpMethod::DEFAULT_INVALID),
+        segment{},
+        isEndpoint(false),
+        handler{},
+        next{}
+    {}
+
+    UrlSegment(const HttpMethod& method, const std::string& segment) :
+        method(method),
+        segment(segment),
+        isEndpoint(false),
+        handler{},
+        next{}
+    {}
+
+    constexpr bool operator== (const UrlSegment& other) const {
+        return method == other.method && segment == other.segment;
+    }
+
+    constexpr bool isDynamic() const {
+        return segment[0] == '{' && segment.back() == '}';
     }
 };
 
-/*
-    Alias for the handler functions
-*/
-using HandlerFunction = std::function<
-    void(const HttpRequest&, HttpResponse&)
->;
+
 
 /*
     `m_routes` stores a key-value pairing of Routes to their corresponding
@@ -58,28 +83,20 @@ using HandlerFunction = std::function<
 */
 class Router {
 private:
-    std::unordered_map<Route, HandlerFunction, RouteHasher> m_routes;
+    std::shared_ptr<UrlSegment> m_root;
+
+    std::shared_ptr<UrlSegment> FindSegmentForRoute(HttpRequest& req) const;
 
 public:
+    Router();
+
     void AddRoute(
         const HttpMethod& method,
         const std::string& requestUrl, 
         const HandlerFunction& handler
     );
 
-    void AddRoute(
-        const Route& route,
-        const HandlerFunction& handler
-    );
-
-    const HandlerFunction* FetchRoute(
-        const HttpMethod& method,
-        const std::string& requestUrl
-    ) const;
-
-    const HandlerFunction* FetchRoute(
-        const Route& route
-    ) const;
+    const HandlerFunction* FetchRoute(HttpRequest& req) const;
 
     // Individual functions for request types
     void Post(const std::string& requestUrl, const HandlerFunction& handler);

@@ -425,9 +425,7 @@ bool HttpServer::HandleRequest(
         return false;
     }
     
-    const HandlerFunction* handler = m_router.FetchRoute(
-        req.method, req.requestUrl
-    );
+    const HandlerFunction* handler = m_router.FetchRoute(req);
 
     // HTTP 404 - Not Found
     if (handler == nullptr) {

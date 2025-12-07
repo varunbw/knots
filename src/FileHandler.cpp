@@ -33,6 +33,7 @@ HttpResponse FileHandler::MakeHttpResponseFromFile(const std::string& fileName) 
     infile.read(responseBody.data(), fileSize);
 
     HttpResponse res;
+    // todo Remove
     res.SetStatus(200);
     res.body = std::move(responseBody);
 
@@ -64,6 +65,7 @@ void FileHandler::ReadFileIntoBody(const std::string& filePath, HttpResponse& re
     std::string responseBody(fileSize, 0);
     infile.read(responseBody.data(), fileSize);
 
+    // todo Remove
     res.SetStatus(200);
     res.body = std::move(responseBody);
     res.headers["Content-Length"] = std::to_string(res.body.size());

@@ -235,16 +235,10 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
 
     buffer = buffer.substr(0, bytesReceived);
 
-    const std::string expectedResponse = 
-        "HTTP/1.1 404 Not Found\r\n"
-        "\r\n"
-        "<!DOCTYPE html>\n<html>\n<body>\n"
-        "    <h1 align='center'>404 Not Found</h1>\n"
-        "    <p align='center'>The request URL <b>/</b> does not exist.</p>\n"
-        "    <p align='center'>Please check the URL and try again.</p>\n"
-        "</body>\n</html>\n";
-
     // Received correct response?
+    // This is the expected response because an explicit error route has not been added
+    // Without a custom response, this is all that's sent by default
+    const std::string expectedResponse = "HTTP/1.1 404 Not Found\r\n\r\n";
     EXPECT_EQ(buffer, expectedResponse)
         << MakeErrorMessage("Wrong message received");
 
@@ -330,7 +324,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
 
     buffer.resize(bytesReceived);
 
-    //     Received correct response?
+    // Received correct response?
     EXPECT_EQ(buffer, serverResponse)
         << MakeErrorMessage("Unexpected response from server");
 

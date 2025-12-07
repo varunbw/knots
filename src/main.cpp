@@ -23,7 +23,7 @@ int main(void) {
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
         FileHandler::ReadFileIntoBody("static/not-found.html", res);
-        
+        res.SetStatus(404);
         return;
     });
 
