@@ -23,6 +23,9 @@
 #include "ThreadPool.hpp"
 #include "Utils.hpp"
 
+std::atomic<int> counter = 0;
+std::atomic<int> counter2 = 0;
+
 /*
     @brief Set up the HTTP server
 
@@ -199,6 +202,10 @@ bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
         .tv_sec = 10,
         .tv_usec = 0
     };
+    constexpr struct linger linger {
+        .l_onoff = 1,
+        .l_linger = 30
+    };
 
     /*
         Set TCP keep-alive options
@@ -220,7 +227,8 @@ bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
         {SOL_SOCKET,  SO_KEEPALIVE,  (void*)&tcpKeepAlive,        sizeof(tcpKeepAlive)},
         {IPPROTO_TCP, TCP_KEEPIDLE,  (void*)&startProbingAfter,   sizeof(startProbingAfter)},
         {IPPROTO_TCP, TCP_KEEPINTVL, (void*)&sendProbeInterval,   sizeof(sendProbeInterval)},
-        {IPPROTO_TCP, TCP_KEEPCNT,   (void*)&dropConnAfterProbes, sizeof(dropConnAfterProbes)}
+        {IPPROTO_TCP, TCP_KEEPCNT,   (void*)&dropConnAfterProbes, sizeof(dropConnAfterProbes)},
+        {SOL_SOCKET,  SO_LINGER,     (void*)&linger,              sizeof(linger)}
     };
 
     for (const SocketOption& opt : options) {
@@ -292,6 +300,11 @@ void HttpServer::AcceptConnections() {
                 }
             );
         }
+
+        {
+            std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+            m_activeClientSockets.erase(clientSocketFD);
+        }
     }
 
     return;
@@ -317,7 +330,6 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         ));
 
         HandleError(500, {}, clientSocket);
-
         return;
     }
 
@@ -357,13 +369,6 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             break;
         }
     }
-
-    m_activeClientSockets.erase(clientSocket.Get());
-
-    Log::Info(std::format(
-        "Connection closed to socket {}",
-        clientSocket.Get()
-    ));
 
     return;
 }
@@ -440,6 +445,9 @@ bool HttpServer::HandleRequest(
     auto it = req.headers.find("Connection");
     if (it != req.headers.end()) {
         res.headers["Connection"] = it->second;
+    }
+    else {
+        res.headers["Connection"] = "close";
     }
 
     const std::string resStr = res.Serialize();
