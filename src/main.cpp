@@ -9,11 +9,22 @@ int main(void) {
 
     Router router;
 
-    // Example route
+    // Example routes
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
             res.headers["Content-Length"] = std::to_string(res.body.size());
+
+            return;
+        }
+    );
+
+    const std::string buffer(65536, '0');
+    router.Get("/spam", 
+        [buffer] (const HttpRequest& req, HttpResponse& res) {
+            res.body = buffer;
+            res.headers["Content-Length"] = std::to_string(buffer.size());
+            res.headers["Content-Type"] = "text/html";
 
             return;
         }

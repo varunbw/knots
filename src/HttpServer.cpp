@@ -271,7 +271,7 @@ void HttpServer::AcceptConnections() {
                 Log::Info("AcceptConnections(): Server socket has been closed");
                 break;
             }
-            
+
             // If the above condition is not satisfied, its an error
             Log::Error(std::format(
                 "AcceptConnection(): Could not accept connection"
@@ -291,6 +291,11 @@ void HttpServer::AcceptConnections() {
                     HandleConnection(Socket(clientSocketFD));
                 }
             );
+        }
+
+        {
+            std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+            m_activeClientSockets.erase(clientSocketFD);
         }
     }
 
@@ -317,7 +322,6 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         ));
 
         HandleError(500, {}, clientSocket);
-
         return;
     }
 
@@ -357,13 +361,6 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             break;
         }
     }
-
-    m_activeClientSockets.erase(clientSocket.Get());
-
-    Log::Info(std::format(
-        "Connection closed to socket {}",
-        clientSocket.Get()
-    ));
 
     return;
 }
@@ -424,7 +421,7 @@ bool HttpServer::HandleRequest(
         HandleError(400, req, clientSocket);
         return false;
     }
-    
+
     const HandlerFunction* handler = m_router.FetchRoute(req);
 
     // HTTP 404 - Not Found
@@ -440,6 +437,9 @@ bool HttpServer::HandleRequest(
     auto it = req.headers.find("Connection");
     if (it != req.headers.end()) {
         res.headers["Connection"] = it->second;
+    }
+    else {
+        res.headers["Connection"] = "close";
     }
 
     const std::string resStr = res.Serialize();

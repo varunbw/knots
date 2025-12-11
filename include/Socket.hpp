@@ -9,8 +9,9 @@ private:
 public:
     explicit Socket(const int fd) : m_fd(fd) {};
     ~Socket() {
-        if (m_fd >= 0)
+        if (m_fd >= 0) {
             close(m_fd);
+        }
     }
 
     Socket(const Socket&) = delete;

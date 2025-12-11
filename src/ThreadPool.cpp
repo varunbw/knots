@@ -87,9 +87,5 @@ void ThreadPool::Stop() {
     m_isRunning = false;
 
     m_mutexCondition.notify_all();
-    for (std::jthread& thread : m_threads) {
-        thread.join();
-    }
-
     m_threads.clear();
 }
