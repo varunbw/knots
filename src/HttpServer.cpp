@@ -23,9 +23,6 @@
 #include "ThreadPool.hpp"
 #include "Utils.hpp"
 
-std::atomic<int> counter = 0;
-std::atomic<int> counter2 = 0;
-
 /*
     @brief Set up the HTTP server
 
@@ -279,7 +276,7 @@ void HttpServer::AcceptConnections() {
                 Log::Info("AcceptConnections(): Server socket has been closed");
                 break;
             }
-            
+
             // If the above condition is not satisfied, its an error
             Log::Error(std::format(
                 "AcceptConnection(): Could not accept connection"
@@ -429,7 +426,7 @@ bool HttpServer::HandleRequest(
         HandleError(400, req, clientSocket);
         return false;
     }
-    
+
     const HandlerFunction* handler = m_router.FetchRoute(req);
 
     // HTTP 404 - Not Found
