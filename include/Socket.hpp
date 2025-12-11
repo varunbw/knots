@@ -1,10 +1,6 @@
 #pragma once
 
 #include <unistd.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-
-#include "Utils.hpp"
 
 class Socket {
 private:
