@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <format>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -148,15 +149,61 @@ struct HttpResponse {
         body(body)
     {}
 
+    /*
+        @brief Print a formatted HttpResponse object to the console
+
+        Example message:
+        ------- HTTP Response -------
+          [VERSION]     : HTTP/1.1
+          [STATUS CODE] : 200
+          [STATUS TEXT] : OK
+
+        HEADERS
+          Content-Type: text/html
+          Content-Length: 16
+
+        BODY
+        0000000000000000
+        ------- End Response -------
+    */  
     void PrintMessage() const;
+
+    /*
+        @brief Set the provided status and its corresponding text
+        @param statusCode status to set
+    */
     void SetStatus(const int statusCode);
+    /*
+        @brief Set the given header
+        @param key key
+        @param value value
+    */
+    void SetHeader(const std::string& key, const std::string& value);
+    /*
+        @brief Set provided body, and the "Content-Length" header automatically
+        @param body Body
+        @param setContentLengthHeader Whether to automatically set the "Content-Length" header as per
+               the length of the body or not. Set to true by default if no parameter is passed
+    */
+    void SetBody(const std::string& body, const bool setContentLengthHeader = true);
+
+    /*
+        @brief Get the header value
+        @param key Key to the header
+    
+        @return The header value if it exists, else `std::nullopt`
+    */
+    std::optional<std::string> GetHeader(const std::string& key) const;
+    
+    /*
+        @brief Serialize the object into a `std::string` according to the standard HTTP response format
+    */
     std::string Serialize() const;
 };
 
 
 /*
-    Special formatter to print the HttpMethod and HttpVersion enums
-    Not really needed to print, but it makes life easier when printing with std::format
+    Special formatter to print the HttpMethod enum
 
     @note This is a C++20 feature
 */
@@ -180,6 +227,11 @@ struct std::formatter<HttpMethod> : std::formatter<std::string> {
     }
 };
 
+/*
+    Special formatter to print the HttpVersion enum
+
+    @note This is a C++20 feature
+*/
 template<>
 struct std::formatter<HttpVersion> : std::formatter<std::string> {
     auto format(const HttpVersion& version, std::format_context& ctx) const {

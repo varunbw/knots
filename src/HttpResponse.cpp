@@ -98,6 +98,34 @@ void HttpResponse::SetStatus(const int statusCode) {
     return;
 }
 
+void HttpResponse::SetHeader(const std::string& key, const std::string& value) {
+
+    this->headers[key] = value;
+
+    return;
+}
+
+
+void HttpResponse::SetBody(const std::string& body, const bool setContentLengthHeader) {
+
+    this->body = body;
+    if (setContentLengthHeader) {
+        this->SetHeader("Content-Length", std::to_string(this->body.size()));
+    }
+
+    return;
+}
+
+
+std::optional<std::string> HttpResponse::GetHeader(const std::string& key) const {
+
+    auto it = this->headers.find(key);
+    if (it == this->headers.end()) {
+        return std::nullopt;
+    }
+
+    return it->second;
+}
 
 /*
     @brief Serialize `res` into a std::string, with the standard HTTP response format
