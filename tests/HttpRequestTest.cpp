@@ -26,7 +26,7 @@ TEST(HttpRequestTest, ParameterizedConstructor) {
         HttpMethod::POST, 
         "/test", 
         HttpVersion::HTTP_1_1, 
-        {{"Host", "localhost:8686"}}, 
+        {{"Host", "localhost:8600"}}, 
         "body",
         {{}},
         {{}}
@@ -37,7 +37,7 @@ TEST(HttpRequestTest, ParameterizedConstructor) {
     EXPECT_EQ(req.version, HttpVersion::HTTP_1_1);
     
     EXPECT_EQ(req.headers.size(), 1);
-    EXPECT_EQ(req.GetHeader("Host"), "localhost:8686");
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8600");
     
     EXPECT_EQ(req.body, "body");
 }
@@ -52,7 +52,7 @@ TEST(HttpRequestTest, CaseInsensitiveHeader) {
         "/test", 
         HttpVersion::HTTP_1_1, 
         {
-            {"Host", "localhost:8686"},
+            {"Host", "localhost:8600"},
             {"Connection", "keep-alive"}
         }, 
         "body",
@@ -60,10 +60,10 @@ TEST(HttpRequestTest, CaseInsensitiveHeader) {
         {{}}
     );
 
-    EXPECT_EQ(req.GetHeader("Host"), "localhost:8686");
-    EXPECT_EQ(req.GetHeader("host"), "localhost:8686");
-    EXPECT_EQ(req.GetHeader("HOST"), "localhost:8686");
-    EXPECT_EQ(req.GetHeader("hOsT"), "localhost:8686");
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8600");
+    EXPECT_EQ(req.GetHeader("host"), "localhost:8600");
+    EXPECT_EQ(req.GetHeader("HOST"), "localhost:8600");
+    EXPECT_EQ(req.GetHeader("hOsT"), "localhost:8600");
     
     EXPECT_EQ(req.GetHeader("Connection"), "keep-alive");
     EXPECT_EQ(req.GetHeader("connection"), "keep-alive");
