@@ -60,15 +60,15 @@ struct CaseInsensitiveEqual {
     }
 };
 
+using Headers = std::unordered_map<std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual>;
+
 struct HttpRequest {
 
     HttpMethod method;
     std::string requestUrl;
     HttpVersion version;
 
-    std::unordered_map<
-        std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
-    > headers;
+    Headers headers;
 
     std::string body;
     
@@ -89,9 +89,7 @@ struct HttpRequest {
         const HttpMethod method,
         const std::string_view requestUrl,
         const HttpVersion version,
-        const std::unordered_map<
-            std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
-        > headers,
+        Headers headers,
         const std::string_view body,
         const std::unordered_map<std::string, std::string> queryParams,
         const std::unordered_map<std::string, std::string> routeParams
@@ -161,12 +159,7 @@ struct HttpResponse {
     short int statusCode;
     std::string statusText;
 
-    std::unordered_map<
-        std::string,
-        std::string,
-        CaseInsensitiveHash,
-        CaseInsensitiveEqual
-    > headers;
+    Headers headers;
 
     std::string body;
 
@@ -182,9 +175,7 @@ struct HttpResponse {
         const HttpVersion& version,
         const short int statusCode,
         const std::string_view statusText,
-        const std::unordered_map<
-            std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual
-        > headers,
+        const Headers headers,
         const std::string_view body
     ) :
         version(version),
