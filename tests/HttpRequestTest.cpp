@@ -28,8 +28,8 @@ TEST(HttpRequestTest, ParameterizedConstructor) {
         HttpVersion::HTTP_1_1, 
         {{"Host", "localhost:8600"}}, 
         "body",
-        {{}},
-        {{}}
+        {},
+        {}
     );
     
     EXPECT_EQ(req.method, HttpMethod::POST);
@@ -56,8 +56,8 @@ TEST(HttpRequestTest, CaseInsensitiveHeader) {
             {"Connection", "keep-alive"}
         }, 
         "body",
-        {{}},
-        {{}}
+        {},
+        {}
     );
 
     EXPECT_EQ(req.GetHeader("Host"), "localhost:8600");
@@ -74,7 +74,7 @@ TEST(HttpRequestTest, CaseInsensitiveHeader) {
 }
 
 /*
-    @brief Check that all forms of parameter parsing is working properly
+    @brief Check that all forms of query parameter parsing is working properly
 
     Checks for
     - No queryParams
@@ -86,7 +86,7 @@ TEST(HttpRequestTest, CaseInsensitiveHeader) {
     - Trailing '&'
     - Mixed
 */
-TEST(HttpRequestTest, ParameterParsing) {
+TEST(HttpRequestTest, QueryParameterParsing) {
 
     // Test simple URL without parameters
     HttpRequest req1;
@@ -100,7 +100,7 @@ TEST(HttpRequestTest, ParameterParsing) {
     req2.ParseFrom(ss2);
     EXPECT_EQ(req2.requestUrl, "/page");
     EXPECT_EQ(req2.queryParams.size(), 1);
-    EXPECT_EQ(req2.queryParams["param"], "value");
+    EXPECT_EQ(req2.GetQueryParam("param"), "value");
 
     // Test URL with multiple parameters
     HttpRequest req3;
@@ -108,9 +108,9 @@ TEST(HttpRequestTest, ParameterParsing) {
     req3.ParseFrom(ss3);
     EXPECT_EQ(req3.requestUrl, "/index.html");
     EXPECT_EQ(req3.queryParams.size(), 3);
-    EXPECT_EQ(req3.queryParams["a"], "1");
-    EXPECT_EQ(req3.queryParams["b"], "2");
-    EXPECT_EQ(req3.queryParams["c"], "3");
+    EXPECT_EQ(req3.GetQueryParam("a"), "1");
+    EXPECT_EQ(req3.GetQueryParam("b"), "2");
+    EXPECT_EQ(req3.GetQueryParam("c"), "3");
 
     // Test URL with empty parameter value
     HttpRequest req4;
@@ -118,7 +118,7 @@ TEST(HttpRequestTest, ParameterParsing) {
     req4.ParseFrom(ss4);
     EXPECT_EQ(req4.requestUrl, "/search");
     EXPECT_EQ(req4.queryParams.size(), 1);
-    EXPECT_EQ(req4.queryParams["q"], "");
+    EXPECT_EQ(req4.GetQueryParam("q"), "");
 
     // Test URL with parameter without value
     HttpRequest req5;
@@ -126,7 +126,7 @@ TEST(HttpRequestTest, ParameterParsing) {
     req5.ParseFrom(ss5);
     EXPECT_EQ(req5.requestUrl, "/toggle");
     EXPECT_EQ(req5.queryParams.size(), 1);
-    EXPECT_EQ(req5.queryParams["dark"], "");
+    EXPECT_EQ(req5.GetQueryParam("dark"), "");
 
     // Test URL with trailing question mark
     HttpRequest req6;
@@ -141,7 +141,7 @@ TEST(HttpRequestTest, ParameterParsing) {
     req7.ParseFrom(ss7);
     EXPECT_EQ(req7.requestUrl, "/page");
     EXPECT_EQ(req7.queryParams.size(), 1);
-    EXPECT_EQ(req7.queryParams["a"], "1");
+    EXPECT_EQ(req7.GetQueryParam("a"), "1");
 
     // Test URL with mixed parameter types
     HttpRequest req8;
@@ -149,10 +149,10 @@ TEST(HttpRequestTest, ParameterParsing) {
     req8.ParseFrom(ss8);
     EXPECT_EQ(req8.requestUrl, "/complex");
     EXPECT_EQ(req8.queryParams.size(), 4);
-    EXPECT_EQ(req8.queryParams["a"], "1");
-    EXPECT_EQ(req8.queryParams["b"], "");
-    EXPECT_EQ(req8.queryParams["c"], "");
-    EXPECT_EQ(req8.queryParams["d"], "4");
+    EXPECT_EQ(req8.GetQueryParam("a"), "1");
+    EXPECT_EQ(req8.GetQueryParam("b"), "");
+    EXPECT_EQ(req8.GetQueryParam("c"), "");
+    EXPECT_EQ(req8.GetQueryParam("d"), "4");
 }
 
 /*
@@ -205,4 +205,72 @@ TEST(HttpRequestTest, ParseInvalidRequest) {
     
     // Body
     EXPECT_EQ(req.body, "");
+}
+
+TEST(HttpRequestTest, GetHeaderAPI) {
+
+    HttpRequest req(
+        HttpMethod::GET, 
+        "/test", 
+        HttpVersion::HTTP_1_1, 
+        {
+            {"Host", "localhost:8600"},
+            {"Connection", "keep-alive"}
+        }, 
+        "body",
+        {},
+        {}
+    );
+
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8600");
+    EXPECT_EQ(req.GetHeader("Connection"), "keep-alive");
+    EXPECT_EQ(req.GetHeader("Not-Present-Header"), std::nullopt);
+}
+
+TEST(HttpRequestTest, GetQueryParamAPI) {
+
+    HttpRequest req(
+        HttpMethod::GET, 
+        "/test", 
+        HttpVersion::HTTP_1_1, 
+        {
+            {"Host", "localhost:8686"},
+            {"Connection", "keep-alive"}
+        }, 
+        "body",
+        {
+            {"key1", "val1"},
+            {"key2", "val2"},
+            {"key3", "val3"}
+        },
+        {}
+    );
+
+    EXPECT_EQ(req.GetQueryParam("key1"), "val1");
+    EXPECT_EQ(req.GetQueryParam("key2"), "val2");
+    EXPECT_EQ(req.GetQueryParam("key3"), "val3");
+    EXPECT_EQ(req.GetQueryParam("not-present-param"), std::nullopt);
+}
+
+TEST(HttpRequestTest, GetRouteParamAPI) {
+
+    HttpRequest req(
+        HttpMethod::GET, 
+        "/test", 
+        HttpVersion::HTTP_1_1, 
+        {
+            {"Host", "localhost:8686"},
+            {"Connection", "keep-alive"}
+        }, 
+        "body",
+        {},
+        {
+            {"userId", "123"},
+            {"orderId", "abc456"}
+        }
+    );
+
+    EXPECT_EQ(req.GetRouteParam("userId"), "123");
+    EXPECT_EQ(req.GetRouteParam("orderId"), "abc456");
+    EXPECT_EQ(req.GetRouteParam("not-present-param"), std::nullopt);
 }
