@@ -125,8 +125,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
     router.AddRoute(
         HttpMethod::GET, "/",
         [messageToSend] (const HttpRequest& req, HttpResponse& res) {
-            res.body = messageToSend;
-            res.SetHeader("Content-Length", std::to_string(res.body.size()));
+            res.SetBody(messageToSend);
 
             return;
         }
@@ -273,8 +272,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     router.AddRoute(
         HttpMethod::GET, "/",
         [serverResponseBody] (const HttpRequest& req, HttpResponse& res) {
-            res.body = serverResponseBody;
-            res.SetHeader("Content-Length", std::to_string(res.body.size()));
+            res.SetBody(serverResponseBody);
 
             return;
         }

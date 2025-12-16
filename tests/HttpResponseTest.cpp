@@ -4,7 +4,7 @@
 
 
 /*
-    @brief Test suite for the Httper class
+    @brief Test suite for the HttpResponse class
     @note This test suite is not exhaustive, but it covers the most important cases
 */
 
@@ -17,7 +17,7 @@ TEST(HttpResponseTest, ResponseCode_200) {
 
     HttpResponse res;
     res.SetStatus(200);
-    res.body = body;
+    res.SetBody(body);
 
     // Start line
     EXPECT_EQ(res.version, HttpVersion::HTTP_1_1);
@@ -25,7 +25,7 @@ TEST(HttpResponseTest, ResponseCode_200) {
     EXPECT_EQ(res.statusText, "OK");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 0);
+    EXPECT_EQ(res.headers.size(), 1);
 
     // Body
     EXPECT_EQ(res.body, body);
@@ -40,7 +40,7 @@ TEST(HttpResponseTest, ResponseCode_400) {
 
     HttpResponse res;
     res.SetStatus(400);
-    res.body = body;
+    res.SetBody(body);
 
     // Start line
     EXPECT_EQ(res.version, HttpVersion::HTTP_1_1);
@@ -48,7 +48,7 @@ TEST(HttpResponseTest, ResponseCode_400) {
     EXPECT_EQ(res.statusText, "Bad Request");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 0);
+    EXPECT_EQ(res.headers.size(), 1);
 
     // Body
     EXPECT_EQ(res.body, body);
@@ -63,7 +63,7 @@ TEST(HttpResponseTest, ResponseCode_404) {
 
     HttpResponse res;
     res.SetStatus(404);
-    res.body = body;
+    res.SetBody(body);
 
     // Start line
     EXPECT_EQ(res.version, HttpVersion::HTTP_1_1);
@@ -71,7 +71,7 @@ TEST(HttpResponseTest, ResponseCode_404) {
     EXPECT_EQ(res.statusText, "Not Found");
 
     // Headers
-    EXPECT_EQ(res.headers.size(), 0);
+    EXPECT_EQ(res.headers.size(), 1);
 
     // Body
     EXPECT_EQ(res.body, body);

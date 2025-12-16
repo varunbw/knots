@@ -116,6 +116,16 @@ void HttpResponse::SetBody(const std::string& body, const bool setContentLengthH
     return;
 }
 
+void HttpResponse::SetBody(std::string&& body, const bool setContentLengthHeader) {
+
+    this->body = std::move(body);
+    if (setContentLengthHeader) {
+        this->SetHeader("Content-Length", std::to_string(this->body.size()));
+    }
+
+    return;
+}
+
 
 std::optional<std::string> HttpResponse::GetHeader(const std::string& key) const {
 

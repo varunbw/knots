@@ -231,6 +231,7 @@ struct HttpResponse {
                the length of the body or not. Set to true by default if no parameter is passed
     */
     void SetBody(const std::string& body, const bool setContentLengthHeader = true);
+    void SetBody(std::string&& body, const bool setContentLengthHeader = true);
 
     /*
         @brief Get the header value

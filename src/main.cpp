@@ -22,8 +22,7 @@ int main(void) {
     const std::string buffer(65536, '0');
     router.Get("/spam", 
         [buffer] (const HttpRequest& req, HttpResponse& res) {
-            res.body = buffer;
-            res.SetHeader("Content-Length", std::to_string(buffer.size()));
+            res.SetBody(buffer);
             res.SetHeader("Content-Type", "text/html");
 
             return;

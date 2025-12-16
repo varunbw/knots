@@ -2,11 +2,13 @@
 #include "HttpMessage.hpp"
 
 /*
-    Test HttpParser functionality
+    @brief Test suite for the HttpResponse class
+    @note This test suite is not exhaustive, but it covers the most important cases
+
     - ParseHttpRequest
-        - ParseStartLine
-        - ParseHeaders
-        - ParseBody
+    - ParseStartLine
+    - ParseHeaders
+    - ParseBody
 */
 
 /*
