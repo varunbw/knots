@@ -126,8 +126,8 @@ TEST(HttpServerTest, BasicRequestResponse) {
         HttpMethod::GET, "/",
         [messageToSend] (const HttpRequest& req, HttpResponse& res) {
             res.body = messageToSend;
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-            
+            res.SetHeader("Content-Length", std::to_string(res.body.size()));
+
             return;
         }
     );
@@ -274,8 +274,8 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
         HttpMethod::GET, "/",
         [serverResponseBody] (const HttpRequest& req, HttpResponse& res) {
             res.body = serverResponseBody;
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-            
+            res.SetHeader("Content-Length", std::to_string(res.body.size()));
+
             return;
         }
     );

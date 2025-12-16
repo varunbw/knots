@@ -13,8 +13,8 @@ int main(void) {
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.headers["Content-Length"] = std::to_string(res.body.size());
-req.PrintMessage();
+            res.SetHeader("Content-Length", std::to_string(res.body.size()));
+
             return;
         }
     );
@@ -23,8 +23,8 @@ req.PrintMessage();
     router.Get("/spam", 
         [buffer] (const HttpRequest& req, HttpResponse& res) {
             res.body = buffer;
-            res.headers["Content-Length"] = std::to_string(buffer.size());
-            res.headers["Content-Type"] = "text/html";
+            res.SetHeader("Content-Length", std::to_string(buffer.size()));
+            res.SetHeader("Content-Type", "text/html");
 
             return;
         }

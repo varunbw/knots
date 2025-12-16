@@ -232,8 +232,8 @@ TEST(RouterTest, CheckRouteParameterParsing) {
                         req.method, req.requestUrl, routeParamsString
                     );
 
-                    res.headers["Content-Type"] = "text/html";
-                    res.headers["Content-Length"] = std::to_string(res.body.size());
+                    res.SetHeader("Content-Type", "text/html");
+                    res.SetHeader("Content-Length", std::to_string(res.body.size()));
 
                     return;
                 }

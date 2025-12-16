@@ -29,8 +29,8 @@ TEST(HttpRequestTest, ParseValidRequest) {
     
     // Headers
     EXPECT_EQ(req.headers.size(), 2);
-    EXPECT_EQ(req.headers["Host"], "localhost:8080");
-    EXPECT_EQ(req.headers["Connection"], "keep-alive");
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8080");
+    EXPECT_EQ(req.GetHeader("Connection"), "keep-alive");
     
     // Body
     EXPECT_EQ(req.body, "");

@@ -39,7 +39,7 @@ TEST(HttpMessageTest, HttpRequest_ParameterizedConstructor) {
     EXPECT_EQ(req.version, HttpVersion::HTTP_1_1);
     
     EXPECT_EQ(req.headers.size(), 1);
-    EXPECT_EQ(req.headers["Host"], "localhost:8686");
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8686");
     
     EXPECT_EQ(req.body, "body");
 }
@@ -62,15 +62,15 @@ TEST(HttpMessageTest, HttpRequest_CaseInsensitiveHeader) {
         {{}}
     );
 
-    EXPECT_EQ(req.headers["Host"], "localhost:8686");
-    EXPECT_EQ(req.headers["host"], "localhost:8686");
-    EXPECT_EQ(req.headers["HOST"], "localhost:8686");
-    EXPECT_EQ(req.headers["hOsT"], "localhost:8686");
+    EXPECT_EQ(req.GetHeader("Host"), "localhost:8686");
+    EXPECT_EQ(req.GetHeader("host"), "localhost:8686");
+    EXPECT_EQ(req.GetHeader("HOST"), "localhost:8686");
+    EXPECT_EQ(req.GetHeader("hOsT"), "localhost:8686");
     
-    EXPECT_EQ(req.headers["Connection"], "keep-alive");
-    EXPECT_EQ(req.headers["connection"], "keep-alive");
-    EXPECT_EQ(req.headers["CONNECTION"], "keep-alive");
-    EXPECT_EQ(req.headers["cOnNeCtIoN"], "keep-alive");
+    EXPECT_EQ(req.GetHeader("Connection"), "keep-alive");
+    EXPECT_EQ(req.GetHeader("connection"), "keep-alive");
+    EXPECT_EQ(req.GetHeader("CONNECTION"), "keep-alive");
+    EXPECT_EQ(req.GetHeader("cOnNeCtIoN"), "keep-alive");
 
     EXPECT_EQ(req.headers.size(), 2);
 }
@@ -193,7 +193,7 @@ TEST(HttpMessageTest, HttpResponse_ParameterizedConstructor) {
     EXPECT_EQ(res.statusText, "OK");
     
     EXPECT_EQ(res.headers.size(), 1);
-    EXPECT_EQ(res.headers["Content-Type"], "text/html");
+    EXPECT_EQ(res.GetHeader("Content-Type"), "text/html");
     
     EXPECT_EQ(res.body, "<html></html>");
 }
@@ -214,15 +214,15 @@ TEST(HttpMessageTest, HttpResponse_CaseInsensitiveHeader) {
         "<html></html>"
     );
 
-    EXPECT_EQ(res.headers["Content-Type"], "text/html");
-    EXPECT_EQ(res.headers["content-type"], "text/html");
-    EXPECT_EQ(res.headers["CONTENT-TYPE"], "text/html");
-    EXPECT_EQ(res.headers["CoNtEnT-TyPe"], "text/html");
+    EXPECT_EQ(res.GetHeader("Content-Type"), "text/html");
+    EXPECT_EQ(res.GetHeader("content-type"), "text/html");
+    EXPECT_EQ(res.GetHeader("CONTENT-TYPE"), "text/html");
+    EXPECT_EQ(res.GetHeader("CoNtEnT-TyPe"), "text/html");
 
-    EXPECT_EQ(res.headers["Connection"], "keep-alive");
-    EXPECT_EQ(res.headers["connection"], "keep-alive");
-    EXPECT_EQ(res.headers["CONNECTION"], "keep-alive");
-    EXPECT_EQ(res.headers["cOnNeCtIoN"], "keep-alive");
+    EXPECT_EQ(res.GetHeader("Connection"), "keep-alive");
+    EXPECT_EQ(res.GetHeader("connection"), "keep-alive");
+    EXPECT_EQ(res.GetHeader("CONNECTION"), "keep-alive");
+    EXPECT_EQ(res.GetHeader("cOnNeCtIoN"), "keep-alive");
 
     EXPECT_EQ(res.headers.size(), 2);
 }
