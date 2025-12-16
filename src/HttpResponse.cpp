@@ -99,9 +99,7 @@ void HttpResponse::SetStatus(const int statusCode) {
 }
 
 void HttpResponse::SetHeader(const std::string& key, const std::string& value) {
-
     this->headers[key] = value;
-
     return;
 }
 
