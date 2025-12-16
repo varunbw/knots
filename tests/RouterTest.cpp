@@ -28,7 +28,7 @@ TEST(RouterTest, FetchValidRoutes) {
         HttpMethod::GET,
         "/index.html",
         [] (const HttpRequest& req, HttpResponse& res) {
-            res.body = std::string("GET for /index.html");
+            res.SetBody(std::string("GET for /index.html"));
             return;
         }
     );
@@ -36,7 +36,7 @@ TEST(RouterTest, FetchValidRoutes) {
         HttpMethod::POST,
         "/contact.html",
         [] (const HttpRequest& req, HttpResponse& res) {
-            res.body = std::string("POST for /contact.html");
+            res.SetBody(std::string("POST for /contact.html"));
             return;
         }
     );
@@ -68,7 +68,7 @@ TEST(RouterTest, FetchInvalidRoutes) {
         HttpMethod::GET,
         "/index.html",
         [] (const HttpRequest& req, HttpResponse& res) {
-            res.body = std::string("GET for /index.html");
+            res.SetBody(std::string("GET for /index.html"));
             return;
         }
     );
@@ -76,7 +76,7 @@ TEST(RouterTest, FetchInvalidRoutes) {
         HttpMethod::POST,
         "/contact.html",
         [] (const HttpRequest& req, HttpResponse& res) {
-            res.body = std::string("POST for /contact.html");
+            res.SetBody(std::string("POST for /contact.html"));
             return;
         }
     );
@@ -227,13 +227,11 @@ TEST(RouterTest, CheckRouteParameterParsing) {
                         );
                     }
 
-                    res.body = std::format(
+                    res.SetBody(std::format(
                         "{}, {} | {}",
                         req.method, req.requestUrl, routeParamsString
-                    );
-
-                    res.headers["Content-Type"] = "text/html";
-                    res.headers["Content-Length"] = std::to_string(res.body.size());
+                    ));
+                    res.SetHeader("Content-Type", "text/html");
 
                     return;
                 }

@@ -66,10 +66,10 @@ cd .. && ./knots
 
 
 # Connecting to the server
-You can connect to the server using a web browser or a tool like `curl`. The server will be running on `localhost` at port `8686` as specified in [config/main.conf](config/main.conf) by default.
+You can connect to the server using a web browser or a tool like `curl`. The server will be running on `localhost` at port `8600` as specified in [config/main.conf](config/main.conf) by default.
 
 ```bash
-curl http://localhost:8686
+curl http://localhost:8600
 ```
 This should return a simple HTML page.
 
@@ -91,7 +91,7 @@ The server can be configured using a YAML configuration file, located at `config
     - `max-connections`: Maximum number of concurrent connections the server can handle.
     - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests, since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
 ```yaml
-port: 8686
+port: 8600
 max-connections: 10
 run-console-input-thread: true
 ```

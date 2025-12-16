@@ -263,15 +263,15 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
         return false;
     }
 
-    auto it = req.headers.find("content-length");
-    if (it == req.headers.end()) {
+    std::optional<std::string> res = req.GetHeader("Content-Length");
+    if (res.has_value() == false) {
         return true;
     }
 
-    size_t contentLength = std::stoul(it->second);
+    size_t contentLength = std::stoul(res.value());
     std::string body(contentLength, 0);
 
-    // Read contentLength bytes of data from the stream to body
+    // Read `contentLength` bytes of data from the stream to body
     ss.read(body.data(), contentLength);
 
     // gcount() returns the number of characters extracted by the previous unformatted input
@@ -383,6 +383,36 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
     ss.str("");
 
     return true;
+}
+
+std::optional<std::string> HttpRequest::GetHeader(const std::string& key) const {
+
+    auto it = this->headers.find(key);
+    if (it == this->headers.end()) {
+        return std::nullopt;
+    }
+
+    return it->second;
+}
+
+std::optional<std::string> HttpRequest::GetQueryParam(const std::string& key) const {
+
+    auto it = this->queryParams.find(key);
+    if (it == this->queryParams.end()) {
+        return std::nullopt;
+    }
+
+    return it->second;
+}
+
+std::optional<std::string> HttpRequest::GetRouteParam(const std::string& key) const {
+
+    auto it = this->routeParams.find(key);
+    if (it == this->routeParams.end()) {
+        return std::nullopt;
+    }
+
+    return it->second;
 }
 
 // -- HttpRequest functions end
