@@ -105,8 +105,53 @@ struct HttpRequest {
         routeParams(routeParams)
     {}
 
+    /*
+        @brief Print a formatted HttpRequest object to the console
+
+        Example:
+        ------- HTTP Request -------
+        [METHOD] : GET
+        [URL]    : /
+        [VERSION]: HTTP/1.1
+
+        HEADERS
+        User-Agent: curl/8.14.1
+        Host: localhost:8600
+
+        PARAMETERS
+
+        BODY
+
+        ------- End Request -------
+    */
     void PrintMessage() const;
-    bool ParseFrom(std::stringstream&);
+
+    /*
+        @brief Parse the HttpRequest message
+        @param ss Message in stringstream format
+
+        @return The request in a `HttpRequest` struct
+    */
+    bool ParseFrom(std::stringstream& ss);
+
+    /*
+        @brief Getter for header field
+        @param key Key of the associated value to fetch
+        @return The value associated with the key if found, else `std::nullopt`
+    */
+    std::optional<std::string> GetHeader(const std::string& key) const;
+    /*
+        @brief Getter for queryParams field
+        @param key Key of the associated value to fetch
+        @return The value associated with the key if found, else `std::nullopt`
+    */
+    std::optional<std::string> GetQueryParam(const std::string& key) const;
+    /*
+        @brief Getter for routeParams field
+        @param key Key of the associated value to fetch
+        @return The value associated with the key if found, else `std::nullopt`
+    */
+    std::optional<std::string> GetRouteParam(const std::string& key) const;
 };
 
 

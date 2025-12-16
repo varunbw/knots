@@ -434,22 +434,12 @@ bool HttpServer::HandleRequest(
     res.SetStatus(200);
     (*handler)(req, res);
 
-    auto it = req.headers.find("Connection");
-    if (it != req.headers.end()) {
-        res.headers["Connection"] = it->second;
-    }
-    else {
-        res.headers["Connection"] = "close";
-    }
+    const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
+    res.SetHeader("Connection", requestConnectionHeader.value_or("close"));
 
     const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket, resStr, 0);
 
-    /*
-        Return true if connection header is "keep-alive",
-        false if not
-    */
-    return it != req.headers.end() ?
-        (it->second == "keep-alive"):
-        false;
+    // Return true if connection header is "keep-alive", else false
+    return requestConnectionHeader.value_or("close") == "keep-alive";
 }

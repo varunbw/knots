@@ -156,8 +156,6 @@ TEST(HttpServerTest, BasicRequestResponse) {
     EXPECT_TRUE(NetworkIO::Send(client.m_socket, req, 0))
         << MakeErrorMessage("Client failed to send request to server");
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
     std::string buffer(1024, '\0');
     ssize_t bytesReceived = recv(client.m_socket.Get(), buffer.data(), buffer.size() - 1, 0);
 
@@ -172,6 +170,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
 
     const std::string expectedResponse = std::format(
         "HTTP/1.1 200 OK\r\n"
+        "Connection: close\r\n"
         "Content-Length: {}\r\n"
         "\r\n"
         "{}",

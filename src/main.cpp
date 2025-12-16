@@ -14,7 +14,7 @@ int main(void) {
         [] (const HttpRequest& req, HttpResponse& res) {
             FileHandler::ReadFileIntoBody("static/index.html", res);
             res.headers["Content-Length"] = std::to_string(res.body.size());
-
+req.PrintMessage();
             return;
         }
     );
