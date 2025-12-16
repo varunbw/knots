@@ -224,6 +224,21 @@ struct HttpResponse {
         @param value value
     */
     void SetHeader(const std::string& key, const std::string& value);
+
+    /*
+        @brief Get the header value
+        @param key Key to the header
+    
+        @return The header value if it exists, else `std::nullopt`
+    */
+    std::optional<std::string> GetHeader(const std::string& key) const;
+
+    /*
+        @brief Delete the header with key `key`
+        @param key key
+    */
+    void DeleteHeader(const std::string& key);
+
     /*
         @brief Set provided body, and the "Content-Length" header automatically
         @param body Body
@@ -233,14 +248,6 @@ struct HttpResponse {
     void SetBody(const std::string& body, const bool setContentLengthHeader = true);
     void SetBody(std::string&& body, const bool setContentLengthHeader = true);
 
-    /*
-        @brief Get the header value
-        @param key Key to the header
-    
-        @return The header value if it exists, else `std::nullopt`
-    */
-    std::optional<std::string> GetHeader(const std::string& key) const;
-    
     /*
         @brief Serialize the object into a `std::string` according to the standard HTTP response format
     */

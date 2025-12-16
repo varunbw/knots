@@ -105,6 +105,21 @@ void HttpResponse::SetHeader(const std::string& key, const std::string& value) {
     return;
 }
 
+std::optional<std::string> HttpResponse::GetHeader(const std::string& key) const {
+
+    auto it = this->headers.find(key);
+    if (it == this->headers.end()) {
+        return std::nullopt;
+    }
+
+    return it->second;
+}
+
+void HttpResponse::DeleteHeader(const std::string& key) {
+    this->headers.erase(key);
+    return;
+}
+
 
 void HttpResponse::SetBody(const std::string& body, const bool setContentLengthHeader) {
 
@@ -126,16 +141,6 @@ void HttpResponse::SetBody(std::string&& body, const bool setContentLengthHeader
     return;
 }
 
-
-std::optional<std::string> HttpResponse::GetHeader(const std::string& key) const {
-
-    auto it = this->headers.find(key);
-    if (it == this->headers.end()) {
-        return std::nullopt;
-    }
-
-    return it->second;
-}
 
 /*
     @brief Serialize `res` into a std::string, with the standard HTTP response format
