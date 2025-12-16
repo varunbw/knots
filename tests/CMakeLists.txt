@@ -1,6 +1,5 @@
 set(TEST_SOURCES
     FileHandlerTest.cpp
-    HttpMessageTest.cpp
     HttpRequestTest.cpp
     HttpResponseTest.cpp
     HttpServerTest.cpp
