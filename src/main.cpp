@@ -12,9 +12,14 @@ int main(void) {
     // Example routes
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.SetHeader("Content-Length", std::to_string(res.body.size()));
-
+            res.SetBody(
+                "<html>\n"
+                    "<body>\n"
+                        "<h1 align=\"center\">Hello world\n</h1>"
+                    "<html>\n"
+                "<body>\n"
+            );
+            res.SetHeader("Content-Type", "text/html");
             return;
         }
     );
@@ -32,8 +37,15 @@ int main(void) {
     HttpServer server(config, router);
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
-        FileHandler::ReadFileIntoBody("static/not-found.html", res);
+        res.SetBody(
+            "<html>\n"
+                "<body>\n"
+                    "<h1 align=\"center\">404 Not Found\n</h1>"
+                "<html>\n"
+            "<body>\n"
+        );
         res.SetStatus(404);
+        res.SetHeader("Content-Type", "text/html");
         return;
     });
 

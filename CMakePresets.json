@@ -1,0 +1,77 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 21,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "base",
+			"hidden": true,
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/${presetName}",
+			"cacheVariables": {
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+				"CMAKE_COLOR_DIAGNOSTICS": "ON"
+			},
+			"warnings": {
+				"dev": false
+			}
+		},
+		{
+			"name": "debug",
+			"displayName": "Debug Config",
+			"inherits": "base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+                "KNOTS_COMPILER_FLAGS": "-g -fsanitize=address -fsanitize=undefined -Wall -Wextra -Wpedantic -fno-diagnostics-show-template-tree -fmax-errors=3"
+			}
+		},
+		{
+			"name": "release",
+			"displayName": "Release Config",
+			"inherits": "base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+                "KNOTS_COMPILER_FLAGS": "-O3 -Wall -Wextra -Wpedantic -fno-diagnostics-show-template-tree -fmax-errors=3"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "debug",
+			"configurePreset": "debug",
+			"jobs": 0
+		},
+		{
+			"name": "release",
+			"configurePreset": "release",
+			"jobs": 0
+		}
+	],
+	"testPresets": [
+		{
+			"name": "tests-debug",
+			"configurePreset": "debug",
+			"execution": {
+				"jobs": 1,
+				"stopOnFailure": true
+			},
+			"output": {
+				"outputOnFailure": true
+			}
+		},
+		{
+			"name": "tests-release",
+			"configurePreset": "release",
+			"execution": {
+				"jobs": 1,
+				"stopOnFailure": true
+			},
+			"output": {
+				"outputOnFailure": true
+			}
+		}
+	]
+}
