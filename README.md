@@ -1,16 +1,20 @@
 # knots
 
-A general-purpose multi-threaded HTTP server written in C++. Designed to handle HTTP messages I/O over the network, it provides functionality for concurrent networking and routing. knots gives you the ability to define your own functions for API endpoints, while also providing an easy file handler meant to deal with static files.
-
-Currently works with the HTTP/1.1 version.
+A general-purpose multi-threaded HTTP 1.1 server written in C++. Designed to handle HTTP messages I/O over the network, it provides functionality for concurrent networking and routing. knots gives you the ability to define your own functions for API endpoints, while also providing an easy file handler meant to deal with static files.
 
 ## Requirements
-- C++20 or later
-- CMake 3.20 or later
+- C++20 or above
+- CMake 3.21 or above
 
 ## Dependencies
+These are automatically installed by CMake:
 - yaml-cpp
 - GoogleTest
+
+If you don't want CMake doing it, you can install them manually and then edit [CMakeLists.txt](CMakeLists.txt) accordingly.
+```bash
+sudo apt install libyaml-cpp-dev libgtest-dev
+```
 
 ## Project Structure
 - `config/` - Configuration files
@@ -31,37 +35,25 @@ Currently works with the HTTP/1.1 version.
 Quick-start snippet at the end of this document.
 
 ## Steps to Install
-1. Ensure you have the dependencies installed on your system.
-#### Ubuntu/Debian
-```bash
-sudo apt install libyaml-cpp-dev libgtest-dev
-```
-
-2. Clone the repository:
+1. Clone the repository:
 ```bash
 git clone https://github.com/varunbw/knots.git
 cd knots
 ```
 
-3. Create a build directory:
+2. Generate a `debug` or `release` build, whichever you want to test
 ```bash
-mkdir build
-cd build
+cmake --preset debug
+cmake --build --preset debug
+```
+```bash
+cmake --preset release
+cmake --build --preset release
 ```
 
-4. Run CMake to generate the Makefile:
+3. Run the server:
 ```bash
-cmake ..
-```
-
-5. Build the project:
-```bash
-make
-```
-
-6. Run the server after navigating to the root directory:
-```bash
-cd .. && ./knots
+./knots
 ```
 
 
@@ -78,7 +70,8 @@ This should return a simple HTML page.
 This project uses GoogleTest for unit testing. The tests are located in the `tests` directory.
 To run them, navigate to the `build` directory and run:
 ```bash
-make test
+ctest --preset tests-debug
+ctest --preset tests-release
 ```
 This will execute all the tests defined in the `tests` directory.
 
@@ -92,16 +85,14 @@ The server can be configured using a YAML configuration file, located at `config
     - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests, since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
 ```yaml
 port: 8600
-max-connections: 10
+max-connections: 125
 run-console-input-thread: true
 ```
 
 # Quick Start Snippet
 ```bash
-sudo apt install libyaml-cpp-dev libgtest-dev
 git clone https://github.com/varunbw/knots.git
-cd knots
-mkdir build && cd build
-cmake .. && make && cd ..
+cmake --preset debug
+cmake --build --preset debug
 ./knots
 ```

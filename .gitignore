@@ -24,6 +24,9 @@ dump.*
 
 # Tests
 unit_tests
+parse
+read
+sandbox
 
 # Other stuff
 static/

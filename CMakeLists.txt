@@ -1,23 +1,35 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 project(knots)
+
+include(FetchContent)
 
 # Set C++20 standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+# # Place the executable in the root directory
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# Download yaml-cpp
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(yaml-cpp)
 
 # Compiler options
-    # Add debug info
-    # Enable all compiler warnings
-    # Enable extra compiler warnings
-    # Disable template tree diagnostics
-    # Limit the number of errors shown
-add_compile_options(-g -Wall -Wextra -fno-diagnostics-show-template-tree -fmax-errors=3)
+    # -Wall   | Enable all compiler warnings
+    # -Wextra | Enable extra compiler warnings
+    # -fno-diagnostics-show-template-tree | Disable template tree diagnostics
+    # -fmax-errors=3 | Limit the number of errors shown
 
-# Place the executable in the root directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
-
-# Dependencies
-find_package(yaml-cpp REQUIRED)
+    # Debug build specific
+        # -g  | Add debug info
+    # Release build specific
+        # -O3 | Performance
+separate_arguments(KNOTS_COMPILER_FLAGS_LIST NATIVE_COMMAND "${KNOTS_COMPILER_FLAGS}")
+add_compile_options(${KNOTS_COMPILER_FLAGS_LIST})
+add_link_options(${KNOTS_COMPILER_FLAGS_LIST})
 
 # Library Target
 add_library(
@@ -35,29 +47,24 @@ add_library(
 target_include_directories(knots_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(knots_lib PUBLIC yaml-cpp)
+target_link_libraries(knots_lib PUBLIC yaml-cpp::yaml-cpp)
 
 # Executable Target
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE knots_lib)
 
 
-
 # -------- TESTING --------
-
 # Enable testing
 enable_testing()
 
 # Download and install GoogleTest
-include(FetchContent)
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(googletest)
 
 # Add test directory: tests/CMakeLists.txt
 add_subdirectory(tests)
-
-# Copy configuration files to the build directory
-configure_file(${CMAKE_SOURCE_DIR}/config/config.yaml ${CMAKE_BINARY_DIR}/config/config.yaml COPYONLY)
