@@ -15,7 +15,7 @@ int main(void) {
             res.SetBody(
                 "<html>\n"
                     "<body>\n"
-                        "<div style=\"align: center\"><h1>Hello world\n<h1></div>"
+                        "<h1 align=\"center\">Hello world\n</h1>"
                     "<html>\n"
                 "<body>\n"
             );
@@ -36,7 +36,13 @@ int main(void) {
     HttpServer server(config, router);
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
-        FileHandler::ReadFileIntoBody("static/not-found.html", res);
+        res.SetBody(
+            "<html>\n"
+                "<body>\n"
+                    "<h1 align=\"center\">404 Not Found\n</h1>"
+                "<html>\n"
+            "<body>\n"
+        );
         res.SetStatus(404);
         return;
     });
