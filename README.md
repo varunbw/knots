@@ -47,6 +47,7 @@ cmake --build --preset debug
 ./build/debug/knots
 ```
 
+[src/main.cpp](src/main.cpp) provides an example of how one would use the server. It contains 2 basic endpoints; `/` and `/spam`, and an error route for 404s.
 
 # Connecting to the server
 You can connect to the server using a web browser or a tool like `curl`. The server will be running on `localhost` at port `8600` as specified in [config/main.conf](config/main.conf) by default.

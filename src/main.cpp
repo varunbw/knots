@@ -19,6 +19,7 @@ int main(void) {
                     "<html>\n"
                 "<body>\n"
             );
+            res.SetHeader("Content-Type", "text/html");
             return;
         }
     );
@@ -44,6 +45,7 @@ int main(void) {
             "<body>\n"
         );
         res.SetStatus(404);
+        res.SetHeader("Content-Type", "text/html");
         return;
     });
 
