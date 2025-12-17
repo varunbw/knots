@@ -41,14 +41,10 @@ cd knots
 cmake --preset debug
 cmake --build --preset debug
 ```
-```bash
-cmake --preset release
-cmake --build --preset release
-```
 
 3. Run the server:
 ```bash
-./knots
+./build/debug/knots
 ```
 
 
@@ -66,7 +62,6 @@ This project uses GoogleTest for unit testing. The tests are located in the `tes
 To run them, navigate to the `build` directory and run:
 ```bash
 ctest --preset tests-debug
-ctest --preset tests-release
 ```
 This will execute all the tests defined in the `tests` directory.
 
@@ -87,7 +82,8 @@ run-console-input-thread: true
 # Quick Start Snippet
 ```bash
 git clone https://github.com/varunbw/knots.git
+cd knots
 cmake --preset debug
 cmake --build --preset debug
-./knots
+./build/debug/knots
 ```

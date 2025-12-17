@@ -12,9 +12,13 @@ int main(void) {
     // Example routes
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
-            FileHandler::ReadFileIntoBody("static/index.html", res);
-            res.SetHeader("Content-Length", std::to_string(res.body.size()));
-
+            res.SetBody(
+                "<html>\n"
+                    "<body>\n"
+                        "<div style=\"align: center\"><h1>Hello world\n<h1></div>"
+                    "<html>\n"
+                "<body>\n"
+            );
             return;
         }
     );
