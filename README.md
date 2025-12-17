@@ -11,11 +11,6 @@ These are automatically installed by CMake:
 - yaml-cpp
 - GoogleTest
 
-If you don't want CMake doing it, you can install them manually and then edit [CMakeLists.txt](CMakeLists.txt) accordingly.
-```bash
-sudo apt install libyaml-cpp-dev libgtest-dev
-```
-
 ## Project Structure
 - `config/` - Configuration files
 - `include/` - Header files
