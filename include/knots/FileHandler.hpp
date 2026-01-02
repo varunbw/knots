@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "HttpMessage.hpp"
+#include "knots/HttpMessage.hpp"
 
 namespace FileHandler {
     HttpResponse MakeHttpResponseFromFile(const std::string& fileName);

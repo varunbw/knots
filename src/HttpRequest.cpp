@@ -4,8 +4,8 @@
 #include <map>
 #include <sstream>
 
-#include "HttpMessage.hpp"
-#include "Utils.hpp"
+#include "knots/HttpMessage.hpp"
+#include "knots/Utils.hpp"
 
 
 // -- Helper functions start
