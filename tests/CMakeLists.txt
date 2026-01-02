@@ -9,7 +9,7 @@ set(TEST_SOURCES
 add_executable(unit_tests ${TEST_SOURCES})
 target_link_libraries(unit_tests
     GTest::gtest_main
-    knots_lib
+    knots
     yaml-cpp
 )
 

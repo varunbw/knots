@@ -31,7 +31,7 @@ add_link_options(${KNOTS_COMPILER_FLAGS_LIST})
 
 # Library Target
 add_library(
-    knots_lib
+    knots
     src/FileHandler.cpp
     src/HttpRequest.cpp
     src/HttpResponse.cpp
@@ -42,15 +42,18 @@ add_library(
     src/Utils.cpp
 )
 
-target_include_directories(knots_lib PUBLIC
+target_include_directories(knots PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(knots_lib PUBLIC yaml-cpp::yaml-cpp)
+target_link_libraries(knots PUBLIC yaml-cpp::yaml-cpp)
 
 # Executable Target
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE knots_lib)
-
+if (DEFINED KNOTS_EXAMPLE_BUILD)
+    if (${KNOTS_EXAMPLE_BUILD} STREQUAL "True")
+        add_executable(knots-app example/main.cpp)
+        target_link_libraries(knots-app PRIVATE knots)
+    endif()
+endif()
 
 # -------- TESTING --------
 # Enable testing

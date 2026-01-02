@@ -36,6 +36,26 @@
 				"CMAKE_BUILD_TYPE": "Release",
                 "KNOTS_COMPILER_FLAGS": "-O3 -Wall -Wextra -Wpedantic -fno-diagnostics-show-template-tree -fmax-errors=3"
 			}
+		},
+		{
+			"name": "example-debug",
+			"displayName": "Example program in debug configuration",
+			"inherits": "base",
+			"cacheVariables": {
+				"KNOTS_EXAMPLE_BUILD": "True",
+				"CMAKE_BUILD_TYPE": "Debug",
+                "KNOTS_COMPILER_FLAGS": "-g -fsanitize=address -fsanitize=undefined -Wall -Wextra -Wpedantic -fno-diagnostics-show-template-tree -fmax-errors=3"
+			}
+		},
+		{
+			"name": "example-release",
+			"displayName": "Example program in release configuration",
+			"inherits": "base",
+			"cacheVariables": {
+				"KNOTS_EXAMPLE_BUILD": "True",
+				"CMAKE_BUILD_TYPE": "Debug",
+                "KNOTS_COMPILER_FLAGS": "-O3 -Wall -Wextra -Wpedantic -fno-diagnostics-show-template-tree -fmax-errors=3"
+			}
 		}
 	],
 	"buildPresets": [
@@ -47,6 +67,16 @@
 		{
 			"name": "release",
 			"configurePreset": "release",
+			"jobs": 0
+		},
+		{
+			"name": "example-debug",
+			"configurePreset": "example-debug",
+			"jobs": 0
+		},
+		{
+			"name": "example-release",
+			"configurePreset": "example-release",
 			"jobs": 0
 		}
 	],
