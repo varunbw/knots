@@ -28,30 +28,23 @@ add_library(
     src/Utils.cpp
 )
 
-# Compiler options set in CMakePresets.json
-    # -Wall   | Enable all compiler warnings
-    # -Wextra | Enable extra compiler warnings
-    # -fno-diagnostics-show-template-tree | Disable template tree diagnostics
-    # -fmax-errors=3 | Limit the number of errors shown
+target_compile_options(knots PRIVATE 
+    -Wall      # Enable all compiler warnings
+    -Wextra    # Enable extra compiler warnings
+    -Wpedantic # Enable standard checking
+    -fmax-errors=3 # Limit the number of errors shown
+    -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+)
 
-    # Debug build specific
-        # -g  | Add debug info
+# Debug-specific flags
+target_compile_options(knots PRIVATE
+    $<$<CONFIG:Debug>:-g>
+)
 
-    # Release build specific
-        # -O3 | Performance
-
-if (KNOTS_COMPILER_FLAGS)
-    separate_arguments(KNOTS_COMPILER_FLAGS_LIST NATIVE_COMMAND "${KNOTS_COMPILER_FLAGS}")
-else()
-    if (MSVC)
-        set(KNOTS_COMPILER_FLAGS_LIST /W4)
-    else()
-        set(KNOTS_COMPILER_FLAGS_LIST -O3)
-    endif()
-endif()
-
-target_compile_options(knots PRIVATE ${FLAGS_LIST})
-target_link_options(knots PRIVATE ${FLAGS_LIST})
+# Release-specific flags
+target_compile_options(knots PRIVATE
+    $<$<CONFIG:Release>:-O3>
+)
 
 target_include_directories(knots PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
