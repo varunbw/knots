@@ -1,6 +1,6 @@
-#include "knots/ThreadPool.hpp"
-
 #include <mutex>
+
+#include "knots/ThreadPool.hpp"
 
 /*
     @brief Constructor for the ThreadPool class
