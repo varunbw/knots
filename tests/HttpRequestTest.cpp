@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "HttpMessage.hpp"
+#include "knots/HttpMessage.hpp"
 
 /*
     @brief Check default constructor of HttpRequest

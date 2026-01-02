@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "Socket.hpp"
+#include "knots/Socket.hpp"
 
 class ThreadPool {
 private:

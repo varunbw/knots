@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "Utils.hpp"
-#include "FileHandler.hpp"
+#include "knots/Utils.hpp"
+#include "knots/FileHandler.hpp"
 
 class RandomFileGenerator {
 public:

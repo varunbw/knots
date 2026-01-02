@@ -1,8 +1,8 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
-#include "Router.hpp"
-#include "Utils.hpp"
+#include "knots/Router.hpp"
+#include "knots/Utils.hpp"
 
 TEST(RouterTest, RouteEquality) {
 

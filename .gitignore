@@ -1,7 +1,5 @@
 # Executable
 *.out
-knots
-main
 
 # Object files
 *.o

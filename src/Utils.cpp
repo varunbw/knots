@@ -4,7 +4,7 @@
 #include <mutex>
 #include <yaml-cpp/yaml.h>
 
-#include "Utils.hpp"
+#include "knots/Utils.hpp"
 
 /*
     Used for coloring the output text

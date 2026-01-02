@@ -3,8 +3,8 @@
 #include <string_view>
 #include <sys/socket.h>
 
-#include "Utils.hpp"
-#include "NetworkIO.hpp"
+#include "knots/Utils.hpp"
+#include "knots/NetworkIO.hpp"
 
 /*
     @brief Wrapper to `send()` function in Linux, providing some error handling boilerplate
