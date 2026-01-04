@@ -7,15 +7,16 @@ A general-purpose multi-threaded HTTP 1.1 server written in C++. Designed to han
 - CMake 3.21 or above
 
 #### Ubuntu/Debian
-```
+```bash
 sudo apt install cmake
 ```
 
-
 ## Dependencies
 These are automatically installed by CMake:
-- yaml-cpp
-- GoogleTest
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+- [GoogleTest](https://github.com/google/googletest)
+
+> When built as a library in your project, tests are NOT generated, and the GoogleTest library is also not fetched. Tests will only be made in library-development builds, when the `knots` project is top-level.
 
 ## Project Structure
 - `config/` - Configuration files
@@ -54,8 +55,7 @@ cmake --build --preset example-debug
 ```
 
 # Using as a library in your project
-
-It's "straightforward" using `cmake` as such:
+Include this in your `CMakeLists.txt`
 ```cmake
 FetchContent_Declare(
     knots
