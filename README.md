@@ -61,11 +61,9 @@ target_link_libraries(your-library PUBLIC knots)
 
 # Tests
 This project uses GoogleTest for unit testing. The tests are located in the `tests` directory.
-To run them, navigate to the `build` directory and run:
 ```bash
 ctest --preset tests-debug
 ```
-This will execute all the tests defined in the `tests` directory.
 
 
 # Configuration

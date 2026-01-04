@@ -56,7 +56,7 @@ if (PROJECT_IS_TOP_LEVEL)
     # Executable Target
     if (KNOTS_EXAMPLE_BUILD)
         if (${KNOTS_EXAMPLE_BUILD} STREQUAL "True")
-            add_executable(knots-app example/main.cpp)
+            add_executable(knots-app examples/main.cpp)
             target_link_libraries(knots-app PRIVATE knots)
         endif()
     endif()
