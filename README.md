@@ -6,6 +6,12 @@ A general-purpose multi-threaded HTTP 1.1 server written in C++. Designed to han
 - C++20 or above
 - CMake 3.21 or above
 
+#### Ubuntu/Debian
+```
+sudo apt install cmake
+```
+
+
 ## Dependencies
 These are automatically installed by CMake:
 - yaml-cpp
@@ -36,7 +42,7 @@ git clone https://github.com/varunbw/knots.git
 cd knots
 ```
 
-2. Generate a `debug` or `release` build with the example app provided in [examples/main.cpp](examples/main.cpp)
+2. Generate a `debug` or `release` build with the example app provided in [examples/main.cpp](examples/main.cpp).
 ```bash
 cmake --preset example-debug
 cmake --build --preset example-debug
@@ -48,6 +54,8 @@ cmake --build --preset example-debug
 ```
 
 # Using as a library in your project
+
+It's "straightforward" using `cmake` as such:
 ```cmake
 FetchContent_Declare(
     knots
@@ -60,19 +68,20 @@ target_link_libraries(your-library PUBLIC knots)
 ```
 
 # Tests
-This project uses GoogleTest for unit testing. The tests are located in the `tests` directory.
+This project uses [GoogleTest](https://github.com/google/googletest) for testing. Make a `debug` or `release` build to run tests.
 ```bash
+cmake --preset debug && cmake --build --preset debug
 ctest --preset tests-debug
 ```
 
 
 # Configuration
-The server can be configured using a YAML configuration file, located at `config/config.yaml`.
+The server can be configured using a YAML configuration file, located at `config/config.yaml` by default. You can edit the location of the file by specifying the file path in the source code (see [HttpServerConfiguration](src/Utils.cpp) and the [example](examples/main.cpp)).
 
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests, since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
+    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests (no input required there), since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
 ```yaml
 port: 8600
 max-connections: 125
