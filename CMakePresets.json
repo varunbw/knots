@@ -98,6 +98,28 @@
 			"output": {
 				"outputOnFailure": true
 			}
+		},
+		{
+			"name": "tests-example-debug",
+			"configurePreset": "example-debug",
+			"execution": {
+				"jobs": 1,
+				"stopOnFailure": true
+			},
+			"output": {
+				"outputOnFailure": true
+			}
+		},
+		{
+			"name": "tests-example-release",
+			"configurePreset": "example-release",
+			"execution": {
+				"jobs": 1,
+				"stopOnFailure": true
+			},
+			"output": {
+				"outputOnFailure": true
+			}
 		}
 	]
 }

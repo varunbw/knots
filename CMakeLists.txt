@@ -58,6 +58,24 @@ if (PROJECT_IS_TOP_LEVEL)
         if (${KNOTS_EXAMPLE_BUILD} STREQUAL "True")
             add_executable(knots-app examples/main.cpp)
             target_link_libraries(knots-app PRIVATE knots)
+
+        target_compile_options(knots-app PRIVATE 
+            -Wall      # Enable all compiler warnings
+            -Wextra    # Enable extra compiler warnings
+            -Wpedantic # Enable standard checking
+            -fmax-errors=3 # Limit the number of errors shown
+            -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+        )
+
+        # Debug-specific flags
+        target_compile_options(knots-app PRIVATE
+            $<$<CONFIG:Debug>:-g>
+        )
+
+        # Release-specific flags
+        target_compile_options(knots-app PRIVATE
+            $<$<CONFIG:Release>:-O3>
+        )
         endif()
     endif()
 
