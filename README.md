@@ -5,10 +5,11 @@ A general-purpose multi-threaded HTTP 1.1 server written in C++. Designed to han
 ## Requirements
 - C++20 or above
 - CMake 3.21 or above
+- Ninja
 
 #### Ubuntu/Debian
 ```bash
-sudo apt install cmake
+sudo apt install cmake ninja-build
 ```
 
 ## Dependencies
