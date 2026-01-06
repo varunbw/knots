@@ -1,7 +1,9 @@
 #include <algorithm>
+#include <chrono>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <poll.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -34,6 +36,7 @@
 HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& router) :
     m_isRunning(false),
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
+    m_config(config),
     m_router(router),
     m_threadPool(config.maxConnections) {
 
@@ -44,25 +47,12 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
         ));
     }
 
+    ValidateServerConfiguration();
+
     Log::Info(std::format(
         "Attempting to start server on port {}",
         config.port
     ));
-
-    // Check if the port number is valid
-    if (config.port <= 0 || config.port > 65536) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "HttpServer(): Invalid port number: {}",
-            config.port
-        )));
-    }
-
-    if (config.maxConnections <= 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "HttpServer(): Invalid max connections: {}",
-            config.maxConnections
-        )));
-    }
 
     // Set socket options
     // Allow address reuse
@@ -117,13 +107,11 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
     }
 
     // Spin up a thread to listen to console input
-    if (config.runConsoleInputThread) {
-        m_consoleInputHandlerThread = std::jthread(
-            [this] () {
-                this->HandleConsoleInput();
-            }
-        );
-    }
+    m_consoleInputHandlerThread = std::jthread(
+        [this] () {
+            this->HandleConsoleInput();
+        }
+    );
 
     // Mark server as running
     m_isRunning = true;
@@ -145,6 +133,32 @@ HttpServer::~HttpServer() {
     m_threadPool.Stop();
 }
 
+void HttpServer::ValidateServerConfiguration() const {
+
+    // Check if the port number is valid
+    if (m_config.port <= 0 || m_config.port > 65536) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid port number: {}",
+            m_config.port
+        )));
+    }
+
+    if (m_config.maxConnections <= 0) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid max connections: {}",
+            m_config.maxConnections
+        )));
+    }
+
+    if (m_config.inputPollingThreadTimeout < 0) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid input polling timeout: {} ms",
+            m_config.inputPollingThreadTimeout
+        )));
+    }
+
+    return;
+}
 
 /*
     @brief Listen for console input
@@ -152,11 +166,41 @@ HttpServer::~HttpServer() {
 void HttpServer::HandleConsoleInput() {
 
     std::string buffer;
-    while (m_isRunning && std::cin >> buffer) {
-        if (buffer == "stop" || buffer == "exit" || buffer == "quit") {
-            Shutdown();
-            return;
+
+    std::set<std::string> stopCommands = {
+        "q", "quit", "stop", "exit"
+    };
+
+    auto consoleInputReady = [] () {
+        pollfd pfd {
+            .fd = STDIN_FILENO,
+            .events = POLLIN,
+            .revents{}
+        };
+
+        return poll(&pfd, 1, 0) > 0;
+    };
+
+    // Check input once every while (defined in config) if it's not a test build
+    const std::chrono::milliseconds pollingInterval{m_config.inputPollingThreadTimeout};
+
+    while (m_isRunning) {
+        if (consoleInputReady()) {
+            std::cin >> buffer;
+
+            if (stopCommands.contains(buffer)) {
+                Shutdown();
+                return;
+            }
+            else {
+                Log::Error(std::format(
+                    "'{}' is not a valid command, use 'q', 'quit', 'stop', or 'exit' to stop the server",
+                    buffer
+                ));
+            }
         }
+
+        std::this_thread::sleep_for(pollingInterval);
     }
 
     return;

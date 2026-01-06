@@ -9,7 +9,7 @@
 
 constexpr int serverPort = 10000;
 constexpr int serverMaxConnections = 10;
-constexpr bool runConsoleInputThread = false;
+constexpr bool runConsoleInputThread = true;
 
 /*
     Basic client object giving you a TCP socket to talk to the server

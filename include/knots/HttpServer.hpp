@@ -28,6 +28,8 @@ private:
     Socket m_serverSocket;
     int m_serverPort;
 
+    HttpServerConfiguration m_config;
+
     // Routers
     Router m_router;
     std::unordered_map<short int, HandlerFunction> m_errorRouter;
@@ -37,6 +39,7 @@ private:
     std::mutex m_threadPoolMutex;
 
     // Miscellaneous
+    void ValidateServerConfiguration() const;
     void HandleConsoleInput();
     
     // Handle client connection
