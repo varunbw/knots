@@ -1,23 +1,19 @@
 #include <algorithm>
+#include <arpa/inet.h>
 #include <chrono>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <netinet/tcp.h>
 #include <poll.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string.h>
-#include <vector>
-
-// Networking
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
 #include <sys/socket.h>
-#include <unistd.h>
-
-// Multithreading
 #include <thread>
+#include <unistd.h>
+#include <vector>
 
 #include "knots/FileHandler.hpp"
 #include "knots/HttpServer.hpp"
@@ -28,10 +24,12 @@
 /*
     @brief Set up the HTTP server
 
-    This takes no parameters for now, server options set are as follows:
-        - m_isRunning = false
-        - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
-        - m_router = "config/routes.yaml"
+    @param config The configuration for the server
+    @param router The URL router
+
+    @note The routes in router cannot be changed after initialization of HttpServer as of now.
+    Initialize the server only after all routes have been added.
+    ToDo To be changed in the future
 */
 HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& router) :
     m_isRunning(false),

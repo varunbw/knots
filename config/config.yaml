@@ -1,3 +1,3 @@
 port: 8600
 max-connections: 125
-input-polling-interval-ms: 5000
+input-polling-interval-ms: 100

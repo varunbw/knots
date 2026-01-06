@@ -9,7 +9,7 @@
 
 constexpr int serverPort = 10000;
 constexpr int serverMaxConnections = 10;
-constexpr bool runConsoleInputThread = true;
+constexpr int inputPollingIntervalMs = 0;
 
 /*
     Basic client object giving you a TCP socket to talk to the server
@@ -82,7 +82,7 @@ bool Client::ConnectToServer() {
 TEST(HttpServerTest, BasicConnection) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, runConsoleInputThread
+        serverPort, serverMaxConnections, inputPollingIntervalMs
     );
     Router router;
 
@@ -118,7 +118,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
         "</body></html>\n";
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, runConsoleInputThread
+        serverPort, serverMaxConnections, inputPollingIntervalMs
     );
 
     Router router;
@@ -190,7 +190,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
 TEST(HttpServerTest, InvalidRouteReturns404) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, runConsoleInputThread
+        serverPort, serverMaxConnections, inputPollingIntervalMs
     );
 
     Router router;
@@ -265,7 +265,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     );
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, runConsoleInputThread
+        serverPort, serverMaxConnections, inputPollingIntervalMs
     );
 
     Router router;

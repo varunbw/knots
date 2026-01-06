@@ -89,6 +89,15 @@ max-connections: 125
 input-polling-interval-ms: 5000
 ```
 
+Alternatively, you can also pass the values in the code itself, since the server does not parse configuration itself, but rather relies on a parsing function to put the values into a struct `HttpServerConfiguration`.
+```cpp
+HttpServerConfiguration config = {
+    .port = 8600
+    .maxConnections = 125
+    .inputPollingIntervalMs = 5000
+}
+```
+
 # Quick Start Snippet
 ```bash
 git clone https://github.com/varunbw/knots.git
