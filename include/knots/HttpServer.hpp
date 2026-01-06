@@ -52,7 +52,7 @@ private:
     void HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const;
     
 public:
-    explicit HttpServer(const HttpServerConfiguration& config, const Router& router);
+    explicit HttpServer(const HttpServerConfiguration config, const Router& router);
     ~HttpServer();
     void Shutdown();
 
