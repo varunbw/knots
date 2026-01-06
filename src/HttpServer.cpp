@@ -31,7 +31,7 @@
     Initialize the server only after all routes have been added.
     ToDo To be changed in the future
 */
-HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& router) :
+HttpServer::HttpServer(const HttpServerConfiguration config, const Router& router) :
     m_isRunning(false),
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
     m_config(config),
