@@ -82,11 +82,11 @@ The server can be configured using a YAML configuration file, located at `config
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests (no input required there), since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
+    - `input-polling-timeout-ms`: How frequently the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` in the source files to avoid stalling the tests)
 ```yaml
 port: 8600
 max-connections: 125
-run-console-input-thread: true
+input-polling-timeout-ms: 5000
 ```
 
 # Quick Start Snippet
