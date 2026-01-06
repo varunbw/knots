@@ -82,11 +82,11 @@ The server can be configured using a YAML configuration file, located at `config
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `input-polling-timeout-ms`: How frequently the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` in the source files to avoid stalling the tests)
+    - `input-polling-interval-ms`: How frequently the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` in the source files to avoid stalling the tests)
 ```yaml
 port: 8600
 max-connections: 125
-input-polling-timeout-ms: 5000
+input-polling-interval-ms: 5000
 ```
 
 # Quick Start Snippet

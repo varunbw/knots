@@ -150,10 +150,10 @@ void HttpServer::ValidateServerConfiguration() const {
         )));
     }
 
-    if (m_config.inputPollingThreadTimeout < 0) {
+    if (m_config.inputPollingIntevalMs < 0) {
         throw std::invalid_argument(MakeErrorMessage(std::format(
             "HttpServer(): Invalid input polling timeout: {} ms",
-            m_config.inputPollingThreadTimeout
+            m_config.inputPollingIntevalMs
         )));
     }
 
@@ -182,7 +182,7 @@ void HttpServer::HandleConsoleInput() {
     };
 
     // Check input once every while (defined in config) if it's not a test build
-    const std::chrono::milliseconds pollingInterval{m_config.inputPollingThreadTimeout};
+    const std::chrono::milliseconds pollingInterval{m_config.inputPollingIntevalMs};
 
     while (m_isRunning) {
         if (consoleInputReady()) {

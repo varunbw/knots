@@ -12,22 +12,22 @@ struct HttpServerConfiguration {
 
     int port;
     int maxConnections;
-    int inputPollingThreadTimeout;
+    int inputPollingIntevalMs;
 
     constexpr HttpServerConfiguration() :
         port(-1),
         maxConnections(-1),
-        inputPollingThreadTimeout(-1)
+        inputPollingIntevalMs(-1)
     {};
 
     constexpr HttpServerConfiguration(
         const int port,
         const int maxConnections,
-        const bool inputPollingThreadTimeout
+        const bool inputPollingIntevalMs
     ) :
         port(port),
         maxConnections(maxConnections),
-        inputPollingThreadTimeout(inputPollingThreadTimeout)
+        inputPollingIntevalMs(inputPollingIntevalMs)
     {};
 };
 
