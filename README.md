@@ -90,7 +90,7 @@ input-polling-interval-ms: 5000
 ```
 
 Alternatively, you can also pass the values in the code itself, since the server does not parse configuration itself, but rather relies on a parsing function to put the values into a struct `HttpServerConfiguration`.
-```cpp
+```c++
 HttpServerConfiguration config = {
     .port = 8600
     .maxConnections = 125
