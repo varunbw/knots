@@ -96,6 +96,8 @@ HttpServerConfiguration config = {
     .maxConnections = 125
     .inputPollingIntervalMs = 5000
 }
+
+HttpServer server(config, router);
 ```
 
 # Quick Start Snippet
