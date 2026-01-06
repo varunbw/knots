@@ -1,7 +1,7 @@
 #include <stack>
 
-#include "Router.hpp"
-#include "Utils.hpp"
+#include "knots/Router.hpp"
+#include "knots/Utils.hpp"
 
 
 Router::Router() {
@@ -93,7 +93,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
         }
 
         bool nextStaticNodeFound = false;
-        bool nextDynamicNodeFound = false;
 
         // Look for a static node
         for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
@@ -137,7 +136,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                         nextNode->method == route.method
                     ) {
                         currNode = nextNode;
-                        nextDynamicNodeFound = true;
                         if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                             currRoute.requestUrl += "/";
                         }
@@ -148,7 +146,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                 else {
                     if (nextNode->isDynamic()) {
                         currNode = nextNode;
-                        nextDynamicNodeFound = true;
                         if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
                             currRoute.requestUrl += "/";
                         }
@@ -156,10 +153,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
                         break;
                     }
                 }
-            }
-
-            // Neither a static or dynamic route from here onwards was found
-            if (nextDynamicNodeFound == false) {
             }
         }
     }

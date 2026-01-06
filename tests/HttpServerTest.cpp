@@ -2,10 +2,10 @@
 #include <string>
 #include <thread>
 
-#include "HttpServer.hpp"
-#include "NetworkIO.hpp"
-#include "Socket.hpp"
-#include "Utils.hpp"
+#include "knots/HttpServer.hpp"
+#include "knots/NetworkIO.hpp"
+#include "knots/Socket.hpp"
+#include "knots/Utils.hpp"
 
 constexpr int serverPort = 10000;
 constexpr int serverMaxConnections = 10;

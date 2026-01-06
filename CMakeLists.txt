@@ -15,23 +15,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
-# Compiler options
-    # -Wall   | Enable all compiler warnings
-    # -Wextra | Enable extra compiler warnings
-    # -fno-diagnostics-show-template-tree | Disable template tree diagnostics
-    # -fmax-errors=3 | Limit the number of errors shown
-
-    # Debug build specific
-        # -g  | Add debug info
-    # Release build specific
-        # -O3 | Performance
-separate_arguments(KNOTS_COMPILER_FLAGS_LIST NATIVE_COMMAND "${KNOTS_COMPILER_FLAGS}")
-add_compile_options(${KNOTS_COMPILER_FLAGS_LIST})
-add_link_options(${KNOTS_COMPILER_FLAGS_LIST})
-
 # Library Target
 add_library(
-    knots_lib
+    knots
     src/FileHandler.cpp
     src/HttpRequest.cpp
     src/HttpResponse.cpp
@@ -42,27 +28,69 @@ add_library(
     src/Utils.cpp
 )
 
-target_include_directories(knots_lib PUBLIC
+target_compile_options(knots PRIVATE 
+    -Wall      # Enable all compiler warnings
+    -Wextra    # Enable extra compiler warnings
+    -Wpedantic # Enable standard checking
+    -fmax-errors=3 # Limit the number of errors shown
+    -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+)
+
+# Debug-specific flags
+target_compile_options(knots PRIVATE
+    $<$<CONFIG:Debug>:-g>
+)
+
+# Release-specific flags
+target_compile_options(knots PRIVATE
+    $<$<CONFIG:Release>:-O3>
+)
+
+target_include_directories(knots PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(knots_lib PUBLIC yaml-cpp::yaml-cpp)
+target_link_libraries(knots PUBLIC yaml-cpp::yaml-cpp)
 
-# Executable Target
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE knots_lib)
+# Make example buld and tests only when making the library
+if (PROJECT_IS_TOP_LEVEL)
+    # Executable Target
+    if (KNOTS_EXAMPLE_BUILD)
+        if (${KNOTS_EXAMPLE_BUILD} STREQUAL "True")
+            add_executable(knots-app examples/main.cpp)
+            target_link_libraries(knots-app PRIVATE knots)
 
+        target_compile_options(knots-app PRIVATE 
+            -Wall      # Enable all compiler warnings
+            -Wextra    # Enable extra compiler warnings
+            -Wpedantic # Enable standard checking
+            -fmax-errors=3 # Limit the number of errors shown
+            -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+        )
 
-# -------- TESTING --------
-# Enable testing
-enable_testing()
+        # Debug-specific flags
+        target_compile_options(knots-app PRIVATE
+            $<$<CONFIG:Debug>:-g>
+        )
 
-# Download and install GoogleTest
-FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(googletest)
+        # Release-specific flags
+        target_compile_options(knots-app PRIVATE
+            $<$<CONFIG:Release>:-O3>
+        )
+        endif()
+    endif()
 
-# Add test directory: tests/CMakeLists.txt
-add_subdirectory(tests)
+    # -------- TESTING --------
+    # Enable testing
+    enable_testing()
+
+    # Download and install GoogleTest
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.17.0
+    )
+    FetchContent_MakeAvailable(googletest)
+
+    # Add test directory: tests/CMakeLists.txt
+    add_subdirectory(tests)
+endif()

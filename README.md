@@ -5,20 +5,28 @@ A general-purpose multi-threaded HTTP 1.1 server written in C++. Designed to han
 ## Requirements
 - C++20 or above
 - CMake 3.21 or above
+- Ninja
+
+#### Ubuntu/Debian
+```bash
+sudo apt install cmake ninja-build
+```
 
 ## Dependencies
 These are automatically installed by CMake:
-- yaml-cpp
-- GoogleTest
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+- [GoogleTest](https://github.com/google/googletest)
+
+> When built as a library in your project, tests are NOT generated, and the GoogleTest library is also not fetched. Tests will only be made in library-development builds, when the `knots` project is top-level.
 
 ## Project Structure
 - `config/` - Configuration files
+- `examples/` - Examples of how to use the library
 - `include/` - Header files
 - `src/` - Source files
-    - `main.cpp` - Entry point of the server
     - `FileHandler.cpp` - Handles file reading logic
     - `HttpRequest.cpp` - Methods for `HttpRequest` struct and HTTP Request parsing
-    - `HttpResponse.cpp` - Methods for `HttpResponse` struct and HTTP Response parsing
+    - `HttpResponse.cpp` - Methods for `HttpResponse` struct and HTTP Response building
     - `HttpServer.cpp` - Main server implementation
     - `NetworkIO.cpp` - Network I/O operations
     - `Router.cpp` - URL routing logic
@@ -26,54 +34,55 @@ These are automatically installed by CMake:
     - `Utils.cpp` - Utility functions
 - `tests/` - Unit tests
 
-# Installation
+# Building
 Quick-start snippet at the end of this document.
 
-## Steps to Install
+### Install and run a simple demo server
 1. Clone the repository:
 ```bash
 git clone https://github.com/varunbw/knots.git
 cd knots
 ```
 
-2. Generate a `debug` or `release` build, whichever you want to test
+2. Generate a `debug` or `release` build with the example app provided in [examples/main.cpp](examples/main.cpp).
 ```bash
-cmake --preset debug
-cmake --build --preset debug
+cmake --preset example-debug
+cmake --build --preset example-debug
 ```
 
-3. Run the server:
+3. Run the server, it'll be up on port `8600` by default:
 ```bash
-./build/debug/knots
+./build/example-debug/knots-app
 ```
 
-[src/main.cpp](src/main.cpp) provides an example of how one would use the server. It contains 2 basic endpoints; `/` and `/spam`, and an error route for 404s.
+# Using as a library in your project
+Include this in your `CMakeLists.txt`
+```cmake
+FetchContent_Declare(
+    knots
+    GIT_REPOSITORY https://github.com/varunbw/knots.git
+    GIT_TAG main # Change this to a specific commit if you'd prefer working on a proven stable build
+)
+FetchContent_MakeAvailable(knots)
 
-# Connecting to the server
-You can connect to the server using a web browser or a tool like `curl`. The server will be running on `localhost` at port `8600` as specified in [config/main.conf](config/main.conf) by default.
-
-```bash
-curl http://localhost:8600
+target_link_libraries(your-library PUBLIC knots)
 ```
-This should return a simple HTML page.
 
-
-# Running Tests
-This project uses GoogleTest for unit testing. The tests are located in the `tests` directory.
-To run them, navigate to the `build` directory and run:
+# Tests
+This project uses [GoogleTest](https://github.com/google/googletest) for testing. Make a `debug` or `release` build to run tests.
 ```bash
+cmake --preset debug && cmake --build --preset debug
 ctest --preset tests-debug
 ```
-This will execute all the tests defined in the `tests` directory.
 
 
 # Configuration
-The server can be configured using a YAML configuration file, located at `config/config.yaml`.
+The server can be configured using a YAML configuration file, located at `config/config.yaml` by default. You can edit the location of the file by specifying the file path in the source code (see [HttpServerConfiguration](src/Utils.cpp) and the [example](examples/main.cpp)).
 
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests, since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
+    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests (no input required there), since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
 ```yaml
 port: 8600
 max-connections: 125
@@ -84,7 +93,7 @@ run-console-input-thread: true
 ```bash
 git clone https://github.com/varunbw/knots.git
 cd knots
-cmake --preset debug
-cmake --build --preset debug
-./build/debug/knots
+cmake --preset example-debug
+cmake --build --preset example-debug
+./build/example-debug/knots-app
 ```

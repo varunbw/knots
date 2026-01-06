@@ -17,11 +17,11 @@
 // Multithreading
 #include <thread>
 
-#include "FileHandler.hpp"
-#include "HttpServer.hpp"
-#include "NetworkIO.hpp"
-#include "ThreadPool.hpp"
-#include "Utils.hpp"
+#include "knots/FileHandler.hpp"
+#include "knots/HttpServer.hpp"
+#include "knots/NetworkIO.hpp"
+#include "knots/ThreadPool.hpp"
+#include "knots/Utils.hpp"
 
 /*
     @brief Set up the HTTP server
