@@ -53,35 +53,7 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
         m_config.port
     ));
 
-    // Set socket options
-    // Allow address reuse
-    int opt = 1;
-    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
-    }
-
-    // Allow port reuse
-    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
-    }
-
-    // Set receive timeout
-    struct timeval timeout;      
-    timeout.tv_sec = 10;  // 10 seconds timeout
-    timeout.tv_usec = 0;
-    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
-    }
-
-    // Set send timeout
-    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
-    }
-
-    // Set TCP keep-alive
-    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
-    }
+    SetServerSocketOptions();
 
     // Initialize address information
     m_address.sin_family = AF_INET;
@@ -133,6 +105,43 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
 */
 HttpServer::~HttpServer() {
     m_threadPool.Stop();
+}
+
+/*
+    @brief Set some options for the server socket, mainly timeout specific
+*/
+void HttpServer::SetServerSocketOptions() {
+    // Set socket options
+    // Allow address reuse
+    int opt = 1;
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
+    }
+
+    // Allow port reuse
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
+    }
+
+    // Set receive timeout
+    struct timeval timeout;      
+    timeout.tv_sec = 10;  // 10 seconds timeout
+    timeout.tv_usec = 0;
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
+    }
+
+    // Set send timeout
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
+    }
+
+    // Set TCP keep-alive
+    if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
+    }
+
+    return;
 }
 
 /*

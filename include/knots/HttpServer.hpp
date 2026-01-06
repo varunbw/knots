@@ -39,6 +39,7 @@ private:
     std::mutex m_threadPoolMutex;
 
     // Miscellaneous
+    void SetServerSocketOptions();
     void ValidateServerConfiguration() const;
     void HandleConsoleInput();
     
