@@ -10,7 +10,7 @@
 
 class ThreadPool {
 private:
-    const int m_threadCount;
+    int m_threadCount;
     std::atomic<bool> m_isRunning;
 
     // Container for functions that are considered "jobs"
@@ -28,7 +28,16 @@ private:
     void ThreadLoop();
 
 public:
-    ThreadPool(const int threadCount);
+    ThreadPool() :
+        m_threadCount(-1),
+        m_isRunning(false),
+        m_jobs{},
+        m_threads{},
+        m_mutexCondition{},
+        m_jobsMutex{}
+    {};
+
+    void InitializeThreadPool(const int threadCount);
 
     void EnqueueJob(const std::function<void()>& job);
     bool IsBusy();
