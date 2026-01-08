@@ -1,21 +1,19 @@
 #include <algorithm>
+#include <arpa/inet.h>
+#include <chrono>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <netinet/tcp.h>
+#include <poll.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string.h>
-#include <vector>
-
-// Networking
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
 #include <sys/socket.h>
-#include <unistd.h>
-
-// Multithreading
 #include <thread>
+#include <unistd.h>
+#include <vector>
 
 #include "knots/FileHandler.hpp"
 #include "knots/HttpServer.hpp"
@@ -26,16 +24,18 @@
 /*
     @brief Set up the HTTP server
 
-    This takes no parameters for now, server options set are as follows:
-        - m_isRunning = false
-        - m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)
-        - m_router = "config/routes.yaml"
+    @param config The configuration for the server
+    @param router The URL router
+
+    @note The routes in router cannot be changed after initialization of HttpServer as of now.
+    Initialize the server only after all routes have been added.
+    ToDo To be changed in the future
 */
-HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& router) :
+HttpServer::HttpServer(const HttpServerConfiguration config, const Router& router) :
     m_isRunning(false),
     m_serverSocket(socket(AF_INET, SOCK_STREAM, 0)),
-    m_router(router),
-    m_threadPool(config.maxConnections) {
+    m_config(config),
+    m_router(router) {
 
     // Check if the socket was created successfully
     if (m_serverSocket.Get() < 0) {
@@ -44,26 +44,71 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
         ));
     }
 
+    ValidateServerConfiguration();
+
     Log::Info(std::format(
         "Attempting to start server on port {}",
-        config.port
+        m_config.port
     ));
 
-    // Check if the port number is valid
-    if (config.port <= 0 || config.port > 65536) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "HttpServer(): Invalid port number: {}",
-            config.port
-        )));
+    SetServerSocketOptions();
+
+    // Initialize address information
+    m_address.sin_family = AF_INET;
+    m_address.sin_addr.s_addr = INADDR_ANY;
+    m_address.sin_port = htons(m_config.port);
+
+    this->m_serverPort = m_config.port;
+    this->m_addrlen = sizeof(m_address);
+
+    // Bind the socket to the port
+    if (bind(m_serverSocket.Get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
+        throw std::runtime_error(MakeErrorMessage(
+            "HttpServer(): Socket binding failed"
+        ));
+    };
+
+    // Start listening for connections
+    if (listen(m_serverSocket.Get(), m_config.maxConnections) < 0) {
+        throw std::runtime_error(MakeErrorMessage(
+            "HttpServer(): Could not listen"
+        ));
     }
 
-    if (config.maxConnections <= 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
-            "HttpServer(): Invalid max connections: {}",
-            config.maxConnections
-        )));
-    }
+    // Start the thread pool
+    m_threadPool.InitializeThreadPool(m_config.maxConnections);
 
+    // Spin up a thread to listen to console input
+    m_consoleInputHandlerThread = std::jthread(
+        [this] () {
+            this->HandleConsoleInput();
+        }
+    );
+
+    // Mark server as running
+    m_isRunning = true;
+
+    // Ready to go
+    Log::Info(
+        std::format("HttpServer(): Server listening on port {}, max {} connections\n",
+        m_config.port, m_config.maxConnections
+    ));
+
+    return;
+}
+
+
+/*
+    @brief Destructor for HttpServer, handles thread pool cleanup
+*/
+HttpServer::~HttpServer() {
+    m_threadPool.Stop();
+}
+
+/*
+    @brief Set some options for the server socket, mainly timeout specific
+*/
+void HttpServer::SetServerSocketOptions() {
     // Set socket options
     // Allow address reuse
     int opt = 1;
@@ -94,57 +139,38 @@ HttpServer::HttpServer(const HttpServerConfiguration& config, const Router& rout
         throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
     }
 
-    // Initialize address information
-    m_address.sin_family = AF_INET;
-    m_address.sin_addr.s_addr = INADDR_ANY;
-    m_address.sin_port = htons(config.port);
-
-    this->m_serverPort = config.port;
-    this->m_addrlen = sizeof(m_address);
-
-    // Bind the socket to the port
-    if (bind(m_serverSocket.Get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
-            "HttpServer(): Socket binding failed"
-        ));
-    };
-
-    // Start listening for connections
-    if (listen(m_serverSocket.Get(), config.maxConnections) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
-            "HttpServer(): Could not listen"
-        ));
-    }
-
-    // Spin up a thread to listen to console input
-    if (config.runConsoleInputThread) {
-        m_consoleInputHandlerThread = std::jthread(
-            [this] () {
-                this->HandleConsoleInput();
-            }
-        );
-    }
-
-    // Mark server as running
-    m_isRunning = true;
-
-    // Ready to go
-    Log::Info(
-        std::format("HttpServer(): Server listening on port {}, max {} connections\n",
-        config.port, config.maxConnections
-    ));
-
     return;
 }
 
-
 /*
-    @brief Destructor for HttpServer, handles thread pool cleanup
+    @brief Check that the configuration values are within acceptable limits
 */
-HttpServer::~HttpServer() {
-    m_threadPool.Stop();
-}
+void HttpServer::ValidateServerConfiguration() const {
 
+    // Check if the port number is valid
+    if (m_config.port <= 0 || m_config.port > 65536) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid port number: {} | Allowed range: 0 - 65536 (both inclusive)",
+            m_config.port
+        )));
+    }
+
+    if (m_config.maxConnections <= 0) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid max connections: {} | Allowed range: > 0",
+            m_config.maxConnections
+        )));
+    }
+
+    if (m_config.inputPollingIntevalMs < 0) {
+        throw std::invalid_argument(MakeErrorMessage(std::format(
+            "HttpServer(): Invalid input polling timeout: {} ms | Allowed range: > 0ms",
+            m_config.inputPollingIntevalMs
+        )));
+    }
+
+    return;
+}
 
 /*
     @brief Listen for console input
@@ -152,11 +178,41 @@ HttpServer::~HttpServer() {
 void HttpServer::HandleConsoleInput() {
 
     std::string buffer;
-    while (m_isRunning && std::cin >> buffer) {
-        if (buffer == "stop" || buffer == "exit" || buffer == "quit") {
-            Shutdown();
-            return;
+
+    std::set<std::string> stopCommands = {
+        "q", "quit", "stop", "exit"
+    };
+
+    auto consoleInputReady = [] () {
+        pollfd pfd {
+            .fd = STDIN_FILENO,
+            .events = POLLIN,
+            .revents{}
+        };
+
+        return poll(&pfd, 1, 0) > 0;
+    };
+
+    // Check input once every while (defined in config) if it's not a test build
+    const std::chrono::milliseconds pollingInterval{m_config.inputPollingIntevalMs};
+
+    while (m_isRunning) {
+        if (consoleInputReady()) {
+            std::cin >> buffer;
+
+            if (stopCommands.contains(buffer)) {
+                Shutdown();
+                return;
+            }
+            else {
+                Log::Error(std::format(
+                    "'{}' is not a valid command, use 'q', 'quit', 'stop', or 'exit' to stop the server",
+                    buffer
+                ));
+            }
         }
+
+        std::this_thread::sleep_for(pollingInterval);
     }
 
     return;

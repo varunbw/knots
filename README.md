@@ -82,11 +82,22 @@ The server can be configured using a YAML configuration file, located at `config
 - `config/config.yaml` - Main server configuration for:
     - `port`: The port on which the server listens.
     - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `run-console-input-thread`: Whether or not to run a thread for handling console input. This is usually set false only during running tests (no input required there), since this thread gives you the ability to gracefully shutdown the server from the console by sending "stop", "exit", "quit" to `std::cin`
+    - `input-polling-interval-ms`: How frequently the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` in the source files to avoid stalling the tests)
 ```yaml
 port: 8600
 max-connections: 125
-run-console-input-thread: true
+input-polling-interval-ms: 5000
+```
+
+Alternatively, you can also pass the values in the code itself, since the server does not parse configuration itself, but rather relies on a parsing function to put the values into a struct `HttpServerConfiguration`.
+```c++
+HttpServerConfiguration config = {
+    .port = 8600
+    .maxConnections = 125
+    .inputPollingIntervalMs = 5000
+}
+
+HttpServer server(config, router);
 ```
 
 # Quick Start Snippet

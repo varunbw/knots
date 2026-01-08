@@ -50,7 +50,7 @@ HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
 
     config.port = yaml["port"].as<int>();
     config.maxConnections = yaml["max-connections"].as<int>();
-    config.runConsoleInputThread = yaml["run-console-input-thread"].as<bool>();
+    config.inputPollingIntevalMs = yaml["input-polling-interval-ms"].as<int>();
 
     return config;
 }
