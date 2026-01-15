@@ -100,6 +100,10 @@ HttpServerConfiguration config = {
 HttpServer server(config, router);
 ```
 
+# Commands
+Currently, the server supports the following commands from standard console input:\
+`q`, `quit`, `stop`, `exit`: Stop the server
+
 # Quick Start Snippet
 ```bash
 git clone https://github.com/varunbw/knots.git

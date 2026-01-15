@@ -206,7 +206,7 @@ void HttpServer::HandleConsoleInput() {
             }
             else {
                 Log::Error(std::format(
-                    "'{}' is not a valid command, use 'q', 'quit', 'stop', or 'exit' to stop the server",
+                    "'{}' is not a valid command",
                     buffer
                 ));
             }
