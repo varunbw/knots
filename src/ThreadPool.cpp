@@ -3,13 +3,14 @@
 #include "knots/ThreadPool.hpp"
 
 /*
-    @brief Constructor for the ThreadPool class
+    @brief Startup the thread pool
     @param threadCount Number of threads to spin up in the pool
 */
-ThreadPool::ThreadPool(const int threadCount) :
-    m_threadCount(threadCount),
-    m_isRunning(true) {
+void ThreadPool::InitializeThreadPool(const int threadCount) {
 
+    m_threadCount = threadCount;
+    m_isRunning = true;
+    
     // Spin up the threads
     for (int i = 0; i < m_threadCount; i++) {
         m_threads.emplace_back(std::jthread(&ThreadPool::ThreadLoop, this));
