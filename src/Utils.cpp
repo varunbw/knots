@@ -6,6 +6,8 @@
 
 #include "knots/Utils.hpp"
 
+#include <thread>
+
 /*
     Used for coloring the output text
     These are ANSI escape codes, see https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -62,39 +64,45 @@ namespace Log {
     std::mutex coutMutex;        
 
     void Error(const std::string& message) {
+        Timer timer("Error");
         std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
-        std::cerr << std::format(
+        std::cout << std::format(
             RED_START "[ERROR]: {}\n" RESET_COLOR,
             message
         );
     }
 
     void Warning(const std::string& message) {
+        Timer timer("Warning");
         std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
-        std::cerr << std::format(
+        std::cout << std::format(
             YELLOW_START "[WARNING]: {}\n" RESET_COLOR,
             message
         );
     }
 
     void Success(const std::string& message) {
+        Timer timer("Success");
         std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
-        std::cerr << std::format(
+        std::cout << std::format(
             GREEN_START "[SUCCESS]: {}\n" RESET_COLOR,
             message
         );
     }
 
     void Info(const std::string& message) {
+        Timer timer("Info");
         std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
-        std::cerr << std::format(
+        std::cout << std::format(
             "[INFO]: {}\n",
             message
         );
     }
 
     void Debug(const std::string& message) {
-        std::cerr << std::format(
+        Timer timer("Debug");
+        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
+        std::cout << std::format(
             "[DEBUG]: {}\n",
             message
         );

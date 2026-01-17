@@ -1,5 +1,9 @@
 #pragma once
 
+#include <chrono>
+#include <iostream>
+#include <optional>
+#include <ratio>
 #include <string>
 
 /*
@@ -57,3 +61,28 @@ namespace Log {
     If printed to stdout, it will be colored red
 */
 std::string MakeErrorMessage(const std::string& message);
+
+
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+
+class Timer {
+private:
+    TimePoint m_start;
+    const std::string m_message;
+
+public:
+    Timer(const std::string& message) : 
+        m_start(Clock::now()),
+        m_message(message)
+    {};
+
+    ~Timer() {
+        std::cout << std::format(
+            "{} : {:.4}ms\n",
+            m_message,
+            std::chrono::duration<double>(Clock::now() - m_start).count() * 1000
+        );
+        return;
+    }
+};
