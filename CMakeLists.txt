@@ -22,6 +22,7 @@ add_library(
     src/HttpRequest.cpp
     src/HttpResponse.cpp
     src/HttpServer.cpp
+    src/Logger.cpp
     src/NetworkIO.cpp
     src/Router.cpp
     src/ThreadPool.cpp

@@ -6,6 +6,8 @@
 #include <ratio>
 #include <string>
 
+#include "knots/Logger.hpp"
+
 /*
     @brief Configuration object for the HTTP server
     @param port Port to listen on
@@ -41,15 +43,6 @@ struct HttpServerConfiguration {
     @param config The configuration object to fill with the parsed values
 */
 HttpServerConfiguration ParseConfigurationFile(const std::string& filePath);
-
-
-namespace Log {
-    void Error(const std::string& message);
-    void Warning(const std::string& message);
-    void Success(const std::string& message);
-    void Info(const std::string& message);
-    void Debug(const std::string& message);
-}
 
 /*
     @brief Make a formatted error message

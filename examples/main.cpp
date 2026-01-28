@@ -51,6 +51,6 @@ int main(void) {
 
     server.AcceptConnections();
 
-    Log::Info("Stopping server...");
+    Logger::Info("Stopping server...");
     return 0;
 }
