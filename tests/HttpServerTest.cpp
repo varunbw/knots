@@ -37,7 +37,7 @@ Client::Client() :
     m_serverPort(serverPort) {
 
     if (m_socket.Get() < 0) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "Client(): Socket creation failed; {}",
             strerror(errno)
         ));
@@ -48,7 +48,7 @@ Client::Client() :
 
     // Convert IP address to binary
     if (inet_pton(AF_INET, m_serverIp.c_str(), &m_serverInfo.sin_addr) < 0) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "Sender(): Invalid IP Address; {}",
             strerror(errno)
         ));
@@ -65,7 +65,7 @@ bool Client::ConnectToServer() {
     if (connect(
         m_socket.Get(), reinterpret_cast<sockaddr*>(&m_serverInfo), sizeof(m_serverInfo)
     ) < 0) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "Sender(): Connection failed; {}",
             strerror(errno)
         ));

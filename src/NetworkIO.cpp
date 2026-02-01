@@ -20,7 +20,7 @@ bool NetworkIO::Send(const Socket& socket, const std::string& buffer, const int 
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "NetworkIO::Send(): Error sending message {}... of size {} to socket {}\n",
             std::string_view(buffer.begin(), buffer.begin() + maxSize),
             buffer.size(),
@@ -46,7 +46,7 @@ bool NetworkIO::Send(const Socket& socket, const std::vector<char>& buffer, cons
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "NetworkIO::Send(): Error sending message {}... of size {} to socket {} : {}\n",
             std::string_view(buffer.begin(), buffer.begin() + maxSize),
             buffer.size(),

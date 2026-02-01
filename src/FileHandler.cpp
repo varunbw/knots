@@ -16,7 +16,7 @@ HttpResponse FileHandler::MakeHttpResponseFromFile(const std::string& fileName) 
     std::ifstream infile(fileName, std::ios::binary | std::ios::ate);
 
     if (infile.is_open() == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "MakeHttpResponseFromFile(): Could not open file {}",
             fileName
         ));
@@ -50,7 +50,7 @@ void FileHandler::ReadFileIntoBody(const std::string& filePath, HttpResponse& re
     std::ifstream infile(filePath, std::ios::binary | std::ios::ate);
 
     if (infile.is_open() == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "ReadFileIntoBody(): Could not open file {}",
             filePath
         ));

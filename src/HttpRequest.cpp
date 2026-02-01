@@ -20,7 +20,7 @@
 bool ParseHttpMethod(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "ParseHttpMethod(): Bad stream state"
         );
         return false;
@@ -127,7 +127,7 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
 bool ParseHttpVersion(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "ParseHttpVersion(): Bad stream state"
         );
         return false;
@@ -169,7 +169,7 @@ bool ParseHttpVersion(std::stringstream& ss, HttpRequest& req) {
 bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "ParseStartLine(): Bad stream state"
         );
         return false;
@@ -177,7 +177,7 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
     // Extract method
     if (ParseHttpMethod(ss, req) == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "failed here on ParseHttpMethod"
         ));
         return false;
@@ -185,7 +185,7 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
     // Extract URL and parameters
     if (ParseUrlAndParameters(ss, req) == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "failed here on ParseUrlAndParameters"
         ));
         return false;
@@ -193,7 +193,7 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 
     // Extract version
     if (ParseHttpVersion(ss, req) == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "failed here on ParseHttpVersion"
         ));
         return false;
@@ -211,7 +211,7 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
 bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "ParseHeaders(): Bad stream state"
         );
         return false;
@@ -231,7 +231,7 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
 
         size_t colonPos = line.find(':');
         if (colonPos == line.npos) {
-            Log::Error(std::format(
+            Logger::Error(std::format(
                 "ParseHeaders(): Invalid header {}",
                 line
             ));
@@ -257,7 +257,7 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
 bool ParseBody(std::stringstream& ss, HttpRequest& req) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "ParseBody(): Bad stream state"
         );
         return false;
@@ -282,7 +282,7 @@ bool ParseBody(std::stringstream& ss, HttpRequest& req) {
         return true;
     }
 
-    Log::Error(std::format(
+    Logger::Error(std::format(
         "ParseBody(): Incomplete body read, got {} bytes, expected {} from header",
         ss.gcount(),
         contentLength
@@ -344,34 +344,34 @@ void HttpRequest::PrintMessage() const {
 bool HttpRequest::ParseFrom(std::stringstream& ss) {
 
     if (ss.good() == false) {
-        Log::Error(
+        Logger::Error(
             "HttpRequest::ParseFrom(): Bad stream state, discarding previous request"
         );
         return false;
     }
 
     if (ParseStartLine(ss, *this) == false) {
-        Log::Error(
+        Logger::Error(
             "HttpRequest::ParseFrom(): Could not parse start line, discarding previous request"
         );
         return false;
     }
 
     if (ParseHeaders(ss, *this) == false) {
-        Log::Error(
+        Logger::Error(
             "HttpRequest::ParseFrom(): Could not parse headers, discarding previous request"
         );
         return false;
     }
 
     if (ParseBody(ss, *this) == false) {
-        Log::Error(
+        Logger::Error(
             "HttpRequest::ParseFrom(): Could not parse body, discarding previous request"
         );
         return false;
     }
 
-    Log::Info(std::format(
+    Logger::Info(std::format(
         "{} \"{}\", {} queryParams, {} body length",
         this->method,
         this->requestUrl,

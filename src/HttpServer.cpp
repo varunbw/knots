@@ -37,6 +37,8 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
     m_config(config),
     m_router(router) {
 
+    Logger::StartLogger();
+
     // Check if the socket was created successfully
     if (m_serverSocket.Get() < 0) {
         throw std::runtime_error(MakeErrorMessage(
@@ -46,7 +48,7 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
 
     ValidateServerConfiguration();
 
-    Log::Info(std::format(
+    Logger::Info(std::format(
         "Attempting to start server on port {}",
         m_config.port
     ));
@@ -89,7 +91,7 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
     m_isRunning = true;
 
     // Ready to go
-    Log::Info(
+    Logger::Info(
         std::format("HttpServer(): Server listening on port {}, max {} connections\n",
         m_config.port, m_config.maxConnections
     ));
@@ -205,7 +207,7 @@ void HttpServer::HandleConsoleInput() {
                 return;
             }
             else {
-                Log::Error(std::format(
+                Logger::Error(std::format(
                     "'{}' is not a valid command",
                     buffer
                 ));
@@ -227,6 +229,7 @@ void HttpServer::HandleConsoleInput() {
 void HttpServer::Shutdown() {
 
     m_isRunning = false;
+    Logger::StopLogger();
 
     // Shut down all active connections
     {
@@ -281,7 +284,7 @@ bool HttpServer::SetClientSocketOptions(const Socket& clientSocket) const {
 
     for (const SocketOption& opt : options) {
         if (setsockopt(clientSocket.Get(), opt.level, opt.option, opt.value, opt.len) < 0) {
-            Log::Error(std::format(
+            Logger::Error(std::format(
                 "SetClientSocketOptions(): Could not set options for socket {}",
                 clientSocket.Get()
             ));
@@ -324,12 +327,12 @@ void HttpServer::AcceptConnections() {
             }
 
             if (errno == EINVAL) {
-                Log::Info("AcceptConnections(): Server socket has been closed");
+                Logger::Info("AcceptConnections(): Server socket has been closed");
                 break;
             }
 
             // If the above condition is not satisfied, its an error
-            Log::Error(std::format(
+            Logger::Error(std::format(
                 "AcceptConnection(): Could not accept connection"
             ));
         }
@@ -372,7 +375,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
         does not close the connection
     */
     if (SetClientSocketOptions(clientSocket) == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "Failed to set socket options for socket {}",
             clientSocket.Get()
         ));
@@ -397,7 +400,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
                 continue;
             }
             else {
-                Log::Error(std::format(
+                Logger::Error(std::format(
                     "HandleConnection(): Error reading from socket {}: {}",
                     clientSocket.Get(),
                     strerror(errno)

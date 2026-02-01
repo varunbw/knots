@@ -1,6 +1,12 @@
 #pragma once
 
+#include <chrono>
+#include <iostream>
+#include <optional>
+#include <ratio>
 #include <string>
+
+#include "knots/Logger.hpp"
 
 /*
     @brief Configuration object for the HTTP server
@@ -38,15 +44,6 @@ struct HttpServerConfiguration {
 */
 HttpServerConfiguration ParseConfigurationFile(const std::string& filePath);
 
-
-namespace Log {
-    void Error(const std::string& message);
-    void Warning(const std::string& message);
-    void Success(const std::string& message);
-    void Info(const std::string& message);
-    void Debug(const std::string& message);
-}
-
 /*
     @brief Make a formatted error message
     @param message The message to format
@@ -57,3 +54,28 @@ namespace Log {
     If printed to stdout, it will be colored red
 */
 std::string MakeErrorMessage(const std::string& message);
+
+
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+
+class Timer {
+private:
+    TimePoint m_start;
+    const std::string m_message;
+
+public:
+    Timer(const std::string& message) : 
+        m_start(Clock::now()),
+        m_message(message)
+    {};
+
+    ~Timer() {
+        std::cout << std::format(
+            "{} : {:.4}ms\n",
+            m_message,
+            std::chrono::duration<double>(Clock::now() - m_start).count() * 1000
+        );
+        return;
+    }
+};

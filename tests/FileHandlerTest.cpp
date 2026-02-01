@@ -23,7 +23,7 @@ RandomFileGenerator::RandomFileGenerator() {
     std::ofstream outfile(m_fileName, std::ios::binary | std::ios::out);
 
     if (outfile.is_open() == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "GenerateRandomData(): Could not create file {}",
             m_fileName
         ));
@@ -47,7 +47,7 @@ RandomFileGenerator::RandomFileGenerator() {
 
 RandomFileGenerator::~RandomFileGenerator() {
     if (std::filesystem::remove(m_fileName) == false) {
-        Log::Error(std::format(
+        Logger::Error(std::format(
             "~RandomFileGenerator(): Failed to delete {}",
             m_fileName
         ));
