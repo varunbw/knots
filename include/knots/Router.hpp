@@ -38,37 +38,56 @@ struct Route {
     }
 };
 
+struct SegmentHandlerFunctions {
+    std::optional<HandlerFunction> m_post;
+    std::optional<HandlerFunction> m_get;
+    std::optional<HandlerFunction> m_head;
+    std::optional<HandlerFunction> m_put;
+    std::optional<HandlerFunction> m_delete;
+    std::optional<HandlerFunction> m_connect;
+    std::optional<HandlerFunction> m_options;
+    std::optional<HandlerFunction> m_trace;
+    std::optional<HandlerFunction> m_patch;
+
+    const std::optional<HandlerFunction> GetHandler(const HttpMethod method) const;
+    void SetHandler(const HttpMethod method, const HandlerFunction handler);
+};
+
 struct UrlSegment {
-    HttpMethod method;
-    std::string segment;
+    std::string value;
 
-    bool isEndpoint;
-
-    std::optional<HandlerFunction> handler;
+    SegmentHandlerFunctions handlers;
     std::vector<std::shared_ptr<UrlSegment>> next;
 
     UrlSegment() :
-        method(HttpMethod::DEFAULT_INVALID),
-        segment{},
-        isEndpoint(false),
-        handler{},
+        value{},
+        handlers{},
         next{}
     {}
 
-    UrlSegment(const HttpMethod& method, const std::string& segment) :
-        method(method),
-        segment(segment),
-        isEndpoint(false),
-        handler{},
+    UrlSegment(const std::string& value) :
+        value(value),
+        handlers{},
         next{}
     {}
 
-    constexpr bool operator== (const UrlSegment& other) const {
-        return method == other.method && segment == other.segment;
+    bool isDynamic() const {
+        return value[0] == '{' && value.back() == '}';
     }
 
-    constexpr bool isDynamic() const {
-        return segment[0] == '{' && segment.back() == '}';
+    bool IsEndpoint(const HttpMethod& method) const {
+        switch (method) {
+            case HttpMethod::POST:            return handlers.m_post.has_value();
+            case HttpMethod::GET:             return handlers.m_get.has_value();
+            case HttpMethod::HEAD:            return handlers.m_head.has_value();
+            case HttpMethod::PUT:             return handlers.m_put.has_value();
+            case HttpMethod::DELETE:          return handlers.m_delete.has_value();
+            case HttpMethod::CONNECT:         return handlers.m_connect.has_value();
+            case HttpMethod::OPTIONS:         return handlers.m_options.has_value();
+            case HttpMethod::TRACE:           return handlers.m_trace.has_value();
+            case HttpMethod::PATCH:           return handlers.m_patch.has_value();
+            case HttpMethod::DEFAULT_INVALID: break;
+        }
     }
 };
 
@@ -97,6 +116,8 @@ public:
     );
 
     const HandlerFunction* FetchRoute(HttpRequest& req) const;
+
+    void DebugDFS() const;
 
     // Individual functions for request types
     void Post(const std::string& requestUrl, const HandlerFunction& handler);
