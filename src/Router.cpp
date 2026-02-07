@@ -3,7 +3,7 @@
 #include "knots/Router.hpp"
 #include "knots/Utils.hpp"
 
-const std::optional<HandlerFunction> SegmentHandlerFunctions::GetHandler(const HttpMethod method) const {
+const std::optional<HandlerFunction>& SegmentHandlerFunctions::GetHandler(const HttpMethod method) const {
     switch (method) {
         case HttpMethod::POST:            return m_post;
         case HttpMethod::GET:             return m_get;
@@ -48,6 +48,7 @@ Router::Router() {
     return;
 };
 
+// todo: change to just a url string later
 std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
 
     std::vector<UrlSegment> res;
@@ -94,18 +95,20 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
 
 void Router::AddRoute(
     const HttpMethod& method,
-    const std::string& requestUrl,
+    std::string requestUrl,
     const HandlerFunction& handler
 ) {
+
+    // Erase any trailing '/'s
+    // This project will treat the following two routes as the same: "/users", "/users/"
+    while (requestUrl.size() != 1 && requestUrl.back() == '/') {
+        requestUrl.pop_back();
+    }
+    
     const Route routeToAdd(method, requestUrl);
 
     const std::vector<UrlSegment> routeSegments = BreakRouteIntoSegments(routeToAdd);
     const size_t numSegments = routeSegments.size();
-    // std::string str;
-    // for (const UrlSegment& seg : routeSegments) {
-    //     str += std::format("`{}`, ", seg.value);
-    // }
-    // Log::Info(str);
 
     // If adding an endpoint to the root, just do so here and exit
     // No further logic required
@@ -181,6 +184,112 @@ void Router::AddRoute(
 }
 
 
+std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const {
+
+    const Route routeToFind(req.method, req.requestUrl);
+    const std::vector<UrlSegment> segmentedRoute = BreakRouteIntoSegments(routeToFind);
+    const size_t numSegments = segmentedRoute.size();
+
+    // std::shared_ptr<UrlSegment> prevNode = nullptr;
+
+    // Handle case for root ("/") query
+    if (numSegments == 1) {
+        if (segmentedRoute[0].value == "/") {
+            return m_root;
+        }
+        return nullptr;
+    }
+
+    std::shared_ptr<UrlSegment> parent = m_root;
+
+    bool nextStaticNodeFound  = false;
+    bool nextDynamicNodeFound = false;
+
+    // `parent` will be pointing to the potential parent of whatever segment we're searching for
+    for (size_t i = 1; i < numSegments; i++) {
+        for (const std::shared_ptr<UrlSegment>& nextNode : parent->next) {
+            if (nextNode->value == segmentedRoute[i].value) {
+                nextStaticNodeFound = true;
+                parent = nextNode;
+                continue;
+            }
+        }
+
+        if (nextStaticNodeFound == false) {
+            for (const std::shared_ptr<UrlSegment>& nextNode : parent->next) {
+                if (nextNode->isDynamic()) {
+                    nextDynamicNodeFound = true;
+                    parent = nextNode;
+
+                    std::string routeParameterKey = nextNode->value.substr(1);
+                    routeParameterKey.pop_back();
+
+                    // Substitute route parameter here
+                    req.routeParams.insert(std::make_pair(
+                        routeParameterKey,
+                        segmentedRoute[i].value
+                    ));
+
+                    continue;
+                }
+            }
+        }
+
+        if (nextStaticNodeFound == false && nextDynamicNodeFound == false) {
+            return nullptr;
+        }
+
+        nextStaticNodeFound = false;
+        nextDynamicNodeFound = false;
+    }
+
+    return parent;
+}
+
+
+/*
+    @brief Get a const pointer to the handler function for the given route
+    @param method HTTP Method
+    @param requestUrl Request URL
+
+    @return const pointer to handler function
+*/
+// todo Fix this to remove raw pointer
+const HandlerFunction* Router::FetchRoute(
+    HttpRequest& req
+) const {
+    std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
+    Log::Warning(std::format(
+        "{}",
+        segment == nullptr
+    ));
+    Log::Warning(std::format(
+        "{}",
+        segment == m_root
+    ));
+    // if (segment == nullptr) {
+    //     if (req.requestUrl.back() == '/') {
+    //         req.requestUrl.pop_back();
+    //     }
+    //     else {
+    //         req.requestUrl += "/";
+    //     }
+
+    //     segment = FindSegmentForRoute(req);
+    // }
+
+    if (segment == nullptr || segment->handlers.GetHandler(req.method).has_value() == false) {
+        return nullptr;
+    }
+
+    return &segment->handlers.GetHandler(req.method).value();
+
+    // return (segment && segment->handlers.GetHandler(req.method).has_value()) ?
+    //     &segment->handlers.GetHandler(req.method).value() :
+    //     nullptr;
+}
+
+
 void Debug(const std::shared_ptr<UrlSegment> node) {
     Log::Warning(std::format(
         "{} GET:{}, POST:{}",
@@ -201,142 +310,6 @@ void Router::DebugDFS() const {
     for (const std::shared_ptr<UrlSegment>& nextNode : m_root->next) {
         Debug(nextNode);
     }
-}
-
-
-
-
-
-std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const {
-
-    // std::shared_ptr<UrlSegment> currNode = m_root;
-
-    // const Route route = Route(req.method, req.requestUrl);
-    // Route currRoute(req.method, "/");
-
-    // std::vector<UrlSegment> segments = BreakRouteIntoSegments(route);
-    // const size_t segmentsSize = segments.size();
-
-    // for (size_t i = 0; i < segmentsSize; i++) {
-    //     // Substitute params for dynamic routes
-    //     if (currNode->isDynamic()) {
-    //         const std::string key = [currNode] () {
-    //             std::string res = currNode->segment;
-    //             res.pop_back();
-    //             res.erase(res.begin());
-    //             return res;
-    //         } ();
-
-    //         const std::string value = segments[i].segment;
-    //         req.routeParams[key] = value;
-    //     }
-
-    //     currRoute.method = currNode->method;
-    //     if (currRoute == route) {
-    //         return currNode;
-    //     }
-
-    //     // If a route is not found even at the last segment, there is no matching route
-    //     if (i == segmentsSize - 1) {
-    //         return nullptr;
-    //     }
-
-    //     bool nextStaticNodeFound = false;
-
-    //     // Look for a static node
-    //     for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
-    //         // If looking for the last segment, match the method as well
-    //         // We do not care for methods for segments before this one as they're not
-    //         // the endpoint we want
-    //         if (i == segmentsSize - 2) {
-    //             if (
-    //                 nextNode->segment == segments[i + 1].segment &&
-    //                 nextNode->method == segments[i + 1].method &&
-    //                 nextNode->isEndpoint
-    //             ) {
-    //                 currNode = nextNode;
-    //                 nextStaticNodeFound = true;
-    //                 if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
-    //                     currRoute.requestUrl += "/";
-    //                 }
-    //                 currRoute.requestUrl += currNode->segment;
-    //                 break;
-    //             }
-    //         }
-    //         else {
-    //             if (nextNode->segment == segments[i + 1].segment) {
-    //                 currNode = nextNode;
-    //                 nextStaticNodeFound = true;
-    //                 if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
-    //                     currRoute.requestUrl += "/";
-    //                 }
-    //                 currRoute.requestUrl += currNode->segment;
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     // Look for a dynamic node
-    //     if (nextStaticNodeFound == false) {
-    //         for (const std::shared_ptr<UrlSegment>& nextNode: currNode->next) {
-    //             if (i == segmentsSize - 2) {
-    //                 if (
-    //                     nextNode->isDynamic() &&
-    //                     nextNode->method == route.method
-    //                 ) {
-    //                     currNode = nextNode;
-    //                     if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
-    //                         currRoute.requestUrl += "/";
-    //                     }
-    //                     currRoute.requestUrl += segments[i + 1].segment;
-    //                     break;
-    //                 }
-    //             }
-    //             else {
-    //                 if (nextNode->isDynamic()) {
-    //                     currNode = nextNode;
-    //                     if (currRoute.requestUrl.size() && currRoute.requestUrl.back() != '/') {
-    //                         currRoute.requestUrl += "/";
-    //                     }
-    //                     currRoute.requestUrl += segments[i + 1].segment;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // return nullptr;
-}
-
-
-/*
-    @brief Get a const pointer to the handler function for the given route
-    @param method HTTP Method
-    @param requestUrl Request URL
-
-    @return const pointer to handler function
-*/
-// todo Fix this to remove raw pointer
-const HandlerFunction* Router::FetchRoute(
-    HttpRequest& req
-) const {
-
-    // std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
-    // if (segment == nullptr) {
-    //     if (req.requestUrl.back() == '/') {
-    //         req.requestUrl.pop_back();
-    //     }
-    //     else {
-    //         req.requestUrl += "/";
-    //     }
-
-    //     segment = FindSegmentForRoute(req);
-    // }
-
-    // return (segment && segment->handler.has_value()) ?
-    //     &segment->handler.value() :
-    //     nullptr;
 }
 
 

@@ -49,7 +49,7 @@ struct SegmentHandlerFunctions {
     std::optional<HandlerFunction> m_trace;
     std::optional<HandlerFunction> m_patch;
 
-    const std::optional<HandlerFunction> GetHandler(const HttpMethod method) const;
+    const std::optional<HandlerFunction>& GetHandler(const HttpMethod method) const;
     void SetHandler(const HttpMethod method, const HandlerFunction handler);
 };
 
@@ -88,6 +88,8 @@ struct UrlSegment {
             case HttpMethod::PATCH:           return handlers.m_patch.has_value();
             case HttpMethod::DEFAULT_INVALID: break;
         }
+
+        return false;
     }
 };
 
@@ -111,7 +113,7 @@ public:
 
     void AddRoute(
         const HttpMethod& method,
-        const std::string& requestUrl, 
+        std::string requestUrl, 
         const HandlerFunction& handler
     );
 
