@@ -478,17 +478,17 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    const HandlerFunction* handler = m_router.FetchRoute(req);
+    const std::optional<HandlerFunction> handler = m_router.FetchRoute(req);
 
     // HTTP 404 - Not Found
-    if (handler == nullptr) {
+    if (handler.has_value() == false) {
         HandleError(404, req, clientSocket);
         return false;
     }
 
     HttpResponse res;
     res.SetStatus(200);
-    (*handler)(req, res);
+    handler.value()(req, res);
 
     const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
     res.SetHeader("Connection", requestConnectionHeader.value_or("close"));

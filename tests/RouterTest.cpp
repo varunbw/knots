@@ -43,18 +43,18 @@ TEST(RouterTest, FetchValidRoutes) {
 
     req = HttpRequest(HttpMethod::GET, "/index.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
 
-    const HandlerFunction* handlerPtr1 = router.FetchRoute(req);
+    const std::optional<HandlerFunction> handler1 = router.FetchRoute(req);
 
-    EXPECT_TRUE(handlerPtr1);
-    (*handlerPtr1)(req, res);
+    EXPECT_TRUE(handler1);
+    handler1.value()(req, res);
     EXPECT_EQ(res.body, "GET for /index.html");
 
     req = HttpRequest(HttpMethod::POST, "/contact.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
     
-    const HandlerFunction* handlerPtr2 = router.FetchRoute(req);
+    const std::optional<HandlerFunction> handler2 = router.FetchRoute(req);
 
-    EXPECT_TRUE(handlerPtr2);
-    (*handlerPtr2)(req, res);
+    EXPECT_TRUE(handler2);
+    handler2.value()(req, res);
     EXPECT_EQ(res.body, "POST for /contact.html");
 }
 
@@ -82,16 +82,16 @@ TEST(RouterTest, FetchInvalidRoutes) {
     );
 
     req = HttpRequest(HttpMethod::PATCH, "/index.html", HttpVersion::HTTP_1_1, {}, {}, {}, {});
-    const HandlerFunction* handlerPtr1 = router.FetchRoute(req);
-    EXPECT_FALSE(handlerPtr1);
+    const std::optional<HandlerFunction> handler1 = router.FetchRoute(req);
+    EXPECT_FALSE(handler1);
 
     req = HttpRequest(HttpMethod::GET, "/contact.html", HttpVersion::HTTP_1_1, {}, {},  {}, {});
-    const HandlerFunction* handlerPtr2 = router.FetchRoute(req);
-    EXPECT_FALSE(handlerPtr2);
+    const std::optional<HandlerFunction> handler2 = router.FetchRoute(req);
+    EXPECT_FALSE(handler2);
 
     req = HttpRequest(HttpMethod::PATCH, "/about.html", HttpVersion::HTTP_1_1, {}, {},  {}, {});
-    const HandlerFunction* handlerPtr3 = router.FetchRoute(req);
-    EXPECT_FALSE(handlerPtr3);
+    const std::optional<HandlerFunction> handler3 = router.FetchRoute(req);
+    EXPECT_FALSE(handler3);
 }
 
 TEST(RouterTest, CheckRouteParameterParsing) {
@@ -245,7 +245,7 @@ TEST(RouterTest, CheckRouteParameterParsing) {
             req.requestUrl = url;
             req.method = method;
 
-            const HandlerFunction* handler = router.FetchRoute(req);
+            const std::optional<HandlerFunction> handler = router.FetchRoute(req);
 
             EXPECT_TRUE(handler) << MakeErrorMessage(std::format(
                 "Handler not found for Route: {}, {}",

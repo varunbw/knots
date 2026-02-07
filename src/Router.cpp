@@ -248,45 +248,22 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
 
 
 /*
-    @brief Get a const pointer to the handler function for the given route
+    @brief Get the handler function for the given route
     @param method HTTP Method
     @param requestUrl Request URL
 
-    @return const pointer to handler function
+    @return An optional object for the function
 */
-// todo Fix this to remove raw pointer
-const HandlerFunction* Router::FetchRoute(
+const std::optional<HandlerFunction> Router::FetchRoute(
     HttpRequest& req
 ) const {
     std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
-    Log::Warning(std::format(
-        "{}",
-        segment == nullptr
-    ));
-    Log::Warning(std::format(
-        "{}",
-        segment == m_root
-    ));
-    // if (segment == nullptr) {
-    //     if (req.requestUrl.back() == '/') {
-    //         req.requestUrl.pop_back();
-    //     }
-    //     else {
-    //         req.requestUrl += "/";
-    //     }
 
-    //     segment = FindSegmentForRoute(req);
-    // }
-
-    if (segment == nullptr || segment->handlers.GetHandler(req.method).has_value() == false) {
-        return nullptr;
+    if (segment == nullptr) {
+        return std::nullopt;
     }
 
-    return &segment->handlers.GetHandler(req.method).value();
-
-    // return (segment && segment->handlers.GetHandler(req.method).has_value()) ?
-    //     &segment->handlers.GetHandler(req.method).value() :
-    //     nullptr;
+    return segment->handlers.GetHandler(req.method);
 }
 
 

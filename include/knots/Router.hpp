@@ -117,7 +117,7 @@ public:
         const HandlerFunction& handler
     );
 
-    const HandlerFunction* FetchRoute(HttpRequest& req) const;
+    const std::optional<HandlerFunction> FetchRoute(HttpRequest& req) const;
 
     void DebugDFS() const;
 
