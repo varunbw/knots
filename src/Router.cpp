@@ -59,7 +59,6 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const std::string& requestUrl) {
     res.push_back(UrlSegment("/"));
 
     if (requestUrl.size() == 1) {
-        // res.back().isEndpoint = true;
         return res;
     }
 
@@ -186,8 +185,6 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
     const Route routeToFind(req.method, req.requestUrl);
     const std::vector<UrlSegment> segmentedRoute = BreakRouteIntoSegments(routeToFind.requestUrl);
     const size_t numSegments = segmentedRoute.size();
-
-    // std::shared_ptr<UrlSegment> prevNode = nullptr;
 
     // Handle case for root ("/") query
     if (numSegments == 1) {
