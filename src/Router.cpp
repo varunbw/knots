@@ -84,7 +84,6 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const std::string& requestUrl) {
         res.pop_back();
     }
 
-    // res.back().isEndpoint = true;
     return res;
 }
 
