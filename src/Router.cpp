@@ -48,12 +48,9 @@ Router::Router() {
     return;
 };
 
-// todo: change to just a url string later
-std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
+std::vector<UrlSegment> BreakRouteIntoSegments(const std::string& requestUrl) {
 
     std::vector<UrlSegment> res;
-
-    const std::string& requestUrl = route.requestUrl;
 
     size_t findFromPosition = 0;
     const size_t urlLength = requestUrl.size();
@@ -61,7 +58,7 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const Route& route) {
     // The root endpoint should be before everything
     res.push_back(UrlSegment("/"));
 
-    if (route.requestUrl.size() == 1) {
+    if (requestUrl.size() == 1) {
         // res.back().isEndpoint = true;
         return res;
     }
@@ -107,7 +104,7 @@ void Router::AddRoute(
     
     const Route routeToAdd(method, requestUrl);
 
-    const std::vector<UrlSegment> routeSegments = BreakRouteIntoSegments(routeToAdd);
+    const std::vector<UrlSegment> routeSegments = BreakRouteIntoSegments(routeToAdd.requestUrl);
     const size_t numSegments = routeSegments.size();
 
     // If adding an endpoint to the root, just do so here and exit
@@ -187,7 +184,7 @@ void Router::AddRoute(
 std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const {
 
     const Route routeToFind(req.method, req.requestUrl);
-    const std::vector<UrlSegment> segmentedRoute = BreakRouteIntoSegments(routeToFind);
+    const std::vector<UrlSegment> segmentedRoute = BreakRouteIntoSegments(routeToFind.requestUrl);
     const size_t numSegments = segmentedRoute.size();
 
     // std::shared_ptr<UrlSegment> prevNode = nullptr;
