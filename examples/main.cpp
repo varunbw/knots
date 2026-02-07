@@ -34,26 +34,6 @@ int main(void) {
         }
     );
 
-    router.Post("/users/{userId}/orders/{orderId}", 
-        [buffer] (const HttpRequest& req, HttpResponse& res) {
-            res.SetBody(buffer);
-            res.SetHeader("Content-Type", "text/html");
-
-            return;
-        }
-    );
-
-    router.Get("/users/{userId}/orders/{orderId}", 
-        [buffer] (const HttpRequest& req, HttpResponse& res) {
-            res.SetBody(buffer);
-            res.SetHeader("Content-Type", "text/html");
-
-            return;
-        }
-    );
-
-    router.DebugDFS();
-
     HttpServer server(config, router);
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
