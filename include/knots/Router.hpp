@@ -39,6 +39,7 @@ struct Route {
 };
 
 struct SegmentHandlerFunctions {
+
     std::optional<HandlerFunction> m_post;
     std::optional<HandlerFunction> m_get;
     std::optional<HandlerFunction> m_head;
@@ -48,6 +49,12 @@ struct SegmentHandlerFunctions {
     std::optional<HandlerFunction> m_options;
     std::optional<HandlerFunction> m_trace;
     std::optional<HandlerFunction> m_patch;
+
+    bool hasAtLeastOneHandlerSet;
+
+    SegmentHandlerFunctions() {
+        hasAtLeastOneHandlerSet = false;
+    }
 
     const std::optional<HandlerFunction>& GetHandler(const HttpMethod method) const;
     void SetHandler(const HttpMethod method, const HandlerFunction handler);
@@ -117,7 +124,7 @@ public:
         const HandlerFunction& handler
     );
 
-    const std::optional<HandlerFunction> FetchRoute(HttpRequest& req) const;
+    const SegmentHandlerFunctions FetchRoute(HttpRequest& req) const;
 
     void DebugDFS() const;
 

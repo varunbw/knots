@@ -9,6 +9,13 @@ int main(void) {
 
     Router router;
 
+    Log::Warning(std::format(
+        "{}",
+        sizeof(std::optional<HandlerFunction>)
+    ));
+
+    HandlerFunction func = nullptr;
+
     // Example routes
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
@@ -45,6 +52,19 @@ int main(void) {
             "<body>\n"
         );
         res.SetStatus(404);
+        res.SetHeader("Content-Type", "text/html");
+        return;
+    });
+
+    server.AddErrorRoute(405, [] (const HttpRequest& req, HttpResponse& res) {
+        res.SetBody(
+            "<html>\n"
+                "<body>\n"
+                    "<h1 align=\"center\">404 Not Found\n</h1>"
+                "<html>\n"
+            "<body>\n"
+        );
+        res.SetStatus(405);
         res.SetHeader("Content-Type", "text/html");
         return;
     });

@@ -23,6 +23,11 @@ const std::optional<HandlerFunction>& SegmentHandlerFunctions::GetHandler(const 
 }
 
 void SegmentHandlerFunctions::SetHandler(const HttpMethod method, const HandlerFunction handler) {
+
+    if (hasAtLeastOneHandlerSet == false) {
+        hasAtLeastOneHandlerSet = true;
+    }
+
     switch (method) {
         case HttpMethod::POST:            m_post = handler;    break;
         case HttpMethod::GET:             m_get = handler;     break;
@@ -247,16 +252,16 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
 
     @return An optional object for the function
 */
-const std::optional<HandlerFunction> Router::FetchRoute(
+const SegmentHandlerFunctions Router::FetchRoute(
     HttpRequest& req
 ) const {
     std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
 
     if (segment == nullptr) {
-        return std::nullopt;
+        return {};
     }
 
-    return segment->handlers.GetHandler(req.method);
+    return segment->handlers;
 }
 
 

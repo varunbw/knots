@@ -478,11 +478,17 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    const std::optional<HandlerFunction> handler = m_router.FetchRoute(req);
-
-    // HTTP 404 - Not Found
-    if (handler.has_value() == false) {
+    const SegmentHandlerFunctions handlers = m_router.FetchRoute(req);
+    if (handlers.hasAtLeastOneHandlerSet == false) {
+        // HTTP 404 - Not Found
         HandleError(404, req, clientSocket);
+        return false;
+    }
+
+    const std::optional<HandlerFunction>& handler = handlers.GetHandler(req.method);
+    if (handler.has_value() == false) {
+        // HTTP 405 - Method not allowed
+        HandleError(405, req, clientSocket);
         return false;
     }
 
