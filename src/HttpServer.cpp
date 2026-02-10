@@ -485,8 +485,8 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    const std::optional<HandlerFunction>& handler = handlers.GetHandler(req.method);
-    if (handler.has_value() == false) {
+    const HandlerFunction& handler = handlers.GetHandler(req.method);
+    if (handler == nullptr) {
         // HTTP 405 - Method not allowed
         HandleError(405, req, clientSocket);
         return false;
@@ -494,7 +494,7 @@ bool HttpServer::HandleRequest(
 
     HttpResponse res;
     res.SetStatus(200);
-    handler.value()(req, res);
+    handler(req, res);
 
     const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
     res.SetHeader("Connection", requestConnectionHeader.value_or("close"));

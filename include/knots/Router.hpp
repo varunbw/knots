@@ -40,24 +40,22 @@ struct Route {
 
 struct SegmentHandlerFunctions {
 
-    std::optional<HandlerFunction> m_post;
-    std::optional<HandlerFunction> m_get;
-    std::optional<HandlerFunction> m_head;
-    std::optional<HandlerFunction> m_put;
-    std::optional<HandlerFunction> m_delete;
-    std::optional<HandlerFunction> m_connect;
-    std::optional<HandlerFunction> m_options;
-    std::optional<HandlerFunction> m_trace;
-    std::optional<HandlerFunction> m_patch;
+    HandlerFunction m_post;
+    HandlerFunction m_get;
+    HandlerFunction m_head;
+    HandlerFunction m_put;
+    HandlerFunction m_delete;
+    HandlerFunction m_connect;
+    HandlerFunction m_options;
+    HandlerFunction m_trace;
+    HandlerFunction m_patch;
 
     bool hasAtLeastOneHandlerSet;
 
-    SegmentHandlerFunctions() {
-        hasAtLeastOneHandlerSet = false;
-    }
+    SegmentHandlerFunctions();
 
-    const std::optional<HandlerFunction>& GetHandler(const HttpMethod method) const;
-    void SetHandler(const HttpMethod method, const HandlerFunction handler);
+    const HandlerFunction& GetHandler(const HttpMethod method) const;
+    void SetHandler(const HttpMethod method, const HandlerFunction& handler);
 };
 
 struct UrlSegment {
@@ -84,15 +82,15 @@ struct UrlSegment {
 
     bool IsEndpoint(const HttpMethod& method) const {
         switch (method) {
-            case HttpMethod::POST:            return handlers.m_post.has_value();
-            case HttpMethod::GET:             return handlers.m_get.has_value();
-            case HttpMethod::HEAD:            return handlers.m_head.has_value();
-            case HttpMethod::PUT:             return handlers.m_put.has_value();
-            case HttpMethod::DELETE:          return handlers.m_delete.has_value();
-            case HttpMethod::CONNECT:         return handlers.m_connect.has_value();
-            case HttpMethod::OPTIONS:         return handlers.m_options.has_value();
-            case HttpMethod::TRACE:           return handlers.m_trace.has_value();
-            case HttpMethod::PATCH:           return handlers.m_patch.has_value();
+            case HttpMethod::POST:            return handlers.m_post != nullptr;
+            case HttpMethod::GET:             return handlers.m_get != nullptr;
+            case HttpMethod::HEAD:            return handlers.m_head != nullptr;
+            case HttpMethod::PUT:             return handlers.m_put != nullptr;
+            case HttpMethod::DELETE:          return handlers.m_delete != nullptr;
+            case HttpMethod::CONNECT:         return handlers.m_connect != nullptr;
+            case HttpMethod::OPTIONS:         return handlers.m_options != nullptr;
+            case HttpMethod::TRACE:           return handlers.m_trace != nullptr;
+            case HttpMethod::PATCH:           return handlers.m_patch != nullptr;
             case HttpMethod::DEFAULT_INVALID: break;
         }
 

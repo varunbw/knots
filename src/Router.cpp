@@ -3,7 +3,20 @@
 #include "knots/Router.hpp"
 #include "knots/Utils.hpp"
 
-const std::optional<HandlerFunction>& SegmentHandlerFunctions::GetHandler(const HttpMethod method) const {
+SegmentHandlerFunctions::SegmentHandlerFunctions() :
+    m_post(nullptr),
+    m_get(nullptr),
+    m_head(nullptr),
+    m_put(nullptr),
+    m_delete(nullptr),
+    m_connect(nullptr),
+    m_options(nullptr),
+    m_trace(nullptr),
+    m_patch(nullptr),
+    hasAtLeastOneHandlerSet(false)
+{}
+
+const HandlerFunction& SegmentHandlerFunctions::GetHandler(const HttpMethod method) const {
     switch (method) {
         case HttpMethod::POST:            return m_post;
         case HttpMethod::GET:             return m_get;
@@ -22,7 +35,7 @@ const std::optional<HandlerFunction>& SegmentHandlerFunctions::GetHandler(const 
     );
 }
 
-void SegmentHandlerFunctions::SetHandler(const HttpMethod method, const HandlerFunction handler) {
+void SegmentHandlerFunctions::SetHandler(const HttpMethod method, const HandlerFunction& handler) {
 
     if (hasAtLeastOneHandlerSet == false) {
         hasAtLeastOneHandlerSet = true;

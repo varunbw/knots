@@ -11,10 +11,8 @@ int main(void) {
 
     Log::Warning(std::format(
         "{}",
-        sizeof(std::optional<HandlerFunction>)
+        sizeof(HandlerFunction&)
     ));
-
-    HandlerFunction func = nullptr;
 
     // Example routes
     router.Get("/",
@@ -32,7 +30,7 @@ int main(void) {
     );
 
     const std::string buffer(65536, '0');
-    router.Get("/spam", 
+    router.Post("/spam", 
         [&buffer] (const HttpRequest& req, HttpResponse& res) {
             res.SetBody(buffer);
             res.SetHeader("Content-Type", "text/html");
@@ -60,7 +58,7 @@ int main(void) {
         res.SetBody(
             "<html>\n"
                 "<body>\n"
-                    "<h1 align=\"center\">404 Not Found\n</h1>"
+                    "<h1 align=\"center\">405 Method Not Allowed\n</h1>"
                 "<html>\n"
             "<body>\n"
         );
