@@ -12,8 +12,7 @@ SegmentHandlerFunctions::SegmentHandlerFunctions() :
     m_connect(nullptr),
     m_options(nullptr),
     m_trace(nullptr),
-    m_patch(nullptr),
-    hasAtLeastOneHandlerSet(false)
+    m_patch(nullptr)
 {}
 
 const HandlerFunction& SegmentHandlerFunctions::GetHandler(const HttpMethod method) const {
@@ -36,10 +35,6 @@ const HandlerFunction& SegmentHandlerFunctions::GetHandler(const HttpMethod meth
 }
 
 void SegmentHandlerFunctions::SetHandler(const HttpMethod method, const HandlerFunction& handler) {
-
-    if (hasAtLeastOneHandlerSet == false) {
-        hasAtLeastOneHandlerSet = true;
-    }
 
     switch (method) {
         case HttpMethod::POST:            m_post = handler;    break;
@@ -197,7 +192,7 @@ void Router::AddRoute(
 }
 
 
-std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const {
+const UrlSegment* Router::FindSegmentForRoute(HttpRequest& req) const {
 
     const Route routeToFind(req.method, req.requestUrl);
     const std::vector<UrlSegment> segmentedRoute = BreakRouteIntoSegments(routeToFind.requestUrl);
@@ -206,7 +201,7 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
     // Handle case for root ("/") query
     if (numSegments == 1) {
         if (segmentedRoute[0].value == "/") {
-            return m_root;
+            return m_root.get();
         }
         return nullptr;
     }
@@ -254,27 +249,26 @@ std::shared_ptr<UrlSegment> Router::FindSegmentForRoute(HttpRequest& req) const 
         nextDynamicNodeFound = false;
     }
 
-    return parent;
+    return parent.get();
 }
 
 
 /*
     @brief Get the handler function for the given route
-    @param method HTTP Method
-    @param requestUrl Request URL
+    @param req HttpRequest object
 
     @return An optional object for the function
 */
-const SegmentHandlerFunctions Router::FetchRoute(
+const SegmentHandlerFunctions* Router::FetchFunctionsForRoute(
     HttpRequest& req
 ) const {
-    std::shared_ptr<UrlSegment> segment = FindSegmentForRoute(req);
+    const UrlSegment* segment = FindSegmentForRoute(req);
 
     if (segment == nullptr) {
-        return {};
+        return nullptr;
     }
 
-    return segment->handlers;
+    return &(segment->handlers);
 }
 
 

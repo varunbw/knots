@@ -50,8 +50,6 @@ struct SegmentHandlerFunctions {
     HandlerFunction m_trace;
     HandlerFunction m_patch;
 
-    bool hasAtLeastOneHandlerSet;
-
     SegmentHandlerFunctions();
 
     const HandlerFunction& GetHandler(const HttpMethod method) const;
@@ -111,7 +109,7 @@ class Router {
 private:
     std::shared_ptr<UrlSegment> m_root;
 
-    std::shared_ptr<UrlSegment> FindSegmentForRoute(HttpRequest& req) const;
+    const UrlSegment* FindSegmentForRoute(HttpRequest& req) const;
 
 public:
     Router();
@@ -122,7 +120,7 @@ public:
         const HandlerFunction& handler
     );
 
-    const SegmentHandlerFunctions FetchRoute(HttpRequest& req) const;
+    const SegmentHandlerFunctions* FetchFunctionsForRoute(HttpRequest& req) const;
 
     void DebugDFS() const;
 

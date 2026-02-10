@@ -431,7 +431,6 @@ void HttpServer::HandleConnection(Socket clientSocket) {
 void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
 
     HttpResponse res;
-    res.SetStatus(statusCode);
 
     const HandlerFunction* handler = FetchErrorRoute(statusCode);
 
@@ -439,6 +438,7 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
         (*handler)(req, res);
     }
 
+    res.SetStatus(statusCode);
     NetworkIO::Send(clientSocket, res.Serialize(), 0);
     return;
 }
@@ -478,14 +478,15 @@ bool HttpServer::HandleRequest(
         return false;
     }
 
-    const SegmentHandlerFunctions handlers = m_router.FetchRoute(req);
-    if (handlers.hasAtLeastOneHandlerSet == false) {
+    const SegmentHandlerFunctions* handlers = m_router.FetchFunctionsForRoute(req);
+    // If a segment could not be found for the request, or if
+    if (handlers == nullptr) {
         // HTTP 404 - Not Found
         HandleError(404, req, clientSocket);
         return false;
     }
 
-    const HandlerFunction& handler = handlers.GetHandler(req.method);
+    const HandlerFunction& handler = handlers->GetHandler(req.method);
     if (handler == nullptr) {
         // HTTP 405 - Method not allowed
         HandleError(405, req, clientSocket);
