@@ -9,11 +9,6 @@ int main(void) {
 
     Router router;
 
-    Log::Warning(std::format(
-        "{}",
-        sizeof(HandlerFunction&)
-    ));
-
     // Example routes
     router.Get("/",
         [] (const HttpRequest& req, HttpResponse& res) {
