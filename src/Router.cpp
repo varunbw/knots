@@ -98,6 +98,16 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const std::string& requestUrl) {
     return res;
 }
 
+void SanitizeURL(std::string& url) {
+    // Erase any trailing '/'s
+    // This project will treat the following two routes as the same: "/users", "/users/"
+    while (url.size() != 1 && url.back() == '/') {
+        url.pop_back();
+    }
+
+    return;
+}
+
 bool IsRouteStatic(const std::string& requestUrl) {
     return requestUrl.find('{') == std::string::npos;
 }
@@ -108,19 +118,15 @@ void Router::AddRoute(
     const HandlerFunction& handler
 ) {
 
-    // Erase any trailing '/'s
-    // This project will treat the following two routes as the same: "/users", "/users/"
-    while (requestUrl.size() != 1 && requestUrl.back() == '/') {
-        requestUrl.pop_back();
-    }
-    
+    SanitizeURL(requestUrl);
+
     const Route routeToAdd(method, requestUrl);
 
     const std::vector<UrlSegment> routeSegments = BreakRouteIntoSegments(routeToAdd.requestUrl);
     const size_t numSegments = routeSegments.size();
 
     if (IsRouteStatic(routeToAdd.requestUrl)) {
-        // Insert it into the static table        
+        // Insert it into the static table
         m_staticRoutes.insert(std::make_pair(
             routeToAdd.requestUrl,
             SegmentHandlerFunctions()
@@ -132,13 +138,6 @@ void Router::AddRoute(
 
         return;
     }
-
-    // // If adding an endpoint to the root, just do so here and exit
-    // // No further logic required
-    // if (routeToAdd.requestUrl == "/") {
-    //     m_dynamicRoutesTreeRoot->handlers.SetHandler(routeToAdd.method, handler);
-    //     return;
-    // }
 
     std::shared_ptr<UrlSegment> prevNode = nullptr;
     std::shared_ptr<UrlSegment> currNode = m_dynamicRoutesTreeRoot;
@@ -278,14 +277,16 @@ const SegmentHandlerFunctions* Router::FetchFunctionsForRoute(
     HttpRequest& req
 ) const {
 
-    const auto it = m_staticRoutes.find(req.requestUrl);
+    SanitizeURL(req.requestUrl);
 
+    // Look in static routes
+    const auto it = m_staticRoutes.find(req.requestUrl);
     if (it != m_staticRoutes.end()) {
         return &(it->second);
     }
 
+    // Look in dynamic routes
     const UrlSegment* segment = FindSegmentForRoute(req);
-
     if (segment == nullptr) {
         return nullptr;
     }

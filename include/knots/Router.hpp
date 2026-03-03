@@ -108,7 +108,7 @@ struct UrlSegment {
 */
 class Router {
 private:
-    std::map<
+    std::unordered_map<
         std::string,
         SegmentHandlerFunctions
     > m_staticRoutes;
