@@ -122,8 +122,6 @@ public:
 
     const SegmentHandlerFunctions* FetchFunctionsForRoute(HttpRequest& req) const;
 
-    void DebugDFS() const;
-
     // Individual functions for request types
     void Post(const std::string& requestUrl, const HandlerFunction& handler);
     void Get(const std::string& requestUrl, const HandlerFunction& handler);

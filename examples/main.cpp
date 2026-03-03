@@ -25,7 +25,7 @@ int main(void) {
     );
 
     const std::string buffer(65536, '0');
-    router.Post("/spam", 
+    router.Get("/spam", 
         [&buffer] (const HttpRequest& req, HttpResponse& res) {
             res.SetBody(buffer);
             res.SetHeader("Content-Type", "text/html");

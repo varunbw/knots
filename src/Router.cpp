@@ -1,5 +1,3 @@
-#include <stack>
-
 #include "knots/Router.hpp"
 #include "knots/Utils.hpp"
 
@@ -269,29 +267,6 @@ const SegmentHandlerFunctions* Router::FetchFunctionsForRoute(
     }
 
     return &(segment->handlers);
-}
-
-
-void Debug(const std::shared_ptr<UrlSegment> node) {
-    Log::Warning(std::format(
-        "{} GET:{}, POST:{}",
-        node->value, node->IsEndpoint(HttpMethod::GET), node->IsEndpoint(HttpMethod::POST)
-    ));
-
-    for (const std::shared_ptr<UrlSegment>& nextNode : node->next) {
-        Debug(nextNode);
-    }
-}
-
-
-void Router::DebugDFS() const {
-    Log::Warning(std::format(
-        "{} GET:{}, POST:{}",
-        m_root->value, m_root->IsEndpoint(HttpMethod::GET), m_root->IsEndpoint(HttpMethod::POST)
-    ));
-    for (const std::shared_ptr<UrlSegment>& nextNode : m_root->next) {
-        Debug(nextNode);
-    }
 }
 
 
