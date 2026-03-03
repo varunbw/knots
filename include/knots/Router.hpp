@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -107,7 +108,12 @@ struct UrlSegment {
 */
 class Router {
 private:
-    std::shared_ptr<UrlSegment> m_root;
+    std::map<
+        std::string,
+        SegmentHandlerFunctions
+    > m_staticRoutes;
+
+    std::shared_ptr<UrlSegment> m_dynamicRoutesTreeRoot;
 
     const UrlSegment* FindSegmentForRoute(HttpRequest& req) const;
 

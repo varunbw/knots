@@ -52,7 +52,7 @@ void SegmentHandlerFunctions::SetHandler(const HttpMethod method, const HandlerF
 
 Router::Router() {
     // Make an empty root segment
-    m_root = std::make_shared<UrlSegment>(
+    m_dynamicRoutesTreeRoot = std::make_shared<UrlSegment>(
         "/"
     );
 
@@ -98,6 +98,9 @@ std::vector<UrlSegment> BreakRouteIntoSegments(const std::string& requestUrl) {
     return res;
 }
 
+bool IsRouteStatic(const std::string& requestUrl) {
+    return requestUrl.find('{') == std::string::npos;
+}
 
 void Router::AddRoute(
     const HttpMethod& method,
@@ -116,15 +119,29 @@ void Router::AddRoute(
     const std::vector<UrlSegment> routeSegments = BreakRouteIntoSegments(routeToAdd.requestUrl);
     const size_t numSegments = routeSegments.size();
 
-    // If adding an endpoint to the root, just do so here and exit
-    // No further logic required
-    if (routeToAdd.requestUrl == "/") {
-        m_root->handlers.SetHandler(routeToAdd.method, handler);
+    if (IsRouteStatic(routeToAdd.requestUrl)) {
+        // Insert it into the static table        
+        m_staticRoutes.insert(std::make_pair(
+            routeToAdd.requestUrl,
+            SegmentHandlerFunctions()
+        ));
+
+        m_staticRoutes
+            .at(routeToAdd.requestUrl)
+            .SetHandler(routeToAdd.method, handler);
+
         return;
     }
 
+    // // If adding an endpoint to the root, just do so here and exit
+    // // No further logic required
+    // if (routeToAdd.requestUrl == "/") {
+    //     m_dynamicRoutesTreeRoot->handlers.SetHandler(routeToAdd.method, handler);
+    //     return;
+    // }
+
     std::shared_ptr<UrlSegment> prevNode = nullptr;
-    std::shared_ptr<UrlSegment> currNode = m_root;
+    std::shared_ptr<UrlSegment> currNode = m_dynamicRoutesTreeRoot;
 
     /*
         We don't need to start from the root node as it'll always be present in the router
@@ -199,12 +216,12 @@ const UrlSegment* Router::FindSegmentForRoute(HttpRequest& req) const {
     // Handle case for root ("/") query
     if (numSegments == 1) {
         if (segmentedRoute[0].value == "/") {
-            return m_root.get();
+            return m_dynamicRoutesTreeRoot.get();
         }
         return nullptr;
     }
 
-    std::shared_ptr<UrlSegment> parent = m_root;
+    std::shared_ptr<UrlSegment> parent = m_dynamicRoutesTreeRoot;
 
     bool nextStaticNodeFound  = false;
     bool nextDynamicNodeFound = false;
@@ -260,6 +277,13 @@ const UrlSegment* Router::FindSegmentForRoute(HttpRequest& req) const {
 const SegmentHandlerFunctions* Router::FetchFunctionsForRoute(
     HttpRequest& req
 ) const {
+
+    const auto it = m_staticRoutes.find(req.requestUrl);
+
+    if (it != m_staticRoutes.end()) {
+        return &(it->second);
+    }
+
     const UrlSegment* segment = FindSegmentForRoute(req);
 
     if (segment == nullptr) {
