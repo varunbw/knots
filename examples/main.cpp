@@ -26,7 +26,7 @@ int main(void) {
 
     const std::string buffer(65536, '0');
     router.Get("/spam", 
-        [buffer] (const HttpRequest& req, HttpResponse& res) {
+        [&buffer] (const HttpRequest& req, HttpResponse& res) {
             res.SetBody(buffer);
             res.SetHeader("Content-Type", "text/html");
 
@@ -45,6 +45,19 @@ int main(void) {
             "<body>\n"
         );
         res.SetStatus(404);
+        res.SetHeader("Content-Type", "text/html");
+        return;
+    });
+
+    server.AddErrorRoute(405, [] (const HttpRequest& req, HttpResponse& res) {
+        res.SetBody(
+            "<html>\n"
+                "<body>\n"
+                    "<h1 align=\"center\">405 Method Not Allowed\n</h1>"
+                "<html>\n"
+            "<body>\n"
+        );
+        res.SetStatus(405);
         res.SetHeader("Content-Type", "text/html");
         return;
     });

@@ -210,7 +210,7 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
         << MakeErrorMessage("Client could not connect to server");
 
     const std::string req = 
-        "GET / HTTP/1.1\r\n"
+        "GET /invalid HTTP/1.1\r\n"
         "Host: localhost:10000\r\n"
         "\r\n"
         "Ping\r\n";

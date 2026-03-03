@@ -59,23 +59,44 @@ if (PROJECT_IS_TOP_LEVEL)
             add_executable(knots-app examples/main.cpp)
             target_link_libraries(knots-app PRIVATE knots)
 
-        target_compile_options(knots-app PRIVATE 
-            -Wall      # Enable all compiler warnings
-            -Wextra    # Enable extra compiler warnings
-            -Wpedantic # Enable standard checking
-            -fmax-errors=3 # Limit the number of errors shown
-            -fno-diagnostics-show-template-tree # Disable template tree diagnostics
-        )
+            target_compile_options(knots-app PRIVATE 
+                -Wall      # Enable all compiler warnings
+                -Wextra    # Enable extra compiler warnings
+                -Wpedantic # Enable standard checking
+                -fmax-errors=3 # Limit the number of errors shown
+                -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+            )
 
-        # Debug-specific flags
-        target_compile_options(knots-app PRIVATE
-            $<$<CONFIG:Debug>:-g>
-        )
+            # Debug-specific flags
+            target_compile_options(knots-app PRIVATE
+                $<$<CONFIG:Debug>:-g>
+            )
 
-        # Release-specific flags
-        target_compile_options(knots-app PRIVATE
-            $<$<CONFIG:Release>:-O3>
-        )
+            # Release-specific flags
+            target_compile_options(knots-app PRIVATE
+                $<$<CONFIG:Release>:-O3>
+            )
+
+            add_executable(knots-app-50-routes examples/50-routes.cpp)
+            target_link_libraries(knots-app-50-routes PRIVATE knots)
+
+            target_compile_options(knots-app-50-routes PRIVATE 
+                -Wall      # Enable all compiler warnings
+                -Wextra    # Enable extra compiler warnings
+                -Wpedantic # Enable standard checking
+                -fmax-errors=3 # Limit the number of errors shown
+                -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+            )
+
+            # Debug-specific flags
+            target_compile_options(knots-app-50-routes PRIVATE
+                $<$<CONFIG:Debug>:-g>
+            )
+
+            # Release-specific flags
+            target_compile_options(knots-app-50-routes PRIVATE
+                $<$<CONFIG:Release>:-O3>
+            )
         endif()
     endif()
 

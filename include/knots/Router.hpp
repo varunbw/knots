@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,37 +39,61 @@ struct Route {
     }
 };
 
+struct SegmentHandlerFunctions {
+
+    HandlerFunction m_post;
+    HandlerFunction m_get;
+    HandlerFunction m_head;
+    HandlerFunction m_put;
+    HandlerFunction m_delete;
+    HandlerFunction m_connect;
+    HandlerFunction m_options;
+    HandlerFunction m_trace;
+    HandlerFunction m_patch;
+
+    SegmentHandlerFunctions();
+
+    const HandlerFunction& GetHandler(const HttpMethod method) const;
+    void SetHandler(const HttpMethod method, const HandlerFunction& handler);
+};
+
 struct UrlSegment {
-    HttpMethod method;
-    std::string segment;
+    std::string value;
 
-    bool isEndpoint;
-
-    std::optional<HandlerFunction> handler;
+    SegmentHandlerFunctions handlers;
     std::vector<std::shared_ptr<UrlSegment>> next;
 
     UrlSegment() :
-        method(HttpMethod::DEFAULT_INVALID),
-        segment{},
-        isEndpoint(false),
-        handler{},
+        value{},
+        handlers{},
         next{}
     {}
 
-    UrlSegment(const HttpMethod& method, const std::string& segment) :
-        method(method),
-        segment(segment),
-        isEndpoint(false),
-        handler{},
+    UrlSegment(const std::string& value) :
+        value(value),
+        handlers{},
         next{}
     {}
 
-    constexpr bool operator== (const UrlSegment& other) const {
-        return method == other.method && segment == other.segment;
+    bool isDynamic() const {
+        return value[0] == '{' && value.back() == '}';
     }
 
-    constexpr bool isDynamic() const {
-        return segment[0] == '{' && segment.back() == '}';
+    bool IsEndpoint(const HttpMethod& method) const {
+        switch (method) {
+            case HttpMethod::POST:            return handlers.m_post != nullptr;
+            case HttpMethod::GET:             return handlers.m_get != nullptr;
+            case HttpMethod::HEAD:            return handlers.m_head != nullptr;
+            case HttpMethod::PUT:             return handlers.m_put != nullptr;
+            case HttpMethod::DELETE:          return handlers.m_delete != nullptr;
+            case HttpMethod::CONNECT:         return handlers.m_connect != nullptr;
+            case HttpMethod::OPTIONS:         return handlers.m_options != nullptr;
+            case HttpMethod::TRACE:           return handlers.m_trace != nullptr;
+            case HttpMethod::PATCH:           return handlers.m_patch != nullptr;
+            case HttpMethod::DEFAULT_INVALID: break;
+        }
+
+        return false;
     }
 };
 
@@ -83,20 +108,25 @@ struct UrlSegment {
 */
 class Router {
 private:
-    std::shared_ptr<UrlSegment> m_root;
+    std::unordered_map<
+        std::string,
+        SegmentHandlerFunctions
+    > m_staticRoutes;
 
-    std::shared_ptr<UrlSegment> FindSegmentForRoute(HttpRequest& req) const;
+    std::shared_ptr<UrlSegment> m_dynamicRoutesTreeRoot;
+
+    const UrlSegment* FindSegmentForRoute(HttpRequest& req) const;
 
 public:
     Router();
 
     void AddRoute(
         const HttpMethod& method,
-        const std::string& requestUrl, 
+        std::string requestUrl, 
         const HandlerFunction& handler
     );
 
-    const HandlerFunction* FetchRoute(HttpRequest& req) const;
+    const SegmentHandlerFunctions* FetchFunctionsForRoute(HttpRequest& req) const;
 
     // Individual functions for request types
     void Post(const std::string& requestUrl, const HandlerFunction& handler);
