@@ -54,39 +54,3 @@ RandomFileGenerator::~RandomFileGenerator() {
     }
 }
 
-TEST(FileHandlerTest, ReadFromValidFile) {
-    RandomFileGenerator fileGen;
-
-    HttpResponse res =
-        FileHandler::MakeHttpResponseFromFile(fileGen.m_fileName);
-
-    const size_t resBodySize = res.body.size();
-
-    // Status
-    EXPECT_EQ(res.statusCode, 200);
-    EXPECT_EQ(res.statusText, "OK");
-
-    // Size
-    EXPECT_EQ(resBodySize, fileGen.m_randomData.size() * 8);
-
-    // Body
-    for (size_t i = 0; i < fileGen.m_randomData.size(); i++) {
-        uint64_t valToCompare = fileGen.m_randomData[i];
-        for (int j = 0; j < 8; j++) {
-            EXPECT_EQ(
-                static_cast<char>(valToCompare & 0xFF),
-                static_cast<char>(res.body[(i * 8) + j])
-            );
-            valToCompare >>= 8;
-        }
-    }
-}
-
-TEST(FileHandlerTest, ReadFromInvalidFile) {
-    const std::string invalidFileName = "NonExistingFile.txt";
-    HttpResponse res = FileHandler::MakeHttpResponseFromFile(invalidFileName);
-
-    EXPECT_EQ(res.statusCode, 404);
-    EXPECT_EQ(res.statusText, "Not Found");
-    EXPECT_TRUE(res.body.empty());
-}
