@@ -19,17 +19,26 @@ struct File {
     {};
 };
 
-namespace FileHandler {
+class FileHandler {
+private:
+    static std::map<std::string, File> files;
 
-    std::map<std::string, File> files;
+    /*
+        @brief Read a file from disk into memory for faster access times
+        @param path Path of the file to read
 
+        @return `true` if file was read and cached successfully, `false` otherwise
+    */
+    static bool ReadFileIntoMemory(const std::filesystem::path& path);
+
+public:
     /*
         @brief Get contents of the file, returned as a `std::string`
         @param alias Alias or path of the file
     
         @return Contents of the file in a `std::string`
     */
-    std::string GetFileContents(const std::filesystem::path& path);
+    static std::string GetFileContents(const std::filesystem::path& path);
 
     /*
         @brief Get the required file, but don't store it's contents in the FileHandler cache
@@ -39,7 +48,7 @@ namespace FileHandler {
 
         Useful for large, infrequently used files, or if you simply don't want to cache something
     */
-    std::string GetFileContentsWithoutCaching(const std::filesystem::path& path);
+    static std::string GetFileContentsWithoutCaching(const std::filesystem::path& path);
 
     /*
         @brief Update the contents of a cached file
@@ -47,5 +56,5 @@ namespace FileHandler {
     
         @return `true` if updated successfully, `false` otherwise
     */
-    bool UpdateFile(const std::filesystem::path& path);
-}
+    static bool UpdateFile(const std::filesystem::path& path);
+};
