@@ -29,7 +29,7 @@ namespace FileHandler {
     
         @return Contents of the file in a `std::string`
     */
-    std::string GetFile(const std::string& alias);
+    std::string GetFileContents(const std::filesystem::path& path);
 
     /*
         @brief Get the required file, but don't store it's contents in the FileHandler cache
@@ -39,7 +39,7 @@ namespace FileHandler {
 
         Useful for large, infrequently used files, or if you simply don't want to cache something
     */
-    std::string GetFileWithoutCaching(const std::filesystem::path& path);
+    std::string GetFileContentsWithoutCaching(const std::filesystem::path& path);
 
     /*
         @brief Update the contents of a cached file
@@ -47,5 +47,5 @@ namespace FileHandler {
     
         @return `true` if updated successfully, `false` otherwise
     */
-    bool UpdateFile(const std::string& alias);
+    bool UpdateFile(const std::filesystem::path& path);
 }
