@@ -24,22 +24,6 @@ namespace FileHandler {
     std::map<std::string, File> files;
 
     /*
-        @brief Read a file from disk into memory for faster access times
-        @param path Path of the file to read
-        @param alias An optional alias to give, if left blank, the path is used as the alias instead
-
-        Ex:
-        - ReadFileIntoMemory("~/project/index.html", "index.html");
-            This will allow you to use "index.html" to get the file contents later on
-
-        - ReadFileIntoMemory("~/project/index.html");
-            This will force you to use the complete file path when getting the file contents later on
-
-        @return `true` if file was read and cached successfully, `false` otherwise
-    */
-    bool ReadFileIntoMemory(const std::filesystem::path& path, const std::string& alias = "");
-
-    /*
         @brief Get contents of the file, returned as a `std::string`
         @param alias Alias or path of the file
     
