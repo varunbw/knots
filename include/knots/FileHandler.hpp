@@ -22,8 +22,8 @@ struct File {
 
 class FileHandler {
 private:
-    static std::shared_mutex mutex;
-    static std::map<std::string, File> files;
+    inline static std::shared_mutex m_mutex;
+    inline static std::map<std::string, File> m_files;
 
     /*
         @brief Read a file from disk into memory for faster access times
