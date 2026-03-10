@@ -1,26 +1,28 @@
 #pragma once
 
 #include <filesystem>
-#include <memory>
-#include <string>
 #include <map>
+#include <memory>
+#include <shared_mutex>
+#include <string>
 
 struct File {
-    std::filesystem::path name;
+    std::filesystem::path path;
     std::unique_ptr<std::string> contents;
 
-    File(const std::filesystem::path& name, std::unique_ptr<std::string>& contents) :
-        name(name),
+    File(const std::filesystem::path& path, std::unique_ptr<std::string>& contents) :
+        path(path),
         contents(std::move(contents))
     {};
     File(const std::string& name, std::unique_ptr<std::string>& contents) :
-        name(name),
+        path(name),
         contents(std::move(contents))
     {};
 };
 
 class FileHandler {
 private:
+    static std::shared_mutex mutex;
     static std::map<std::string, File> files;
 
     /*

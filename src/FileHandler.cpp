@@ -1,5 +1,7 @@
 #include <format>
 #include <fstream>
+#include <mutex>
+#include <shared_mutex>
 
 #include <knots/FileHandler.hpp>
 #include <knots/Utils.hpp>
@@ -28,6 +30,7 @@ bool FileHandler::ReadFileIntoMemory(
         return false;
     }
 
+    std::unique_lock writeLock(FileHandler::mutex);
     files.insert(std::make_pair(
         path,
         File(path, contents)
@@ -39,11 +42,16 @@ bool FileHandler::ReadFileIntoMemory(
 
 std::string FileHandler::GetFileContents(const std::filesystem::path& path) {
 
-    std::map<std::string, File>::iterator it = files.find(path.string());
-    if (it != files.end()) {
-        return *(it->second.contents);
+    {
+        std::shared_lock readLock(FileHandler::mutex);
+
+        std::map<std::string, File>::iterator it = files.find(path.string());
+        if (it != files.end()) {
+            return *(it->second.contents);
+        }
     }
 
+    std::unique_lock writeLock(FileHandler::mutex);
     if (ReadFileIntoMemory(path) == false) {
         return std::string();
     }
