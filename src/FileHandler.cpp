@@ -6,9 +6,8 @@
 #include <knots/FileHandler.hpp>
 #include <knots/Utils.hpp>
 
-bool FileHandler::ReadFileIntoMemory(
-    const std::filesystem::path& path
-) {
+bool FileHandler::ReadFileIntoMemory(const std::filesystem::path& path) {
+
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
 
     if (inputStream.is_open() == false) {
@@ -32,16 +31,16 @@ bool FileHandler::ReadFileIntoMemory(
     }
 
     std::unique_lock writeLock(FileHandler::m_mutex);
-    m_files.insert(std::make_pair(
+    m_files.insert_or_assign(
         path,
         File(path, contents)
-    ));
+    );
 
     return true;
 }
 
 
-std::string FileHandler::GetFileContents(const std::filesystem::path& path) {
+std::optional<std::string> FileHandler::GetFileContents(const std::filesystem::path& path) {
 
     {
         std::shared_lock readLock(FileHandler::m_mutex);
@@ -53,14 +52,16 @@ std::string FileHandler::GetFileContents(const std::filesystem::path& path) {
     }
 
     if (ReadFileIntoMemory(path) == false) {
-        return std::string();
+        return std::nullopt;
     }
 
     return *(m_files.at(path).contents);
 }
 
 
-std::string FileHandler::GetFileContentsWithoutCaching(const std::filesystem::path& path) {
+std::optional<std::string> FileHandler::GetFileContentsWithoutCaching(
+    const std::filesystem::path& path
+) {
 
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
 
@@ -70,17 +71,18 @@ std::string FileHandler::GetFileContentsWithoutCaching(const std::filesystem::pa
             path.string()
         ));
         
-        return std::string();
+        return std::nullopt;
     }
 
     const std::streampos fileSize = inputStream.tellg();
     inputStream.seekg(0);
 
     std::unique_ptr<std::string> contents = std::make_unique<std::string>();
+    contents->resize(fileSize);
     inputStream.read(contents->data(), fileSize);
 
     if (static_cast<long>(contents->size()) != fileSize) {
-        return std::string();
+        return std::nullopt;
     }
 
     return *contents;

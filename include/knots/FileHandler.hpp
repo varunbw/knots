@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <optional>
 #include <shared_mutex>
 #include <string>
 
@@ -40,7 +41,7 @@ public:
     
         @return Contents of the file in a `std::string`
     */
-    static std::string GetFileContents(const std::filesystem::path& path);
+    static std::optional<std::string> GetFileContents(const std::filesystem::path& path);
 
     /*
         @brief Get the required file, but don't store it's contents in the FileHandler cache
@@ -50,7 +51,7 @@ public:
 
         Useful for large, infrequently used files, or if you simply don't want to cache something
     */
-    static std::string GetFileContentsWithoutCaching(const std::filesystem::path& path);
+    static std::optional<std::string> GetFileContentsWithoutCaching(const std::filesystem::path& path);
 
     /*
         @brief Update the contents of a cached file
