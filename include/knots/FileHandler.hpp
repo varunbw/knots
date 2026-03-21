@@ -26,15 +26,18 @@ private:
     inline static std::shared_mutex m_mutex;
     inline static std::map<std::string, File> m_files;
 
+public:
     /*
         @brief Read a file from disk into memory for faster access times
         @param path Path of the file to read
 
         @return `true` if file was read and cached successfully, `false` otherwise
+
+        You can use this function beforehand before starting up the server so that
+        all the files are cached in memory
     */
     static bool ReadFileIntoMemory(const std::filesystem::path& path);
 
-public:
     /*
         @brief Get contents of the file, returned as a `std::string`
         @param alias Alias or path of the file
