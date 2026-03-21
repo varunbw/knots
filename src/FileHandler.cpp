@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <format>
 #include <fstream>
 #include <mutex>
@@ -6,7 +7,7 @@
 #include <knots/FileHandler.hpp>
 #include <knots/Utils.hpp>
 
-bool FileHandler::ReadFileIntoMemory(const std::filesystem::path& path) {
+bool FileHandler::CacheFile(const std::filesystem::path& path) {
 
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
 
@@ -51,7 +52,7 @@ std::optional<std::string> FileHandler::GetFileContents(const std::filesystem::p
         }
     }
 
-    if (ReadFileIntoMemory(path) == false) {
+    if (CacheFile(path) == false) {
         return std::nullopt;
     }
 
@@ -90,5 +91,15 @@ std::optional<std::string> FileHandler::GetFileContentsWithoutCaching(
 
 
 bool FileHandler::UpdateFile(const std::filesystem::path& path) {
-    return ReadFileIntoMemory(path);
+    return CacheFile(path);
+}
+
+
+bool FileHandler::RemoveFileFromCache(const std::filesystem::path &path) {
+    std::unique_lock<std::shared_mutex> deleteLock(m_mutex);
+    return m_files.erase(path.string());
+}
+
+size_t FileHandler::GetCacheSize() {
+    return m_files.size();
 }

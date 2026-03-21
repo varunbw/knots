@@ -60,6 +60,9 @@ TEST(FileHandlerTest, FileReadsSuccessfully) {
     RandomFileGenerator rfg;
     const std::optional<std::string> fileContents = FileHandler::GetFileContents(rfg.m_fileName);
 
+    // Check that it was read in cache
+    EXPECT_EQ(FileHandler::GetCacheSize(), 1);
+
     // Check that value exists
     EXPECT_TRUE(fileContents.has_value());
 
@@ -85,6 +88,7 @@ TEST(FileHandlerTest, FileReadFails) {
 
     // Check if value exists
     EXPECT_FALSE(fileContents.has_value());
+    EXPECT_EQ(FileHandler::GetCacheSize(), 0);
 }
 
 
@@ -93,6 +97,7 @@ TEST(FileHandlerTest, FileReadsSuccessfullyWithoutCaching) {
     RandomFileGenerator rfg;
     const std::optional<std::string> fileContents = 
         FileHandler::GetFileContentsWithoutCaching(rfg.m_fileName);
+    EXPECT_EQ(FileHandler::GetCacheSize(), 0);
 
     // Check that value exists
     EXPECT_TRUE(fileContents.has_value());
@@ -112,6 +117,7 @@ TEST(FileHandlerTest, FileContentsUpdate) {
     RandomFileGenerator rfg;
     const std::optional<std::string> fileContents = FileHandler::GetFileContents(rfg.m_fileName);
     EXPECT_TRUE(fileContents.has_value());
+    EXPECT_EQ(FileHandler::GetCacheSize(), 1);
 
     // Update file contents
     std::ofstream outputStream(rfg.m_fileName, std::ios::out);
@@ -125,6 +131,20 @@ TEST(FileHandlerTest, FileContentsUpdate) {
     const std::optional<std::string> updatedFileContents = 
         FileHandler::GetFileContents(rfg.m_fileName);
     EXPECT_TRUE(updatedFileContents.has_value());
+    EXPECT_EQ(FileHandler::GetCacheSize(), 1);
 
     EXPECT_NE(fileContents.value(), updatedFileContents.value());
+}
+
+
+TEST(FileHandlerTest, FileRemovedFromCache) {
+
+    RandomFileGenerator rfg;
+    const std::optional<std::string> fileContents = FileHandler::GetFileContents(rfg.m_fileName);
+    EXPECT_TRUE(fileContents.has_value());
+    EXPECT_EQ(FileHandler::GetCacheSize(), 1);
+
+    // Remove file from cache
+    EXPECT_TRUE(FileHandler::RemoveFileFromCache(rfg.m_fileName));
+    EXPECT_EQ(FileHandler::GetCacheSize(), 0);
 }
