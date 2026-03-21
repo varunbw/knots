@@ -101,5 +101,6 @@ bool FileHandler::RemoveFileFromCache(const std::filesystem::path &path) {
 }
 
 size_t FileHandler::GetCacheSize() {
+    std::shared_lock<std::shared_mutex> readLock(m_mutex);
     return m_files.size();
 }
