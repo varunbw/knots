@@ -1,72 +1,106 @@
+#include <cstddef>
+#include <format>
 #include <fstream>
+#include <mutex>
+#include <shared_mutex>
 
-#include "knots/FileHandler.hpp"
-#include "knots/Utils.hpp"
+#include <knots/FileHandler.hpp>
+#include <knots/Utils.hpp>
 
-/*
-    ? deprecate?
-    @brief Load file `fileName` from disk and build an HTTP response with the file contents as body
-    @param statusCode The HTTP response's status code
-    @param fileName The file to load
+bool FileHandler::CacheFile(const std::filesystem::path& path) {
 
-    @return A `HttpResponse` object with the file contents as the body
-*/
-HttpResponse FileHandler::MakeHttpResponseFromFile(const std::string& fileName) {
+    std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
 
-    std::ifstream infile(fileName, std::ios::binary | std::ios::ate);
-
-    if (infile.is_open() == false) {
+    if (inputStream.is_open() == false) {
         Log::Error(std::format(
-            "MakeHttpResponseFromFile(): Could not open file {}",
-            fileName
+            "ReadFileIntoMemory(): Could not open file {}",
+            path.string()
         ));
 
-        HttpResponse res;
-        res.SetStatus(404);
-        return res;
+        return false;
     }
 
-    const auto fileSize = infile.tellg();
-    infile.seekg(0);
+    const std::streampos fileSize = inputStream.tellg();
+    inputStream.seekg(0);
 
-    std::string responseBody(fileSize, 0);
-    infile.read(responseBody.data(), fileSize);
+    std::unique_ptr<std::string> contents = std::make_unique<std::string>();
+    contents->resize(fileSize);
+    inputStream.read(contents->data(), fileSize);
 
-    HttpResponse res;
-    // todo Remove
-    res.SetStatus(200);
-    res.SetBody(std::move(responseBody));
+    if (static_cast<long>(contents->size()) != fileSize) {
+        return false;
+    }
 
-    return res;
+    std::unique_lock writeLock(FileHandler::m_mutex);
+    m_files.insert_or_assign(
+        path,
+        File(path, contents)
+    );
+
+    return true;
 }
 
-/*
-    @brief Read contents of file with path `filePath` into `res.body`
-    @param filePath File path to load
-    @param res `HttpResponse` object to load file into
-*/
-void FileHandler::ReadFileIntoBody(const std::string& filePath, HttpResponse& res) {
 
-    std::ifstream infile(filePath, std::ios::binary | std::ios::ate);
+std::optional<std::string> FileHandler::GetFileContents(const std::filesystem::path& path) {
 
-    if (infile.is_open() == false) {
-        Log::Error(std::format(
-            "ReadFileIntoBody(): Could not open file {}",
-            filePath
-        ));
+    {
+        std::shared_lock readLock(FileHandler::m_mutex);
 
-        res.SetStatus(404);
-        return;
+        std::map<std::string, File>::iterator it = m_files.find(path.string());
+        if (it != m_files.end()) {
+            return *(it->second.contents);
+        }
     }
-    
-    const auto fileSize = infile.tellg();
-    infile.seekg(0);
 
-    std::string responseBody(fileSize, 0);
-    infile.read(responseBody.data(), fileSize);
+    if (CacheFile(path) == false) {
+        return std::nullopt;
+    }
 
-    // todo Remove
-    res.SetStatus(200);
-    res.SetBody(std::move(responseBody));
-    return;
+    return *(m_files.at(path).contents);
+}
+
+
+std::optional<std::string> FileHandler::GetFileContentsWithoutCaching(
+    const std::filesystem::path& path
+) {
+
+    std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
+
+    if (inputStream.is_open() == false) {
+        Log::Error(std::format(
+            "GetFileContentsWithoutCaching(): Could not open file {}",
+            path.string()
+        ));
+        
+        return std::nullopt;
+    }
+
+    const std::streampos fileSize = inputStream.tellg();
+    inputStream.seekg(0);
+
+    std::unique_ptr<std::string> contents = std::make_unique<std::string>();
+    contents->resize(fileSize);
+    inputStream.read(contents->data(), fileSize);
+
+    if (static_cast<long>(contents->size()) != fileSize) {
+        return std::nullopt;
+    }
+
+    return *contents;
+}
+
+
+bool FileHandler::UpdateFile(const std::filesystem::path& path) {
+    return CacheFile(path);
+}
+
+
+bool FileHandler::RemoveFileFromCache(const std::filesystem::path &path) {
+    std::unique_lock<std::shared_mutex> deleteLock(m_mutex);
+    return m_files.erase(path.string());
+}
+
+size_t FileHandler::GetCacheSize() {
+    std::shared_lock<std::shared_mutex> readLock(m_mutex);
+    return m_files.size();
 }
