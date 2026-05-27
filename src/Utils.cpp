@@ -1,9 +1,13 @@
+#include <filesystem>
 #include <format>
-#include <fstream>
 #include <iostream>
 #include <mutex>
+#include <sys/socket.h>
 #include <yaml-cpp/yaml.h>
 
+#include "knots/FileHandler.hpp"
+#include "knots/HttpMessage.hpp"
+#include "knots/Router.hpp"
 #include "knots/Utils.hpp"
 
 /*
@@ -107,4 +111,57 @@ std::string MakeErrorMessage(const std::string& message) {
         RED_START "[ERROR]: {}\n" RESET_COLOR,
         message
     );
+}
+
+
+namespace fs = std::filesystem;
+
+void StaticRoutes::AddStaticFile(const fs::path& path, Router& router) {
+
+    if (path.empty()) {
+        Log::Error(std::format(
+            "StaticRoutes::AddStaticFile(): `{}` is an empty path",
+            path.string()
+        ));
+        return;
+    }
+
+    router.Get(path.string(), 
+        [path] (const HttpRequest& req, HttpResponse& res) {
+
+            const std::optional<std::string> fileContents = FileHandler::GetFileContents(path);
+
+            if (fileContents.has_value()) {
+                res.SetBody(fileContents.value());
+                res.SetStatus(200);
+                return;
+            }
+
+            res.SetStatus(404);
+            return;
+        }
+    );
+
+    return;
+}
+
+
+
+void StaticRoutes::AddStaticDirectory(const fs::path &path, Router &router) {
+
+    if (fs::is_directory(path) == false) {
+        Log::Error(std::format(
+            "StaticRoutes::AddStaticDirectory(): `{}` is not a directory",
+            path.string()
+        ));
+        return;
+    }
+
+    for (const fs::directory_entry& entry : fs::recursive_directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            StaticRoutes::AddStaticFile(entry.path(), router);
+        }
+    }
+    
+    return;    
 }
