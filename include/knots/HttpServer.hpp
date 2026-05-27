@@ -56,6 +56,8 @@ public:
     ~HttpServer();
     void Shutdown();
 
+    bool IsReady() const;
+
     void AcceptConnections();
 
     void AddErrorRoute(short int responseStatusCode, HandlerFunction handler);

@@ -1,8 +1,6 @@
-#include <algorithm>
 #include <arpa/inet.h>
 #include <chrono>
 #include <format>
-#include <fstream>
 #include <iostream>
 #include <netinet/tcp.h>
 #include <poll.h>
@@ -15,7 +13,6 @@
 #include <unistd.h>
 #include <vector>
 
-#include "knots/FileHandler.hpp"
 #include "knots/HttpServer.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/ThreadPool.hpp"
@@ -240,6 +237,16 @@ void HttpServer::Shutdown() {
 
     return;
 }
+
+
+/*
+    @brief Get status of the server
+    @return `true` is server is ready and running, `false` otherwise
+*/
+bool HttpServer::IsReady() const {
+    return m_isRunning;
+}
+
 
 
 /*
