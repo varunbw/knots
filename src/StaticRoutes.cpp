@@ -2,7 +2,6 @@
 
 #include "knots/FileHandler.hpp" 
 #include "knots/HttpMessage.hpp"
-#include "knots/Router.hpp"
 #include "knots/StaticRoutes.hpp"
 #include "knots/Utils.hpp"
 
@@ -22,6 +21,7 @@ void StaticRoutes::AddStaticFile(
         return;
     }
 
+    // Remove prefix (if provided and existing)
     const std::string route = [&path, &prefixToRemove] () {
 
         std::string buffer = path.string();
@@ -30,6 +30,8 @@ void StaticRoutes::AddStaticFile(
             buffer.erase(0, prefixToRemove.size());
         }
 
+        // Add leading slash if it doesn't exist
+        // This can be absent in cases where `prefixToRemove` contains a trailing '/'
         if (buffer[0] != '/') {
             buffer = "/" + buffer;
         }
@@ -45,7 +47,7 @@ void StaticRoutes::AddStaticFile(
         return;
     }
 
-
+    // Simple GET request
     router.Get(route, 
         [path] (const HttpRequest& req, HttpResponse& res) {
 
@@ -63,7 +65,7 @@ void StaticRoutes::AddStaticFile(
     );
 
     Log::Success(std::format(
-        "Added {}",
+        "Added `{}`",
         route
     ));
 

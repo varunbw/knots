@@ -101,10 +101,10 @@ if (PROJECT_IS_TOP_LEVEL)
                 $<$<CONFIG:Release>:-O3>
             )
 
-            add_executable(knots-app-static-files examples/static-files.cpp)
-            target_link_libraries(knots-app-static-files PRIVATE knots)
+            add_executable(knots-app-static-routes examples/static-routes.cpp)
+            target_link_libraries(knots-app-static-routes PRIVATE knots)
 
-            target_compile_options(knots-app-static-files PRIVATE 
+            target_compile_options(knots-app-static-routes PRIVATE 
                 -Wall      # Enable all compiler warnings
                 -Wextra    # Enable extra compiler warnings
                 -Wpedantic # Enable standard checking
@@ -113,12 +113,12 @@ if (PROJECT_IS_TOP_LEVEL)
             )
 
             # Debug-specific flags
-            target_compile_options(knots-app-static-files PRIVATE
+            target_compile_options(knots-app-static-routes PRIVATE
                 $<$<CONFIG:Debug>:-g>
             )
 
             # Release-specific flags
-            target_compile_options(knots-app-static-files PRIVATE
+            target_compile_options(knots-app-static-routes PRIVATE
                 $<$<CONFIG:Release>:-O3>
             )
         endif()
