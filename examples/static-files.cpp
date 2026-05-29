@@ -8,7 +8,8 @@ int main(void) {
 
     Router router;
 
-    StaticRoutes::AddStaticDirectory("./static", router);
+    // StaticRoutes::AddStaticDirectory("/home/varun/dev/knots/static", router, "/home/varun/dev/knots/static");
+    StaticRoutes::AddStaticDirectory("/home/varun/dev/", router);
 
     HttpServer server(config, router);
 

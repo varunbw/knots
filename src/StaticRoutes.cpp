@@ -1,8 +1,18 @@
+#include <format>
+
+#include "knots/FileHandler.hpp" 
+#include "knots/HttpMessage.hpp"
+#include "knots/Router.hpp"
 #include "knots/StaticRoutes.hpp"
+#include "knots/Utils.hpp"
 
 namespace fs = std::filesystem;
 
-void StaticRoutes::AddStaticFile(const fs::path& path, Router& router) {
+void StaticRoutes::AddStaticFile(
+    const fs::path& path,
+    Router& router,
+    const std::string& prefixToRemove
+) {
 
     if (path.empty()) {
         Log::Error(std::format(
@@ -12,24 +22,31 @@ void StaticRoutes::AddStaticFile(const fs::path& path, Router& router) {
         return;
     }
 
-    // const std::string route = [path] () {
-    //     std::size_t counter = 0;
-    //     while (path.string()[counter] == '.') {
-    //         counter++;
-    //     }
+    const std::string route = [&path, &prefixToRemove] () {
 
-    //     return path.string().substr(counter);
-    // } ();
+        std::string buffer = path.string();
+        
+        if (buffer.starts_with(prefixToRemove)) {
+            buffer.erase(0, prefixToRemove.size());
+        }
 
-    // if (route.empty()) {
-    //     Log::Warning(std::format(
-    //         "Route evauluates to empty: {}, after removal of unnecessary characters",
-    //         path.string()
-    //     ));
-    //     return;
-    // }
+        if (buffer[0] != '/') {
+            buffer = "/" + buffer;
+        }
 
-    router.Get(path.string().substr(1), 
+        return buffer;
+    } ();
+
+    if (route.empty()) {
+        Log::Warning(std::format(
+            "Route evauluates to empty: `{}`, after removal of prefix `{}`",
+            path.string(), prefixToRemove
+        ));
+        return;
+    }
+
+
+    router.Get(route, 
         [path] (const HttpRequest& req, HttpResponse& res) {
 
             const std::optional<std::string> fileContents = FileHandler::GetFileContents(path);
@@ -47,7 +64,7 @@ void StaticRoutes::AddStaticFile(const fs::path& path, Router& router) {
 
     Log::Success(std::format(
         "Added {}",
-        path.string()
+        route
     ));
 
     return;
@@ -55,7 +72,11 @@ void StaticRoutes::AddStaticFile(const fs::path& path, Router& router) {
 
 
 
-void StaticRoutes::AddStaticDirectory(const fs::path &path, Router &router) {
+void StaticRoutes::AddStaticDirectory(
+    const fs::path& path,
+    Router& router,
+    std::string prefixToRemove
+) {
 
     if (fs::is_directory(path) == false) {
         Log::Error(std::format(
@@ -65,9 +86,13 @@ void StaticRoutes::AddStaticDirectory(const fs::path &path, Router &router) {
         return;
     }
 
+    if (prefixToRemove.empty()) {
+        prefixToRemove = path.string();
+    }
+
     for (const fs::directory_entry& entry : fs::recursive_directory_iterator(path)) {
         if (entry.is_regular_file()) {
-            StaticRoutes::AddStaticFile(entry.path(), router);
+            StaticRoutes::AddStaticFile(entry.path(), router, prefixToRemove);
         }
     }
     

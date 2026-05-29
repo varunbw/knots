@@ -6,6 +6,15 @@
 class Router;
 
 namespace StaticRoutes {
-    void AddStaticFile(const std::filesystem::path& path, Router& router);
-    void AddStaticDirectory(const std::filesystem::path& path, Router& router);
+    void AddStaticFile(
+        const std::filesystem::path& path,
+        Router& router,
+        const std::string& prefixToRemove = ""
+    );
+
+    void AddStaticDirectory(
+        const std::filesystem::path& path,
+        Router& router,
+        std::string prefixToRemove = ""
+    );
 }
