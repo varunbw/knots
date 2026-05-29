@@ -118,6 +118,15 @@ void Router::AddRoute(
     const HandlerFunction& handler
 ) {
 
+    if (requestUrl[0] != '/') {
+        Log::Error(std::format(
+            "Router::AddRoute(): Illegal URL start, route URLs must start with a slash (/): {}",
+            requestUrl
+        ));
+
+        return;
+    }
+
     SanitizeURL(requestUrl);
 
     const Route routeToAdd(method, requestUrl);
