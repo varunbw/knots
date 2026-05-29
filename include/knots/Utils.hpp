@@ -1,6 +1,5 @@
 #pragma once
 
-#include <filesystem>
 #include <string>
 
 /*
@@ -58,12 +57,3 @@ namespace Log {
     If printed to stdout, it will be colored red
 */
 std::string MakeErrorMessage(const std::string& message);
-
-
-// Forward declaration so I don't have to include `Router.hpp` here
-class Router;
-
-namespace StaticRoutes {
-    void AddStaticFile(const std::filesystem::path& path, Router& router);
-    void AddStaticDirectory(const std::filesystem::path& path, Router& router);
-}

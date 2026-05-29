@@ -1,4 +1,5 @@
 #include "knots/HttpServer.hpp"
+#include "knots/StaticRoutes.hpp"
 #include "knots/Utils.hpp"
 
 int main(void) {
@@ -7,30 +8,7 @@ int main(void) {
 
     Router router;
 
-    // Example routes
-    router.Get("/",
-        [] (const HttpRequest& req, HttpResponse& res) {
-            res.SetBody(
-                "<html>\n"
-                    "<body>\n"
-                        "<h1 align=\"center\">Hello world\n</h1>"
-                    "<html>\n"
-                "<body>\n"
-            );
-            res.SetHeader("Content-Type", "text/html");
-            return;
-        }
-    );
-
-    const std::string buffer(65536, '0');
-    router.Get("/spam", 
-        [&buffer] (const HttpRequest& req, HttpResponse& res) {
-            res.SetBody(buffer);
-            res.SetHeader("Content-Type", "text/html");
-
-            return;
-        }
-    );
+    StaticRoutes::AddStaticDirectory("./static", router);
 
     HttpServer server(config, router);
 

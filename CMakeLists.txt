@@ -26,6 +26,7 @@ add_library(
     src/HttpServer.cpp
     src/NetworkIO.cpp
     src/Router.cpp
+    src/StaticRoutes.cpp
     src/ThreadPool.cpp
     src/Utils.cpp
 )
@@ -97,6 +98,27 @@ if (PROJECT_IS_TOP_LEVEL)
 
             # Release-specific flags
             target_compile_options(knots-app-50-routes PRIVATE
+                $<$<CONFIG:Release>:-O3>
+            )
+
+            add_executable(knots-app-static-files examples/static-files.cpp)
+            target_link_libraries(knots-app-static-files PRIVATE knots)
+
+            target_compile_options(knots-app-static-files PRIVATE 
+                -Wall      # Enable all compiler warnings
+                -Wextra    # Enable extra compiler warnings
+                -Wpedantic # Enable standard checking
+                -fmax-errors=3 # Limit the number of errors shown
+                -fno-diagnostics-show-template-tree # Disable template tree diagnostics
+            )
+
+            # Debug-specific flags
+            target_compile_options(knots-app-static-files PRIVATE
+                $<$<CONFIG:Debug>:-g>
+            )
+
+            # Release-specific flags
+            target_compile_options(knots-app-static-files PRIVATE
                 $<$<CONFIG:Release>:-O3>
             )
         endif()
