@@ -1,4 +1,3 @@
-// Project
 #include "knots/HttpServer.hpp"
 #include "knots/Utils.hpp"
 

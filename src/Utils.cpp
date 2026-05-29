@@ -1,8 +1,6 @@
 #include <format>
 #include <iostream>
 #include <mutex>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <yaml-cpp/yaml.h>
 
 #include "knots/Utils.hpp"
@@ -109,4 +107,3 @@ std::string MakeErrorMessage(const std::string& message) {
         message
     );
 }
-
