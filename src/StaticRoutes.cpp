@@ -64,10 +64,10 @@ void StaticRoutes::AddStaticFile(
         }
     );
 
-    Log::Success(std::format(
-        "Added `{}`",
-        route
-    ));
+    // Log::Success(std::format(
+    //     "Added `{}`",
+    //     route
+    // ));
 
     return;
 }
