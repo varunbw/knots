@@ -18,13 +18,12 @@ namespace StaticRoutes {
         In this case, routes will include the "./static" part
             - "./static/1.txt"
 
-        Hence, this function will automatically remove "./static",
-        to clean up routes as such:
+        You may not like this, or may want to trim the route till a certain point
+        Hence, you can opt to cleanup the "./static" part, and the routes will end up as such:
             - "/1.txt"
 
-        Alternatively, you can pass a custom prefix, ex: '.' to be removed
-        Now, the routes will be
-            - "/static/1.txt"
+        Note: If the "current directory" symbol ".", is present, it'll be automatically removed
+        if its at the start of the path
     */
     void AddStaticFile(
         const std::filesystem::path& path,
@@ -49,15 +48,14 @@ namespace StaticRoutes {
             - "./static/1.txt"
             - "./static/2.txt"
 
-        Hence, this function will automatically remove "./static",
+        You may not like this, or may want to trim the route till a certain point
+        Hence, you can opt to cleanup the "./static" part, and the routes will end up as such:
         to clean up routes as such:
             - "/1.txt"
             - "/2.txt"
 
-        Alternatively, you can pass a custom prefix, ex: '.' to be removed
-        Now, the routes will be
-            - "/static/1.txt"
-            - "/static/2.txt"
+        Note: If the "current directory" symbol ".", is present, it'll be automatically removed
+        if its at the start of the path
     */
     void AddStaticDirectory(
         const std::filesystem::path& path,

@@ -1,3 +1,4 @@
+#include "knots/StaticRoutes.hpp"
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -5,6 +6,8 @@
 #include <vector>
 #include <sys/types.h>
 
+#include "knots/HttpMessage.hpp"
+#include "knots/Router.hpp"
 #include "knots/Utils.hpp"
 
 namespace fs = std::filesystem;
@@ -47,6 +50,7 @@ public:
     };
 
     const fs::path m_commonFileName = "test-file.txt";
+    static constexpr std::string_view m_commonFileContents = "Hello world, from file `{}`";
 
     DummyDirectoryGenerator();
     ~DummyDirectoryGenerator();
@@ -82,15 +86,15 @@ DummyDirectoryGenerator::DummyDirectoryGenerator() {
         if (outfile.is_open() == false) {
             Log::Error(std::format(
                 "Could not create file {}",
-                (filePath).string()
+                filePath.string()
             ));
 
             continue;
         }
 
-        const std::string fileContents = std::format(
-            "Hello world, from file {}",
-            filePath.string()
+        std::string fileContents = std::format(
+            m_commonFileContents,
+            (path / m_commonFileName).string()
         );
         
         outfile.write(
@@ -115,8 +119,43 @@ DummyDirectoryGenerator::~DummyDirectoryGenerator() {
 }
 
 
-TEST(StaticRoutesTest, FullFunctionalityTest) {
+TEST(StaticRoutesTest, AddStaticFile) {
 
     DummyDirectoryGenerator ddg;
+    Router router;
 
+    const std::string relativeFilePath = ddg.m_paths[7] / ddg.m_commonFileName;
+    const std::string absoluteFilePath = ddg.m_baseTestingDirectory / relativeFilePath;
+
+    // Log::Warning(std::format("absolute: `{}`", absoluteFilePath));
+    // Log::Warning(std::format("relative: `{}`", relativeFilePath));
+
+    StaticRoutes::AddStaticFile(absoluteFilePath, router, ddg.m_baseTestingDirectory);
+
+    HttpRequest req;
+    req.method = HttpMethod::GET;
+    req.requestUrl = "/" + relativeFilePath;
+
+    const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
+
+    // Check that the segment exists
+    EXPECT_NE(handlers, nullptr);
+
+    const HandlerFunction& handler = handlers->GetHandler(req.method);
+
+    // Check that the handler for GET exists
+    EXPECT_NE(handler, nullptr);
+
+    HttpResponse res;
+    handler(req, res);
+
+    // Check body content
+    EXPECT_EQ(
+        res.body, 
+        std::format(
+            ddg.m_commonFileContents,
+            relativeFilePath
+        )
+    );
 }
+

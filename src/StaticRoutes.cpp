@@ -30,6 +30,11 @@ void StaticRoutes::AddStaticFile(
             buffer.erase(0, prefixToRemove.size());
         }
 
+        // Erase leading period "." if it exists
+        if (buffer[0] == '.') {
+            buffer.erase(buffer.begin());
+        }
+
         // Add leading slash if it doesn't exist
         // This can be absent in cases where `prefixToRemove` contains a trailing '/'
         if (buffer[0] != '/') {
@@ -86,10 +91,6 @@ void StaticRoutes::AddStaticDirectory(
             path.string()
         ));
         return;
-    }
-
-    if (prefixToRemove.empty()) {
-        prefixToRemove = path.string();
     }
 
     for (const fs::directory_entry& entry : fs::recursive_directory_iterator(path)) {
