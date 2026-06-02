@@ -30,6 +30,7 @@ These are automatically installed by CMake:
     - `HttpServer.cpp` - Main server implementation
     - `NetworkIO.cpp` - Network I/O operations
     - `Router.cpp` - URL routing logic
+    - `StaticRoutes.cpp` - Utility for managing the routing for static files
     - `ThreadPool.cpp` - Thread pool for request management
     - `Utils.cpp` - Utility functions
 - `tests/` - Unit tests

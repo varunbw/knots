@@ -180,11 +180,6 @@ TEST(StaticRoutesTest, AddStaticDirectory) {
             path.string(), ddg.m_commonFileName.string()
         );
 
-        Log::Warning(std::format(
-            "req: `{}`",
-            req.requestUrl
-        ));
-
         const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
 
         EXPECT_NE(handlers, nullptr);
