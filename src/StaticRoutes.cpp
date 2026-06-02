@@ -69,11 +69,6 @@ void StaticRoutes::AddStaticFile(
         }
     );
 
-    Log::Success(std::format(
-        "Added `{}`",
-        route
-    ));
-
     return;
 }
 

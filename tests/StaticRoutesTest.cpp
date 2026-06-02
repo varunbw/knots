@@ -157,7 +157,7 @@ TEST(StaticRoutesTest, AddStaticFile) {
 
     // Non existent route
     // I smashed my head on the keyboard
-    req.requestUrl = "/76ytuhg5yhg67tubjnyh76utgbjn8r54tfegd690oi";
+    req.requestUrl = "/vtbygh6fn5rxecsdujikhm8n9ohujynbmgyuh7gbjn6trftgv5cbd";
     handlers = router.FetchFunctionsForRoute(req);
 
     EXPECT_EQ(handlers, nullptr);
@@ -207,7 +207,7 @@ TEST(StaticRoutesTest, AddStaticDirectory) {
 
     // Non existent route
     // I smashed my head on the keyboard
-    req.requestUrl = "/76ytuhg5yhg67tubjnyh76utgbjn8r54tfegd690oi";
+    req.requestUrl = "/vtbygh6fn5rxecsdujikhm8n9ohujynbmgyuh7gbjn6trftgv5cbd";
     const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
 
     EXPECT_EQ(handlers, nullptr);
