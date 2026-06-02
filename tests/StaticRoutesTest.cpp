@@ -124,11 +124,8 @@ TEST(StaticRoutesTest, AddStaticFile) {
     DummyDirectoryGenerator ddg;
     Router router;
 
-    const std::string relativeFilePath = ddg.m_paths[7] / ddg.m_commonFileName;
+    const std::string relativeFilePath = ddg.m_paths[1] / ddg.m_commonFileName;
     const std::string absoluteFilePath = ddg.m_baseTestingDirectory / relativeFilePath;
-
-    // Log::Warning(std::format("absolute: `{}`", absoluteFilePath));
-    // Log::Warning(std::format("relative: `{}`", relativeFilePath));
 
     StaticRoutes::AddStaticFile(absoluteFilePath, router, ddg.m_baseTestingDirectory);
 
@@ -157,5 +154,61 @@ TEST(StaticRoutesTest, AddStaticFile) {
             relativeFilePath
         )
     );
+
+    // Non existent route
+    // I smashed my head on the keyboard
+    req.requestUrl = "/76ytuhg5yhg67tubjnyh76utgbjn8r54tfegd690oi";
+    handlers = router.FetchFunctionsForRoute(req);
+
+    EXPECT_EQ(handlers, nullptr);
 }
 
+TEST(StaticRoutesTest, AddStaticDirectory) {
+
+    DummyDirectoryGenerator ddg;
+    Router router;
+
+    StaticRoutes::AddStaticDirectory(ddg.m_baseTestingDirectory, router, ddg.m_baseTestingDirectory);
+
+    HttpRequest req;
+    req.method = HttpMethod::GET;
+
+    for (const fs::path& path : ddg.m_paths) {
+
+        req.requestUrl = std::format(
+            "/{}{}",
+            path.string(), ddg.m_commonFileName.string()
+        );
+
+        Log::Warning(std::format(
+            "req: `{}`",
+            req.requestUrl
+        ));
+
+        const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
+
+        EXPECT_NE(handlers, nullptr);
+
+        const HandlerFunction& handler = handlers->GetHandler(req.method);
+
+        EXPECT_NE(handler, nullptr);
+
+        HttpResponse res;
+        handler(req, res);
+
+        EXPECT_EQ(
+            res.body,
+            std::format(
+                ddg.m_commonFileContents,
+                (path / ddg.m_commonFileName).string()
+            )
+        );
+    }
+
+    // Non existent route
+    // I smashed my head on the keyboard
+    req.requestUrl = "/76ytuhg5yhg67tubjnyh76utgbjn8r54tfegd690oi";
+    const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
+
+    EXPECT_EQ(handlers, nullptr);
+}
