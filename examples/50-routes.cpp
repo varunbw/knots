@@ -1,5 +1,3 @@
-// Project
-#include "knots/FileHandler.hpp"
 #include "knots/HttpServer.hpp"
 #include "knots/Utils.hpp"
 
