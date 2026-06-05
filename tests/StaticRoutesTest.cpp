@@ -1,4 +1,3 @@
-#include "knots/StaticRoutes.hpp"
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -8,6 +7,7 @@
 
 #include "knots/HttpMessage.hpp"
 #include "knots/Router.hpp"
+#include "knots/StaticRoutes.hpp"
 #include "knots/Utils.hpp"
 
 namespace fs = std::filesystem;
@@ -105,6 +105,7 @@ DummyDirectoryGenerator::DummyDirectoryGenerator() {
 
     return;
 }
+
 
 DummyDirectoryGenerator::~DummyDirectoryGenerator() {
 
