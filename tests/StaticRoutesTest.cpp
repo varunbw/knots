@@ -163,6 +163,7 @@ TEST(StaticRoutesTest, AddStaticFile) {
     EXPECT_EQ(handlers, nullptr);
 }
 
+
 TEST(StaticRoutesTest, AddStaticDirectory) {
 
     DummyDirectoryGenerator ddg;
@@ -182,15 +183,18 @@ TEST(StaticRoutesTest, AddStaticDirectory) {
 
         const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
 
+        // Check that the segment exists
         EXPECT_NE(handlers, nullptr);
 
         const HandlerFunction& handler = handlers->GetHandler(req.method);
 
+        // Check that handler for GET exists
         EXPECT_NE(handler, nullptr);
 
         HttpResponse res;
         handler(req, res);
 
+        // Check body content
         EXPECT_EQ(
             res.body,
             std::format(
