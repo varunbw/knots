@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <mutex>
+#include <netinet/in.h>
 #include <set>
 #include <thread>
 
@@ -45,8 +46,12 @@ private:
     
     // Handle client connection
     bool SetClientSocketOptions(const Socket& clientSocket) const;
-    void HandleConnection(Socket clientSocket);
-    bool HandleRequest(std::stringstream& ss, const Socket& clientSocketFD);
+    void HandleConnection(Socket clientSocket, const sockaddr_in clientAddress);
+    bool HandleRequest(
+        std::stringstream& ss,
+        const Socket& clientSocketFD,
+        const sockaddr_in& clientAddress
+    );
 
     // Error handling
     void HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const;

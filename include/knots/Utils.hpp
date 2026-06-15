@@ -45,6 +45,7 @@ namespace Log {
     void Success(const std::string& message);
     void Info(const std::string& message);
     void Debug(const std::string& message);
+    void Raw(const std::string& message, const std::string_view end = "\n");
 }
 
 /*
@@ -57,3 +58,11 @@ namespace Log {
     If printed to stdout, it will be colored red
 */
 std::string MakeErrorMessage(const std::string& message);
+
+
+enum class RequestLoggingVerbosity {
+    BASIC,
+    INCLUDE_IP,
+    INCLUDE_TIME,
+    FULL
+};

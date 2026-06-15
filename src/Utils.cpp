@@ -58,10 +58,10 @@ HttpServerConfiguration ParseConfigurationFile(const std::string& filePath) {
 
 namespace Log {
 
-    std::mutex coutMutex;        
+    std::mutex cerrMutex;        
 
     void Error(const std::string& message) {
-        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
+        std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             RED_START "[ERROR]: {}\n" RESET_COLOR,
             message
@@ -69,7 +69,7 @@ namespace Log {
     }
 
     void Warning(const std::string& message) {
-        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
+        std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             YELLOW_START "[WARNING]: {}\n" RESET_COLOR,
             message
@@ -77,7 +77,7 @@ namespace Log {
     }
 
     void Success(const std::string& message) {
-        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
+        std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             GREEN_START "[SUCCESS]: {}\n" RESET_COLOR,
             message
@@ -85,7 +85,7 @@ namespace Log {
     }
 
     void Info(const std::string& message) {
-        std::scoped_lock<std::mutex> coutMutexLock(coutMutex);
+        std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << std::format(
             "[INFO]: {}\n",
             message
@@ -97,6 +97,10 @@ namespace Log {
             "[DEBUG]: {}\n",
             message
         );
+    }
+
+    void Raw(const std::string& message, const std::string_view end) {
+        std::cerr << message << end;
     }
 }
 

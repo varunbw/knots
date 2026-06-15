@@ -58,6 +58,10 @@ void StaticRoutes::AddStaticFile(
 
             const std::optional<std::string> fileContents = FileHandler::GetFileContents(path);
 
+            if (path.extension() == ".js") {
+                res.SetHeader("Content-Type", "text/javascript");
+            }
+
             if (fileContents.has_value()) {
                 res.SetBody(fileContents.value());
                 res.SetStatus(200);

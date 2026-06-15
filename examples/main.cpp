@@ -1,6 +1,8 @@
 #include "knots/HttpServer.hpp"
 #include "knots/Utils.hpp"
 
+#include "knots/StaticRoutes.hpp"
+
 int main(void) {
 
     HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
@@ -31,6 +33,8 @@ int main(void) {
             return;
         }
     );
+
+    StaticRoutes::AddStaticDirectory("./static/purva-portfolio", router, "./static/purva-portfolio");
 
     HttpServer server(config, router);
 

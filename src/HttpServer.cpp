@@ -2,6 +2,7 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
 #include <sstream>
@@ -14,6 +15,7 @@
 #include <vector>
 
 #include "knots/HttpServer.hpp"
+#include "knots/HttpMessage.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/ThreadPool.hpp"
 #include "knots/Utils.hpp"
@@ -316,7 +318,7 @@ void HttpServer::AcceptConnections() {
     while (m_isRunning) {
         // Socket information for the client
         sockaddr_in clientAddress{};
-        socklen_t clientAddressLen = sizeof(m_address);
+        socklen_t clientAddressLen = sizeof(clientAddress);
 
         int clientSocketFD = accept(
             m_serverSocket.Get(),
@@ -350,8 +352,8 @@ void HttpServer::AcceptConnections() {
         {
             std::scoped_lock<std::mutex> lock(m_threadPoolMutex);
             m_threadPool.EnqueueJob(
-                [this, clientSocketFD] () {
-                    HandleConnection(Socket(clientSocketFD));
+                [this, clientSocketFD, clientAddress] () {
+                    HandleConnection(Socket(clientSocketFD), clientAddress);
                 }
             );
         }
@@ -371,7 +373,7 @@ void HttpServer::AcceptConnections() {
     @param clientSocketFD The socket file descriptor for the client connection
     @param clientAddress The address of the client
 */
-void HttpServer::HandleConnection(Socket clientSocket) {
+void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientAddress) {
 
     /*
         If the options could not be set, don't process the request further, as it
@@ -420,7 +422,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             HandleRequest() returns whether or not to keep a connection alive
             If false, break the loop here and stop this connection
         */
-        if (HandleRequest(ss, clientSocket) == false) {
+        if (HandleRequest(ss, clientSocket, clientAddress) == false) {
             break;
         }
     }
@@ -465,6 +467,30 @@ const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode)
 }
 
 
+void LogRequestResponse(
+    const HttpRequest& req,
+    const int responseCode,
+    const sockaddr_in& address,
+    const RequestLoggingVerbosity verbosity
+) {
+
+    in_addr clientIpAddress = address.sin_addr;
+    std::string clientIpAddressStr(INET_ADDRSTRLEN, 0);
+    inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+
+    Log::Raw(std::format(
+        "{}, {:.22} - {} {} {}",
+        clientIpAddressStr,
+        std::format("{}", std::chrono::system_clock::now()),
+        responseCode,
+        req.method,
+        req.requestUrl
+    ));
+
+    return;
+}
+
+
 /*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
@@ -474,7 +500,8 @@ const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode)
 */
 bool HttpServer::HandleRequest(
     std::stringstream& ss,
-    const Socket& clientSocket
+    const Socket& clientSocket,
+    const sockaddr_in& clientAddress
 ) {
     HttpRequest req;
     const bool parseResult = req.ParseFrom(ss);

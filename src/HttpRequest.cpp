@@ -1,5 +1,3 @@
-#include <algorithm>
-#include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -370,14 +368,6 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
         );
         return false;
     }
-
-    Log::Info(std::format(
-        "{} \"{}\", {} queryParams, {} body length",
-        this->method,
-        this->requestUrl,
-        this->queryParams.size(),
-        this->body.size()
-    ));
 
     // Clear stringstream for next request
     ss.str("");
