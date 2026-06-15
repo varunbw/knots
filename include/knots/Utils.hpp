@@ -9,7 +9,6 @@
     @param maxConnections Maximum number of connections to accept
 */
 struct HttpServerConfiguration {
-
     int port;
     int maxConnections;
     int inputPollingIntevalMs;
@@ -31,13 +30,6 @@ struct HttpServerConfiguration {
     {};
 };
 
-/*
-    @brief Parse the given configuration file
-    @param filePath Path to the configuration file
-    @param config The configuration object to fill with the parsed values
-*/
-HttpServerConfiguration ParseConfigurationFile(const std::string& filePath);
-
 
 namespace Log {
     void Error(const std::string& message);
@@ -47,6 +39,7 @@ namespace Log {
     void Debug(const std::string& message);
     void Raw(const std::string& message, const std::string_view end = "\n");
 }
+
 
 /*
     @brief Make a formatted error message

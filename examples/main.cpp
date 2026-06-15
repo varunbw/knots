@@ -5,7 +5,13 @@
 
 int main(void) {
 
-    HttpServerConfiguration config = ParseConfigurationFile("config/config.yaml");
+    constexpr int port = 8600;
+    constexpr int maxConnections = 125;
+    constexpr int inputPollingIntevalMs = 100;
+
+    constexpr HttpServerConfiguration config (
+        port, maxConnections, inputPollingIntevalMs
+    );
 
     Router router;
 
