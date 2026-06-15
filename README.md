@@ -13,26 +13,23 @@ sudo apt install cmake ninja-build
 ```
 
 ## Dependencies
-These are automatically installed by CMake:
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 - [GoogleTest](https://github.com/google/googletest)
 
-> When built as a library in your project, tests are NOT generated, and the GoogleTest library is also not fetched. Tests will only be made in library-development builds, when the `knots` project is top-level.
+GoogleTest is only fetched and built when you are developing the knots library itself. If you're using `knots` in your project as a library, GoogleTest won't be fetched, in order to avoid clutter in your dependencies. (I shall not merge untested code to main, trust)
 
 ## Project Structure
-- `config/` - Configuration files
 - `examples/` - Examples of how to use the library
 - `include/` - Header files
 - `src/` - Source files
-    - `FileHandler.cpp` - Handles file reading logic
-    - `HttpRequest.cpp` - Methods for `HttpRequest` struct and HTTP Request parsing
-    - `HttpResponse.cpp` - Methods for `HttpResponse` struct and HTTP Response building
-    - `HttpServer.cpp` - Main server implementation
-    - `NetworkIO.cpp` - Network I/O operations
-    - `Router.cpp` - URL routing logic
-    - `StaticRoutes.cpp` - Utility for managing the routing for static files
-    - `ThreadPool.cpp` - Thread pool for request management
-    - `Utils.cpp` - Utility functions
+    - [FileHandler.cpp](./src/FileHandler.cpp) - Handles file reading logic
+    - [HttpRequest.cpp](./src/HttpRequest.cpp) - Methods for `HttpRequest` struct and HTTP Request parsing
+    - [HttpResponse.cpp](./src/HttpResponse.cpp) - Methods for `HttpResponse` struct and HTTP Response building
+    - [HttpServer.cpp](./src/HttpServer.cpp) - Main server implementation
+    - [NetworkIO.cpp](./src/NetworkIO.cpp) - Network I/O operations
+    - [Router.cpp](./src/Router.cpp) - URL routing logic
+    - [StaticRoutes.cpp](./src/StaticRoutes.cpp) - Utility for managing the routing for static files
+    - [ThreadPool.cpp](./src/ThreadPool.cpp) - Thread pool for request management
+    - [Utils.cpp](./src/Utils.cpp) - Utility functions
 - `tests/` - Unit tests
 
 # Building
@@ -78,28 +75,28 @@ ctest --preset tests-debug
 
 
 # Configuration
-The server can be configured using a YAML configuration file, located at `config/config.yaml` by default. You can edit the location of the file by specifying the file path in the source code (see [HttpServerConfiguration](src/Utils.cpp) and the [example](examples/main.cpp)).
 
-- `config/config.yaml` - Main server configuration for:
-    - `port`: The port on which the server listens.
-    - `max-connections`: Maximum number of concurrent connections the server can handle.
-    - `input-polling-interval-ms`: How frequently the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` in the source files to avoid stalling the tests)
-```yaml
-port: 8600
-max-connections: 125
-input-polling-interval-ms: 5000
-```
+The server is configured using a struct passed to it, provided in [Utils.hpp](./src/Utils.hpp), with the following parameters:
 
-Alternatively, you can also pass the values in the code itself, since the server does not parse configuration itself, but rather relies on a parsing function to put the values into a struct `HttpServerConfiguration`.
+- `port`: The port on which the server listens.
+- `maxConnections`: Maximum number of concurrent connections the server handles.
+- `inputPollingIntervalMs`: The interval (in milliseconds) at which the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` avoid stalling them)
+
+For simple cases, you can pass the values in the source code itself, and mark them as `constexpr` to avail compile-time optimization.
+
 ```c++
-HttpServerConfiguration config = {
-    .port = 8600
-    .maxConnections = 125
-    .inputPollingIntervalMs = 5000
-}
+constexpr int port = 8600;
+constexpr int maxConnections = 125;
+constexpr int inputPollingIntevalMs = 100;
+
+constexpr HttpServerConfiguration config (
+    port, maxConnections, inputPollingIntevalMs
+);
 
 HttpServer server(config, router);
 ```
+
+However it's recommended to use configuration files and then parse the values into the server configuration at runtime, this is standard practice. I did knot provide defualt configuration format and libraries for the purpose of flexibility; you can choose what file format and libraries to use.
 
 # Commands
 Currently, the server supports the following commands from standard console input:\
