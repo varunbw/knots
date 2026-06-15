@@ -9,7 +9,6 @@
     @param maxConnections Maximum number of connections to accept
 */
 struct HttpServerConfiguration {
-
     int port;
     int maxConnections;
     int inputPollingIntevalMs;
