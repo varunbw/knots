@@ -54,6 +54,7 @@ std::string MakeErrorMessage(const std::string& message);
 
 
 enum class RequestLoggingVerbosity {
+    NONE,
     BASIC,
     INCLUDE_IP,
     INCLUDE_TIME,

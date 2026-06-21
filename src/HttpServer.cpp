@@ -474,14 +474,21 @@ void LogRequestResponse(
     const RequestLoggingVerbosity verbosity
 ) {
 
+    // IP
     in_addr clientIpAddress = address.sin_addr;
-    std::string clientIpAddressStr(INET_ADDRSTRLEN, 0);
+    std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
     inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
 
+    // Time
+    std::chrono::zoned_time zonedTime {
+        "Asia/Kolkata",
+        std::chrono::system_clock::now()
+    };
+
     Log::Raw(std::format(
-        "{}, {:.22} - {} {} {}",
+        "[{:.22}] {} - {} {} \"{}\"",
+        std::format("{}", zonedTime),
         clientIpAddressStr,
-        std::format("{}", std::chrono::system_clock::now()),
         responseCode,
         req.method,
         req.requestUrl
@@ -533,6 +540,8 @@ bool HttpServer::HandleRequest(
 
     const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
     res.SetHeader("Connection", requestConnectionHeader.value_or("close"));
+
+    LogRequestResponse(req, res.statusCode, clientAddress, RequestLoggingVerbosity::FULL);
 
     const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket, resStr, 0);

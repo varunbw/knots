@@ -51,6 +51,7 @@ namespace Log {
     }
 
     void Debug(const std::string& message) {
+        std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << std::format(
             "[DEBUG]: {}\n",
             message
@@ -58,6 +59,7 @@ namespace Log {
     }
 
     void Raw(const std::string& message, const std::string_view end) {
+        std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << message << end;
     }
 }
