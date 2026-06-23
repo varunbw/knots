@@ -18,20 +18,24 @@ struct HttpServerConfiguration {
     int port;
     int maxConnections;
     int inputPollingIntevalMs;
+    RequestLoggingVerbosity requestLoggingVerbosity;
 
     constexpr HttpServerConfiguration() :
         port(-1),
         maxConnections(-1),
-        inputPollingIntevalMs(-1)
+        inputPollingIntevalMs(-1),
+        requestLoggingVerbosity(RequestLoggingVerbosity::NONE)
     {};
 
     constexpr HttpServerConfiguration(
         const int port,
         const int maxConnections,
-        const bool inputPollingIntevalMs
+        const bool inputPollingIntevalMs,
+        const RequestLoggingVerbosity requestLoggingVerbosity
     ) :
         port(port),
         maxConnections(maxConnections),
-        inputPollingIntevalMs(inputPollingIntevalMs)
+        inputPollingIntevalMs(inputPollingIntevalMs),
+        requestLoggingVerbosity(requestLoggingVerbosity)
     {};
 };

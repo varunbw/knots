@@ -89,9 +89,10 @@ For simple cases, you can pass the values in the source code itself, and mark th
 constexpr int port = 8600;
 constexpr int maxConnections = 125;
 constexpr int inputPollingIntevalMs = 100;
+constexpr RequestLoggingVerbosity verbosity = RequestLoggingVerbosity::FULL;
 
 constexpr HttpServerConfiguration config (
-    port, maxConnections, inputPollingIntevalMs
+    port, maxConnections, inputPollingIntevalMs, verbosity
 );
 
 HttpServer server(config, router);

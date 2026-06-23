@@ -1,5 +1,6 @@
 #include "knots/HttpServer.hpp"
 #include "knots/StaticRoutes.hpp"
+#include "knots/utils/Config.hpp"
 #include "knots/utils/Log.hpp"
 
 int main(void) {
@@ -7,9 +8,10 @@ int main(void) {
     constexpr int port = 8600;
     constexpr int maxConnections = 125;
     constexpr int inputPollingIntevalMs = 100;
+    constexpr RequestLoggingVerbosity verbosity = RequestLoggingVerbosity::FULL;
 
     constexpr HttpServerConfiguration config (
-        port, maxConnections, inputPollingIntevalMs
+        port, maxConnections, inputPollingIntevalMs, verbosity
     );
 
     Router router;
