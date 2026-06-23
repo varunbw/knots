@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 /*
     Specify the verbosity at which the server should log a req-res combo
 
@@ -32,34 +34,30 @@ enum class RequestLoggingVerbosity {
 };
 
 /*
-    @brief Configuration object for the HTTP server
-    @param port Port to listen on
-    @param rootDirectory Root directory for the server
-    @param maxConnections Maximum number of connections to accept
-    @param requestLoggingVerbosity Verbosity at which to log the incoming requests, and their response code
+    Configuration object for the HTTP server
+    - port
+        Port to listen on
+
+    - rootDirectory
+        Root directory for the server
+
+    - maxConnections
+        Maximum number of connections to accept
+
+    - requestLoggingVerbosity
+        Verbosity at which to log the incoming requests, and their response code
+
+    - timeZone
+        To provide correct time for logging, see
+        https://en.cppreference.com/cpp/chrono/zoned_time
+        https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+        Check "TZ Identifier" column in the wikipedia link to get your timezone
 */
 struct HttpServerConfiguration {
     int port;
     int maxConnections;
     int inputPollingIntevalMs;
     RequestLoggingVerbosity requestLoggingVerbosity;
-
-    constexpr HttpServerConfiguration() :
-        port(-1),
-        maxConnections(-1),
-        inputPollingIntevalMs(-1),
-        requestLoggingVerbosity(RequestLoggingVerbosity::NONE)
-    {};
-
-    constexpr HttpServerConfiguration(
-        const int port,
-        const int maxConnections,
-        const bool inputPollingIntevalMs,
-        const RequestLoggingVerbosity requestLoggingVerbosity
-    ) :
-        port(port),
-        maxConnections(maxConnections),
-        inputPollingIntevalMs(inputPollingIntevalMs),
-        requestLoggingVerbosity(requestLoggingVerbosity)
-    {};
+    std::string_view timeZone;
 };

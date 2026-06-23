@@ -52,9 +52,12 @@ private:
         const Socket& clientSocketFD,
         const sockaddr_in& clientAddress
     );
-
-    // Error handling
-    void HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const;
+    void HandleError(
+        const int statusCode,
+        const HttpRequest& req,
+        const Socket& clientSocket,
+        const sockaddr_in& clientAddress
+    ) const;
     
 public:
     explicit HttpServer(const HttpServerConfiguration config, const Router& router);

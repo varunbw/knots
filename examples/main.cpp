@@ -1,17 +1,17 @@
 #include "knots/HttpServer.hpp"
 #include "knots/StaticRoutes.hpp"
+#include "knots/utils/Config.hpp"
 #include "knots/utils/Log.hpp"
 
 int main(void) {
 
-    constexpr int port = 8600;
-    constexpr int maxConnections = 125;
-    constexpr int inputPollingIntevalMs = 100;
-    constexpr RequestLoggingVerbosity verbosity = RequestLoggingVerbosity::FULL;
-
-    constexpr HttpServerConfiguration config (
-        port, maxConnections, inputPollingIntevalMs, verbosity
-    );
+    constexpr HttpServerConfiguration config {
+        .port = 8600,
+        .maxConnections = 125,
+        .inputPollingIntevalMs = 100,
+        .requestLoggingVerbosity = RequestLoggingVerbosity::FULL,
+        .timeZone = "Asia/Kolkata"
+    };
 
     Router router;
 

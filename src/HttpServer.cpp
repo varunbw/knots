@@ -387,7 +387,7 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
             clientSocket.Get()
         ));
 
-        HandleError(500, {}, clientSocket);
+        HandleError(500, {}, clientSocket, clientAddress);
         return;
     }
 
@@ -433,57 +433,28 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
 
 
 /*
-    @brief Wrapper for handling any custom behavior for response codes along with `m_errorRouter`
-    @param statusCode Status code of the response
-    @param req Request object
-    @param clientSocket Socket object corresponding to the client
+    @brief Log the request and its corresponding response code
+    @param req Incoming request
+    @param responseCode Response code !!!
+    @param address Client address information
+    @param requestLoggingVerbosity Logging verbosity, check include/knots/Config.hpp for info
 */
-void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
-
-    HttpResponse res;
-
-    const HandlerFunction* handler = FetchErrorRoute(statusCode);
-
-    if (handler != nullptr) {
-        (*handler)(req, res);
-    }
-
-    res.SetStatus(statusCode);
-    NetworkIO::Send(clientSocket, res.Serialize(), 0);
-    return;
-}
-
-void HttpServer::AddErrorRoute(short int responseStatusCode, HandlerFunction handler) {
-    m_errorRouter[responseStatusCode] = handler;
-    return;
-}
-
-const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode) const {
-    auto it = m_errorRouter.find(responseStatusCode);
-    if (it == m_errorRouter.end()) {
-        return nullptr;
-    }
-
-    return &(it->second);
-}
-
-
 void LogRequestResponse(
     const HttpRequest& req,
     const int responseCode,
     const sockaddr_in& address,
-    const RequestLoggingVerbosity verbosity
+    const HttpServerConfiguration& config
 ) {
     // REPITITION TIME, SENIOR DEVS BRACE YOURSELF (why is a senior dev reading this project)
     // Could reduce code duplication with selective initialization, but zoned_time cannot be reassigned
     // so that's a pain in the ass to do
     // This is cleaner
 
-    if (verbosity == RequestLoggingVerbosity::NONE) {
+    if (config.requestLoggingVerbosity == RequestLoggingVerbosity::NONE) {
         return;
     } 
 
-    else if (verbosity == RequestLoggingVerbosity::BASIC) {
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::BASIC) {
         Log::Raw(std::format(
             "- {} {} \"{}\"",
             responseCode,
@@ -494,7 +465,7 @@ void LogRequestResponse(
         return;
     } 
 
-    else if (verbosity == RequestLoggingVerbosity::INCLUDE_IP) {
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::INCLUDE_IP) {
         std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
         in_addr clientIpAddress = address.sin_addr;
         inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
@@ -510,9 +481,9 @@ void LogRequestResponse(
         return;
     } 
 
-    else if (verbosity == RequestLoggingVerbosity::INCLUDE_TIME) {
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::INCLUDE_TIME) {
         std::chrono::zoned_time zonedTime {
-            "Asia/Kolkata",
+            config.timeZone,
             std::chrono::system_clock::now()
         };
 
@@ -527,14 +498,14 @@ void LogRequestResponse(
         return;
     } 
 
-    else if (verbosity == RequestLoggingVerbosity::FULL) {
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::FULL) {
         std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
         in_addr clientIpAddress = address.sin_addr;
         inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
 
         // Time
         std::chrono::zoned_time zonedTime {
-            "Asia/Kolkata",
+            config.timeZone,
             std::chrono::system_clock::now()
         };
 
@@ -555,6 +526,51 @@ void LogRequestResponse(
 
 
 /*
+    @brief Wrapper for handling any custom behavior for response codes along with `m_errorRouter`
+    @param statusCode Status code of the response
+    @param req Request object
+    @param clientSocket Socket object corresponding to the client
+*/
+void HttpServer::HandleError(
+    const int statusCode,
+    const HttpRequest& req,
+    const Socket& clientSocket,
+    const sockaddr_in& clientAddress
+) const {
+
+    HttpResponse res;
+
+    const HandlerFunction* handler = FetchErrorRoute(statusCode);
+
+    if (handler != nullptr) {
+        (*handler)(req, res);
+    }
+
+    res.SetStatus(statusCode);
+    NetworkIO::Send(clientSocket, res.Serialize(), 0);
+
+    LogRequestResponse(req, res.statusCode, clientAddress, m_config);
+
+    return;
+}
+
+void HttpServer::AddErrorRoute(short int responseStatusCode, HandlerFunction handler) {
+    m_errorRouter[responseStatusCode] = handler;
+    return;
+}
+
+const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode) const {
+    auto it = m_errorRouter.find(responseStatusCode);
+    if (it == m_errorRouter.end()) {
+        return nullptr;
+    }
+
+    return &(it->second);
+}
+
+
+
+/*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
     @param clientSocketFD The socketFD for the client
@@ -571,7 +587,7 @@ bool HttpServer::HandleRequest(
 
     // HTTP 400 - Bad Request
     if (parseResult == false) {
-        HandleError(400, req, clientSocket);
+        HandleError(400, req, clientSocket, clientAddress);
         return false;
     }
 
@@ -579,14 +595,14 @@ bool HttpServer::HandleRequest(
     // If a segment could not be found for the request, or if
     if (handlers == nullptr) {
         // HTTP 404 - Not Found
-        HandleError(404, req, clientSocket);
+        HandleError(404, req, clientSocket, clientAddress);
         return false;
     }
 
     const HandlerFunction& handler = handlers->GetHandler(req.method);
     if (handler == nullptr) {
         // HTTP 405 - Method not allowed
-        HandleError(405, req, clientSocket);
+        HandleError(405, req, clientSocket, clientAddress);
         return false;
     }
 
@@ -597,11 +613,12 @@ bool HttpServer::HandleRequest(
     const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
     res.SetHeader("Connection", requestConnectionHeader.value_or("close"));
 
-    LogRequestResponse(req, res.statusCode, clientAddress, m_config.requestLoggingVerbosity);
-
     const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket, resStr, 0);
 
-    // Return true if connection header is "keep-alive", else false
+    LogRequestResponse(req, res.statusCode, clientAddress, m_config);
+
+    // `HttpServer::HandleConnection` keeps the connection alive based on this value
+    // Returns accordingly
     return requestConnectionHeader.value_or("close") == "keep-alive";
 }
