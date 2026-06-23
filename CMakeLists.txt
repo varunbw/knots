@@ -28,7 +28,7 @@ add_library(
     src/Router.cpp
     src/StaticRoutes.cpp
     src/ThreadPool.cpp
-    src/Utils.cpp
+    src/utils/Log.cpp
 )
 
 target_compile_options(knots PRIVATE 

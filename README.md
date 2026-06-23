@@ -29,7 +29,8 @@ GoogleTest is only fetched and built when you are developing the knots library i
     - [Router.cpp](./src/Router.cpp) - URL routing logic
     - [StaticRoutes.cpp](./src/StaticRoutes.cpp) - Utility for managing the routing for static files
     - [ThreadPool.cpp](./src/ThreadPool.cpp) - Thread pool for request management
-    - [Utils.cpp](./src/Utils.cpp) - Utility functions
+    - `utils/` - Utility stuff
+        - [Log.cpp](./src/utils/Log.cpp) - Logging functions
 - `tests/` - Unit tests
 
 # Building
@@ -76,22 +77,24 @@ ctest --preset tests-debug
 
 # Configuration
 
-The server is configured using a struct passed to it, provided in [Utils.hpp](./src/Utils.hpp), with the following parameters:
+The server is configured using a struct passed to it, provided in [Config.hpp](./include/knots/utils/Config.hpp), with the following parameters:
 
 - `port`: The port on which the server listens.
 - `maxConnections`: Maximum number of concurrent connections the server handles.
 - `inputPollingIntervalMs`: The interval (in milliseconds) at which the thread responsible for handling console input should check for an user input. (In tests, this is set to `0` avoid stalling them)
+- `requestLoggingVerbosity` - How detailed the request logging should be, check [Config.hpp](./include/knots/utils/Config.hpp) for detailed information.
+- `timeZone` - Your time zone to provide acccurate logging
 
-For simple cases, you can pass the values in the source code itself, and mark them as `constexpr` to avail compile-time optimization.
+For simple cases, you can pass the values in the source code itself.
 
 ```c++
-constexpr int port = 8600;
-constexpr int maxConnections = 125;
-constexpr int inputPollingIntevalMs = 100;
-
-constexpr HttpServerConfiguration config (
-    port, maxConnections, inputPollingIntevalMs
-);
+constexpr HttpServerConfiguration config {
+    .port = 8600,
+    .maxConnections = 125,
+    .inputPollingIntevalMs = 100,
+    .requestLoggingVerbosity = RequestLoggingVerbosity::FULL,
+    .timeZone = "Asia/Kolkata"
+};
 
 HttpServer server(config, router);
 ```

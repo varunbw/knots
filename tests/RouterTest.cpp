@@ -1,8 +1,7 @@
-#include <fstream>
 #include <gtest/gtest.h>
 
 #include "knots/Router.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 TEST(RouterTest, RouteEquality) {
 
@@ -250,19 +249,19 @@ TEST(RouterTest, CheckRouteParameterParsing) {
             req.method = method;
 
             const SegmentHandlerFunctions* handlers = router.FetchFunctionsForRoute(req);
-            EXPECT_TRUE(handlers) << MakeErrorMessage(std::format(
+            EXPECT_TRUE(handlers) << Log::MakeErrorMessage(std::format(
                 "Handler not found for Route: {}, {}",
                 method, url
             ));
             
             const HandlerFunction& handler  = handlers->GetHandler(req.method);
-            EXPECT_TRUE(handler) << MakeErrorMessage(std::format(
+            EXPECT_TRUE(handler) << Log::MakeErrorMessage(std::format(
                 "Handler not found for Route: {}, {}",
                 method, url
             ));
 
             for (auto& param : req.routeParams) {
-                EXPECT_EQ(param.second, "100") << MakeErrorMessage(std::format(
+                EXPECT_EQ(param.second, "100") << Log::MakeErrorMessage(std::format(
                     "Incorrect param for Route: {}, {}",
                     method, url
                 ));

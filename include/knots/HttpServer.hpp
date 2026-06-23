@@ -2,14 +2,15 @@
 
 #include <arpa/inet.h>
 #include <mutex>
+#include <netinet/in.h>
 #include <set>
 #include <thread>
 
+#include "knots/HttpMessage.hpp"
 #include "knots/Router.hpp"
 #include "knots/Socket.hpp"
-#include "knots/HttpMessage.hpp"
 #include "knots/ThreadPool.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Config.hpp"
 
 class HttpServer {
 private:
@@ -28,7 +29,7 @@ private:
     Socket m_serverSocket;
     int m_serverPort;
 
-    HttpServerConfiguration m_config;
+    const HttpServerConfiguration m_config;
 
     // Routers
     Router m_router;
@@ -45,11 +46,18 @@ private:
     
     // Handle client connection
     bool SetClientSocketOptions(const Socket& clientSocket) const;
-    void HandleConnection(Socket clientSocket);
-    bool HandleRequest(std::stringstream& ss, const Socket& clientSocketFD);
-
-    // Error handling
-    void HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const;
+    void HandleConnection(Socket clientSocket, const sockaddr_in clientAddress);
+    bool HandleRequest(
+        std::stringstream& ss,
+        const Socket& clientSocketFD,
+        const sockaddr_in& clientAddress
+    );
+    void HandleError(
+        const int statusCode,
+        const HttpRequest& req,
+        const Socket& clientSocket,
+        const sockaddr_in& clientAddress
+    ) const;
     
 public:
     explicit HttpServer(const HttpServerConfiguration config, const Router& router);

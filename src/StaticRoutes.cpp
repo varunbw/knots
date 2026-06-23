@@ -3,7 +3,7 @@
 #include "knots/FileHandler.hpp" 
 #include "knots/HttpMessage.hpp"
 #include "knots/StaticRoutes.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 namespace fs = std::filesystem;
 
@@ -57,6 +57,10 @@ void StaticRoutes::AddStaticFile(
         [path] (const HttpRequest& req, HttpResponse& res) {
 
             const std::optional<std::string> fileContents = FileHandler::GetFileContents(path);
+
+            if (path.extension() == ".js") {
+                res.SetHeader("Content-Type", "text/javascript");
+            }
 
             if (fileContents.has_value()) {
                 res.SetBody(fileContents.value());

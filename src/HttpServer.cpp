@@ -2,6 +2,7 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
 #include <sstream>
@@ -14,9 +15,11 @@
 #include <vector>
 
 #include "knots/HttpServer.hpp"
+#include "knots/HttpMessage.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/ThreadPool.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Config.hpp"
+#include "knots/utils/Log.hpp"
 
 /*
     @brief Set up the HTTP server
@@ -36,7 +39,7 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
 
     // Check if the socket was created successfully
     if (m_serverSocket.Get() < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Socket creation failed"
         ));
     }
@@ -60,14 +63,14 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
 
     // Bind the socket to the port
     if (bind(m_serverSocket.Get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Socket binding failed"
         ));
     };
 
     // Start listening for connections
     if (listen(m_serverSocket.Get(), m_config.maxConnections) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
     }
@@ -110,12 +113,12 @@ void HttpServer::SetServerSocketOptions() {
     // Allow address reuse
     int opt = 1;
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_REUSEADDR"));
     }
 
     // Allow port reuse
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_REUSEPORT"));
     }
 
     // Set receive timeout
@@ -123,17 +126,17 @@ void HttpServer::SetServerSocketOptions() {
     timeout.tv_sec = 10;  // 10 seconds timeout
     timeout.tv_usec = 0;
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_RCVTIMEO"));
     }
 
     // Set send timeout
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_SNDTIMEO"));
     }
 
     // Set TCP keep-alive
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_KEEPALIVE"));
     }
 
     return;
@@ -146,21 +149,21 @@ void HttpServer::ValidateServerConfiguration() const {
 
     // Check if the port number is valid
     if (m_config.port <= 0 || m_config.port > 65536) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid port number: {} | Allowed range: 0 - 65536 (both inclusive)",
             m_config.port
         )));
     }
 
     if (m_config.maxConnections <= 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid max connections: {} | Allowed range: > 0",
             m_config.maxConnections
         )));
     }
 
     if (m_config.inputPollingIntevalMs < 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid input polling timeout: {} ms | Allowed range: > 0ms",
             m_config.inputPollingIntevalMs
         )));
@@ -316,7 +319,7 @@ void HttpServer::AcceptConnections() {
     while (m_isRunning) {
         // Socket information for the client
         sockaddr_in clientAddress{};
-        socklen_t clientAddressLen = sizeof(m_address);
+        socklen_t clientAddressLen = sizeof(clientAddress);
 
         int clientSocketFD = accept(
             m_serverSocket.Get(),
@@ -350,8 +353,8 @@ void HttpServer::AcceptConnections() {
         {
             std::scoped_lock<std::mutex> lock(m_threadPoolMutex);
             m_threadPool.EnqueueJob(
-                [this, clientSocketFD] () {
-                    HandleConnection(Socket(clientSocketFD));
+                [this, clientSocketFD, clientAddress] () {
+                    HandleConnection(Socket(clientSocketFD), clientAddress);
                 }
             );
         }
@@ -371,7 +374,7 @@ void HttpServer::AcceptConnections() {
     @param clientSocketFD The socket file descriptor for the client connection
     @param clientAddress The address of the client
 */
-void HttpServer::HandleConnection(Socket clientSocket) {
+void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientAddress) {
 
     /*
         If the options could not be set, don't process the request further, as it
@@ -384,7 +387,7 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             clientSocket.Get()
         ));
 
-        HandleError(500, {}, clientSocket);
+        HandleError(500, {}, clientSocket, clientAddress);
         return;
     }
 
@@ -420,9 +423,102 @@ void HttpServer::HandleConnection(Socket clientSocket) {
             HandleRequest() returns whether or not to keep a connection alive
             If false, break the loop here and stop this connection
         */
-        if (HandleRequest(ss, clientSocket) == false) {
+        if (HandleRequest(ss, clientSocket, clientAddress) == false) {
             break;
         }
+    }
+
+    return;
+}
+
+
+/*
+    @brief Log the request and its corresponding response code
+    @param req Incoming request
+    @param responseCode Response code !!!
+    @param address Client address information
+    @param requestLoggingVerbosity Logging verbosity, check include/knots/Config.hpp for info
+*/
+void LogRequestResponse(
+    const HttpRequest& req,
+    const int responseCode,
+    const sockaddr_in& address,
+    const HttpServerConfiguration& config
+) {
+    // REPITITION TIME, SENIOR DEVS BRACE YOURSELF (why is a senior dev reading this project)
+    // Could reduce code duplication with selective initialization, but zoned_time cannot be reassigned
+    // so that's a pain in the ass to do
+    // This is cleaner
+
+    if (config.requestLoggingVerbosity == RequestLoggingVerbosity::NONE) {
+        return;
+    } 
+
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::BASIC) {
+        Log::Raw(std::format(
+            "- {} {} \"{}\"",
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    } 
+
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::INCLUDE_IP) {
+        std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
+        in_addr clientIpAddress = address.sin_addr;
+        inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+
+        Log::Raw(std::format(
+            "{} - {} {} \"{}\"",
+            clientIpAddressStr,
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    } 
+
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::INCLUDE_TIME) {
+        std::chrono::zoned_time zonedTime {
+            config.timeZone,
+            std::chrono::system_clock::now()
+        };
+
+        Log::Raw(std::format(
+            "[{:.22}] - {} {} \"{}\"",
+            std::format("{}", zonedTime),
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    } 
+
+    else if (config.requestLoggingVerbosity == RequestLoggingVerbosity::FULL) {
+        std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
+        in_addr clientIpAddress = address.sin_addr;
+        inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+
+        // Time
+        std::chrono::zoned_time zonedTime {
+            config.timeZone,
+            std::chrono::system_clock::now()
+        };
+
+        Log::Raw(std::format(
+            "[{:.22}] {} - {} {} \"{}\"",
+            std::format("{}", zonedTime),
+            clientIpAddressStr,
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
     }
 
     return;
@@ -435,7 +531,12 @@ void HttpServer::HandleConnection(Socket clientSocket) {
     @param req Request object
     @param clientSocket Socket object corresponding to the client
 */
-void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const Socket& clientSocket) const {
+void HttpServer::HandleError(
+    const int statusCode,
+    const HttpRequest& req,
+    const Socket& clientSocket,
+    const sockaddr_in& clientAddress
+) const {
 
     HttpResponse res;
 
@@ -447,6 +548,9 @@ void HttpServer::HandleError(const int statusCode, const HttpRequest& req, const
 
     res.SetStatus(statusCode);
     NetworkIO::Send(clientSocket, res.Serialize(), 0);
+
+    LogRequestResponse(req, res.statusCode, clientAddress, m_config);
+
     return;
 }
 
@@ -465,6 +569,7 @@ const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode)
 }
 
 
+
 /*
     @brief Processes one HTTP request and sends the appropriate response
     @param ss The stringstream containing the raw request
@@ -474,14 +579,15 @@ const HandlerFunction* HttpServer::FetchErrorRoute(short int responseStatusCode)
 */
 bool HttpServer::HandleRequest(
     std::stringstream& ss,
-    const Socket& clientSocket
+    const Socket& clientSocket,
+    const sockaddr_in& clientAddress
 ) {
     HttpRequest req;
     const bool parseResult = req.ParseFrom(ss);
 
     // HTTP 400 - Bad Request
     if (parseResult == false) {
-        HandleError(400, req, clientSocket);
+        HandleError(400, req, clientSocket, clientAddress);
         return false;
     }
 
@@ -489,14 +595,14 @@ bool HttpServer::HandleRequest(
     // If a segment could not be found for the request, or if
     if (handlers == nullptr) {
         // HTTP 404 - Not Found
-        HandleError(404, req, clientSocket);
+        HandleError(404, req, clientSocket, clientAddress);
         return false;
     }
 
     const HandlerFunction& handler = handlers->GetHandler(req.method);
     if (handler == nullptr) {
         // HTTP 405 - Method not allowed
-        HandleError(405, req, clientSocket);
+        HandleError(405, req, clientSocket, clientAddress);
         return false;
     }
 
@@ -510,6 +616,9 @@ bool HttpServer::HandleRequest(
     const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket, resStr, 0);
 
-    // Return true if connection header is "keep-alive", else false
+    LogRequestResponse(req, res.statusCode, clientAddress, m_config);
+
+    // `HttpServer::HandleConnection` keeps the connection alive based on this value
+    // Returns accordingly
     return requestConnectionHeader.value_or("close") == "keep-alive";
 }

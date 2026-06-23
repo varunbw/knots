@@ -5,7 +5,7 @@
 #include <random>
 #include <sys/types.h>
 
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 #include "knots/FileHandler.hpp"
 
 class RandomFileGenerator {

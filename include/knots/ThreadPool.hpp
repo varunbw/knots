@@ -6,8 +6,6 @@
 #include <thread>
 #include <vector>
 
-#include "knots/Socket.hpp"
-
 class ThreadPool {
 private:
     int m_threadCount;

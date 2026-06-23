@@ -5,7 +5,7 @@
 #include <shared_mutex>
 
 #include <knots/FileHandler.hpp>
-#include <knots/Utils.hpp>
+#include <knots/utils/Log.hpp>
 
 bool FileHandler::CacheFile(const std::filesystem::path& path) {
 
