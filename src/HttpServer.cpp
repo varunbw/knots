@@ -39,7 +39,7 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
 
     // Check if the socket was created successfully
     if (m_serverSocket.Get() < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Socket creation failed"
         ));
     }
@@ -63,14 +63,14 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
 
     // Bind the socket to the port
     if (bind(m_serverSocket.Get(), (struct sockaddr*)& m_address, sizeof(m_address)) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Socket binding failed"
         ));
     };
 
     // Start listening for connections
     if (listen(m_serverSocket.Get(), m_config.maxConnections) < 0) {
-        throw std::runtime_error(MakeErrorMessage(
+        throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
     }
@@ -113,12 +113,12 @@ void HttpServer::SetServerSocketOptions() {
     // Allow address reuse
     int opt = 1;
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEADDR"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_REUSEADDR"));
     }
 
     // Allow port reuse
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_REUSEPORT"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_REUSEPORT"));
     }
 
     // Set receive timeout
@@ -126,17 +126,17 @@ void HttpServer::SetServerSocketOptions() {
     timeout.tv_sec = 10;  // 10 seconds timeout
     timeout.tv_usec = 0;
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_RCVTIMEO"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_RCVTIMEO"));
     }
 
     // Set send timeout
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_SNDTIMEO"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_SNDTIMEO"));
     }
 
     // Set TCP keep-alive
     if (setsockopt(m_serverSocket.Get(), SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error(MakeErrorMessage("Failed to set SO_KEEPALIVE"));
+        throw std::runtime_error(Log::MakeErrorMessage("Failed to set SO_KEEPALIVE"));
     }
 
     return;
@@ -149,21 +149,21 @@ void HttpServer::ValidateServerConfiguration() const {
 
     // Check if the port number is valid
     if (m_config.port <= 0 || m_config.port > 65536) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid port number: {} | Allowed range: 0 - 65536 (both inclusive)",
             m_config.port
         )));
     }
 
     if (m_config.maxConnections <= 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid max connections: {} | Allowed range: > 0",
             m_config.maxConnections
         )));
     }
 
     if (m_config.inputPollingIntevalMs < 0) {
-        throw std::invalid_argument(MakeErrorMessage(std::format(
+        throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid input polling timeout: {} ms | Allowed range: > 0ms",
             m_config.inputPollingIntevalMs
         )));

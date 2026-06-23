@@ -27,7 +27,7 @@ const HandlerFunction& SegmentHandlerFunctions::GetHandler(const HttpMethod meth
         case HttpMethod::DEFAULT_INVALID: break;
     }
 
-    throw std::invalid_argument(MakeErrorMessage(
+    throw std::invalid_argument(Log::MakeErrorMessage(
         "Invalid HttpMethod passed when querying segment for handler function")
     );
 }

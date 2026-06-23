@@ -18,7 +18,7 @@ namespace Log {
 
     std::mutex cerrMutex;        
 
-    void Error(const std::string& message) {
+    void Error(const std::string_view message) {
         std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             RED_START "[ERROR]: {}\n" RESET_COLOR,
@@ -26,7 +26,7 @@ namespace Log {
         );
     }
 
-    void Warning(const std::string& message) {
+    void Warning(const std::string_view message) {
         std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             YELLOW_START "[WARNING]: {}\n" RESET_COLOR,
@@ -34,7 +34,7 @@ namespace Log {
         );
     }
 
-    void Success(const std::string& message) {
+    void Success(const std::string_view message) {
         std::scoped_lock<std::mutex> coutMutexLock(cerrMutex);
         std::cerr << std::format(
             GREEN_START "[SUCCESS]: {}\n" RESET_COLOR,
@@ -42,7 +42,7 @@ namespace Log {
         );
     }
 
-    void Info(const std::string& message) {
+    void Info(const std::string_view message) {
         std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << std::format(
             "[INFO]: {}\n",
@@ -50,7 +50,7 @@ namespace Log {
         );
     }
 
-    void Debug(const std::string& message) {
+    void Debug(const std::string_view message) {
         std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << std::format(
             "[DEBUG]: {}\n",
@@ -58,16 +58,17 @@ namespace Log {
         );
     }
 
-    void Raw(const std::string& message, const std::string_view end) {
+    void Raw(const std::string_view message, const std::string_view end) {
         std::scoped_lock<std::mutex> cerrMutexLock(cerrMutex);
         std::cerr << message << end;
+    }
+
+    std::string MakeErrorMessage(const std::string_view message) {
+        return std::format(
+            RED_START "[ERROR]: {}\n" RESET_COLOR,
+            message
+        );
     }
 }
 
 
-std::string MakeErrorMessage(const std::string& message) {
-    return std::format(
-        RED_START "[ERROR]: {}\n" RESET_COLOR,
-        message
-    );
-}

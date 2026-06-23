@@ -98,12 +98,12 @@ TEST(HttpServerTest, BasicConnection) {
     Client client;
 
     // Client initialized properly?
-    EXPECT_TRUE(client.m_isReady) << MakeErrorMessage(
+    EXPECT_TRUE(client.m_isReady) << Log::MakeErrorMessage(
         "Client failed to initialize"
     );
 
     // Client can connect to server?
-    EXPECT_TRUE(client.ConnectToServer()) << MakeErrorMessage(
+    EXPECT_TRUE(client.ConnectToServer()) << Log::MakeErrorMessage(
         "Client could not connect to server"
     );
 
@@ -140,13 +140,13 @@ TEST(HttpServerTest, BasicRequestResponse) {
     Client client;
 
     // Client initialized properly?
-    EXPECT_TRUE(client.m_isReady) << MakeErrorMessage(
+    EXPECT_TRUE(client.m_isReady) << Log::MakeErrorMessage(
         "Client failed to initialize"
     );
     
     // Client can connect to server?
     EXPECT_TRUE(client.ConnectToServer())
-        << MakeErrorMessage("Client could not connect to server");
+        << Log::MakeErrorMessage("Client could not connect to server");
 
     const std::string req = 
         "GET / HTTP/1.1\r\n"
@@ -156,14 +156,14 @@ TEST(HttpServerTest, BasicRequestResponse) {
     
     // Request sent?
     EXPECT_TRUE(NetworkIO::Send(client.m_socket, req, 0))
-        << MakeErrorMessage("Client failed to send request to server");
+        << Log::MakeErrorMessage("Client failed to send request to server");
 
     std::string buffer(1024, '\0');
     ssize_t bytesReceived = recv(client.m_socket.Get(), buffer.data(), buffer.size() - 1, 0);
 
     // Received response properly?
     ASSERT_GT(bytesReceived, 0)
-        << MakeErrorMessage(std::format(
+        << Log::MakeErrorMessage(std::format(
             "Client did not receive properly, `bytesReceived`:{}",
             bytesReceived
         ));
@@ -182,7 +182,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
 
     // Received correct response?
     EXPECT_EQ(buffer, expectedResponse)
-        << MakeErrorMessage("Wrong message received");
+        << Log::MakeErrorMessage("Wrong message received");
 
     server.Shutdown();
 }
@@ -204,13 +204,13 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
     Client client;
 
     // Client initialized properly?
-    EXPECT_TRUE(client.m_isReady) << MakeErrorMessage(
+    EXPECT_TRUE(client.m_isReady) << Log::MakeErrorMessage(
         "Client failed to initialize"
     );
     
     // Client can connect to server?
     EXPECT_TRUE(client.ConnectToServer())
-        << MakeErrorMessage("Client could not connect to server");
+        << Log::MakeErrorMessage("Client could not connect to server");
 
     const std::string req = 
         "GET /invalid HTTP/1.1\r\n"
@@ -220,7 +220,7 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
     
     // Request sent?
     EXPECT_TRUE(NetworkIO::Send(client.m_socket, req, 0))
-        << MakeErrorMessage("Client failed to send request to server");
+        << Log::MakeErrorMessage("Client failed to send request to server");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -229,7 +229,7 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
 
     // Received response properly?
     ASSERT_GT(bytesReceived, 0)
-        << MakeErrorMessage(std::format(
+        << Log::MakeErrorMessage(std::format(
             "Client did not receive properly, `bytesReceived`:{}",
             bytesReceived
         ));
@@ -241,7 +241,7 @@ TEST(HttpServerTest, InvalidRouteReturns404) {
     // Without a custom response, this is all that's sent by default
     const std::string expectedResponse = "HTTP/1.1 404 Not Found\r\n\r\n";
     EXPECT_EQ(buffer, expectedResponse)
-        << MakeErrorMessage("Wrong message received");
+        << Log::MakeErrorMessage("Wrong message received");
 
     server.Shutdown();
 }
@@ -287,13 +287,13 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     Client client;
 
     // Client initialized properly?
-    EXPECT_TRUE(client.m_isReady) << MakeErrorMessage(
+    EXPECT_TRUE(client.m_isReady) << Log::MakeErrorMessage(
         "Client failed to initialize"
     );
     
     // Client can connect to server?
     EXPECT_TRUE(client.ConnectToServer())
-        << MakeErrorMessage("Client could not connect to server");
+        << Log::MakeErrorMessage("Client could not connect to server");
 
 
     const std::string req = 
@@ -307,7 +307,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     // Req #1
     // Request sent?
     EXPECT_TRUE(NetworkIO::Send(client.m_socket, req, 0))
-        << MakeErrorMessage("Client failed to send request to server");
+        << Log::MakeErrorMessage("Client failed to send request to server");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -317,7 +317,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
 
     // Received some response?
     EXPECT_GT(bytesReceived, 0)
-        << MakeErrorMessage(std::format(
+        << Log::MakeErrorMessage(std::format(
             "Client did not receive properly, `bytesReceived`:{}",
             bytesReceived
         ));
@@ -326,14 +326,14 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
 
     // Received correct response?
     EXPECT_EQ(buffer, serverResponse)
-        << MakeErrorMessage("Unexpected response from server");
+        << Log::MakeErrorMessage("Unexpected response from server");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // Req #2
     // Request sent again?
     EXPECT_TRUE(NetworkIO::Send(client.m_socket, req, 0))
-        << MakeErrorMessage("Client failed to send request to server");
+        << Log::MakeErrorMessage("Client failed to send request to server");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -342,7 +342,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
 
     // Received some response?
     EXPECT_GT(bytesReceived, 0)
-        << MakeErrorMessage(std::format(
+        << Log::MakeErrorMessage(std::format(
             "Client did not receive properly, `bytesReceived`:{}",
             bytesReceived
         ));
@@ -351,7 +351,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
 
     // Received correct response?
     EXPECT_EQ(buffer, serverResponse)
-        << MakeErrorMessage("Unexpected response from server");
+        << Log::MakeErrorMessage("Unexpected response from server");
 
     server.Shutdown();
 }
