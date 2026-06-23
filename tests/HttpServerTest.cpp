@@ -5,14 +5,15 @@
 #include "knots/HttpServer.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/Socket.hpp"
-#include "knots/utils/Log.hpp"
 #include "knots/utils/Config.hpp"
+#include "knots/utils/Log.hpp"
 
 
 constexpr int serverPort = 10000;
 constexpr int serverMaxConnections = 10;
 constexpr int inputPollingIntervalMs = 0;
 constexpr RequestLoggingVerbosity verbosity = RequestLoggingVerbosity::FULL;
+constexpr std::string_view timeZone = "Asia/Kolkata";
 
 /*
     Basic client object giving you a TCP socket to talk to the server
@@ -85,7 +86,7 @@ bool Client::ConnectToServer() {
 TEST(HttpServerTest, BasicConnection) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity
+        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
     );
     Router router;
 
@@ -121,7 +122,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
         "</body></html>\n";
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity
+        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
@@ -193,7 +194,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
 TEST(HttpServerTest, InvalidRouteReturns404) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity
+        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
@@ -268,7 +269,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     );
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity
+        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
