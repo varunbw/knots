@@ -40,8 +40,6 @@ int main(void) {
         }
     );
 
-    StaticRoutes::AddStaticDirectory("./static/purva-portfolio", router, "./static/purva-portfolio");
-
     HttpServer server(config, router);
 
     server.AddErrorRoute(404, [] (const HttpRequest& req, HttpResponse& res) {
