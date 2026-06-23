@@ -485,7 +485,7 @@ void LogRequestResponse(
 
     else if (verbosity == RequestLoggingVerbosity::BASIC) {
         Log::Raw(std::format(
-            "{} {} \"{}\"",
+            "- {} {} \"{}\"",
             responseCode,
             req.method,
             req.requestUrl
