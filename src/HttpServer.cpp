@@ -474,26 +474,81 @@ void LogRequestResponse(
     const sockaddr_in& address,
     const RequestLoggingVerbosity verbosity
 ) {
+    // REPITITION TIME, SENIOR DEVS BRACE YOURSELF (why is a senior dev reading this project)
+    // Could reduce code duplication with selective initialization, but zoned_time cannot be reassigned
+    // so that's a pain in the ass to do
+    // This is cleaner
 
-    // IP
-    in_addr clientIpAddress = address.sin_addr;
-    std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
-    inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+    if (verbosity == RequestLoggingVerbosity::NONE) {
+        return;
+    } 
 
-    // Time
-    std::chrono::zoned_time zonedTime {
-        "Asia/Kolkata",
-        std::chrono::system_clock::now()
-    };
+    else if (verbosity == RequestLoggingVerbosity::BASIC) {
+        Log::Raw(std::format(
+            "{} {} \"{}\"",
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
 
-    Log::Raw(std::format(
-        "[{:.22}] {} - {} {} \"{}\"",
-        std::format("{}", zonedTime),
-        clientIpAddressStr,
-        responseCode,
-        req.method,
-        req.requestUrl
-    ));
+        return;
+    } 
+
+    else if (verbosity == RequestLoggingVerbosity::INCLUDE_IP) {
+        std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
+        in_addr clientIpAddress = address.sin_addr;
+        inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+
+        Log::Raw(std::format(
+            "{} - {} {} \"{}\"",
+            clientIpAddressStr,
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    } 
+
+    else if (verbosity == RequestLoggingVerbosity::INCLUDE_TIME) {
+        std::chrono::zoned_time zonedTime {
+            "Asia/Kolkata",
+            std::chrono::system_clock::now()
+        };
+
+        Log::Raw(std::format(
+            "[{:.22}] - {} {} \"{}\"",
+            std::format("{}", zonedTime),
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    } 
+
+    else if (verbosity == RequestLoggingVerbosity::FULL) {
+        std::string clientIpAddressStr(INET_ADDRSTRLEN, ' ');
+        in_addr clientIpAddress = address.sin_addr;
+        inet_ntop(AF_INET, &clientIpAddress, clientIpAddressStr.data(), INET_ADDRSTRLEN);
+
+        // Time
+        std::chrono::zoned_time zonedTime {
+            "Asia/Kolkata",
+            std::chrono::system_clock::now()
+        };
+
+        Log::Raw(std::format(
+            "[{:.22}] {} - {} {} \"{}\"",
+            std::format("{}", zonedTime),
+            clientIpAddressStr,
+            responseCode,
+            req.method,
+            req.requestUrl
+        ));
+
+        return;
+    }
 
     return;
 }
@@ -542,7 +597,7 @@ bool HttpServer::HandleRequest(
     const std::optional<std::string> requestConnectionHeader = req.GetHeader("Connection");
     res.SetHeader("Connection", requestConnectionHeader.value_or("close"));
 
-    LogRequestResponse(req, res.statusCode, clientAddress, RequestLoggingVerbosity::FULL);
+    LogRequestResponse(req, res.statusCode, clientAddress, m_config.requestLoggingVerbosity);
 
     const std::string resStr = res.Serialize();
     NetworkIO::Send(clientSocket, resStr, 0);

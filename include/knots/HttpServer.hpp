@@ -29,7 +29,7 @@ private:
     Socket m_serverSocket;
     int m_serverPort;
 
-    HttpServerConfiguration m_config;
+    const HttpServerConfiguration m_config;
 
     // Routers
     Router m_router;
