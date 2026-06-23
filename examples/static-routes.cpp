@@ -1,6 +1,6 @@
 #include "knots/HttpServer.hpp"
 #include "knots/StaticRoutes.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 int main(void) {
 

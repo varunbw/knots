@@ -2,7 +2,7 @@
 #include <iostream>
 #include <mutex>
 
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 /*
     Used for coloring the output text

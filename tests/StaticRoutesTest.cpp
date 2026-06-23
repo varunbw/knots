@@ -8,7 +8,7 @@
 #include "knots/HttpMessage.hpp"
 #include "knots/Router.hpp"
 #include "knots/StaticRoutes.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 namespace fs = std::filesystem;
 

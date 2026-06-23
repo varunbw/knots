@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "knots/HttpMessage.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 
 // -- Helper functions start

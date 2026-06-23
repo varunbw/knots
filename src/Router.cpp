@@ -1,5 +1,5 @@
 #include "knots/Router.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 SegmentHandlerFunctions::SegmentHandlerFunctions() :
     m_post(nullptr),

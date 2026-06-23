@@ -5,7 +5,7 @@
 #include "knots/HttpServer.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/Socket.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 constexpr int serverPort = 10000;
 constexpr int serverMaxConnections = 10;

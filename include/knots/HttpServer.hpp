@@ -6,11 +6,11 @@
 #include <set>
 #include <thread>
 
+#include "knots/HttpMessage.hpp"
 #include "knots/Router.hpp"
 #include "knots/Socket.hpp"
-#include "knots/HttpMessage.hpp"
 #include "knots/ThreadPool.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Config.hpp"
 
 class HttpServer {
 private:

@@ -3,7 +3,7 @@
 #include "knots/FileHandler.hpp" 
 #include "knots/HttpMessage.hpp"
 #include "knots/StaticRoutes.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Log.hpp"
 
 namespace fs = std::filesystem;
 

@@ -18,7 +18,8 @@
 #include "knots/HttpMessage.hpp"
 #include "knots/NetworkIO.hpp"
 #include "knots/ThreadPool.hpp"
-#include "knots/Utils.hpp"
+#include "knots/utils/Config.hpp"
+#include "knots/utils/Log.hpp"
 
 /*
     @brief Set up the HTTP server
