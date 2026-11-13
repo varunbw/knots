@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
+#include <print>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -69,14 +71,14 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
     };
 
     // Start listening for connections
-    if (listen(m_serverSocket.Get(), m_config.maxConnections) < 0) {
+    if (listen(m_serverSocket.Get(), m_config.threadPoolSize) < 0) {
         throw std::runtime_error(Log::MakeErrorMessage(
             "HttpServer(): Could not listen"
         ));
     }
 
     // Start the thread pool
-    m_threadPool.InitializeThreadPool(m_config.maxConnections);
+    m_threadPool.InitializeThreadPool(m_config.threadPoolSize);
 
     // Spin up a thread to listen to console input
     m_consoleInputHandlerThread = std::jthread(
@@ -91,7 +93,7 @@ HttpServer::HttpServer(const HttpServerConfiguration config, const Router& route
     // Ready to go
     Log::Info(
         std::format("HttpServer(): Server listening on port {}, max {} connections\n",
-        m_config.port, m_config.maxConnections
+        m_config.port, m_config.threadPoolSize
     ));
 
     return;
@@ -155,10 +157,10 @@ void HttpServer::ValidateServerConfiguration() const {
         )));
     }
 
-    if (m_config.maxConnections <= 0) {
+    if (m_config.threadPoolSize <= 0) {
         throw std::invalid_argument(Log::MakeErrorMessage(std::format(
             "HttpServer(): Invalid max connections: {} | Allowed range: > 0",
-            m_config.maxConnections
+            m_config.threadPoolSize
         )));
     }
 
@@ -358,11 +360,6 @@ void HttpServer::AcceptConnections() {
                 }
             );
         }
-
-        {
-            std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
-            m_activeClientSockets.erase(clientSocketFD);
-        }
     }
 
     return;
@@ -417,7 +414,6 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
         }
 
         ss.write(buffer.data(), bytesRead);
-        buffer.clear();
 
         /*
             HandleRequest() returns whether or not to keep a connection alive
@@ -426,6 +422,11 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
         if (HandleRequest(ss, clientSocket, clientAddress) == false) {
             break;
         }
+    }
+
+    {
+        std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+        m_activeClientSockets.erase(clientSocket.Get());
     }
 
     return;

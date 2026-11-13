@@ -7,7 +7,7 @@ int main(void) {
 
     constexpr HttpServerConfiguration config {
         .port = 8600,
-        .maxConnections = 125,
+        .threadPoolSize = 125,
         .inputPollingIntevalMs = 100,
         .requestLoggingVerbosity = RequestLoggingVerbosity::FULL,
         .timeZone = "Asia/Kolkata"
