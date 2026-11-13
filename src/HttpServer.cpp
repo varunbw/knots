@@ -360,11 +360,6 @@ void HttpServer::AcceptConnections() {
                 }
             );
         }
-
-        {
-            std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
-            m_activeClientSockets.erase(clientSocketFD);
-        }
     }
 
     return;
@@ -427,6 +422,11 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
         if (HandleRequest(ss, clientSocket, clientAddress) == false) {
             break;
         }
+    }
+
+    {
+        std::scoped_lock<std::mutex> lock(m_activeClientSocketsMutex);
+        m_activeClientSockets.erase(clientSocket.Get());
     }
 
     return;
