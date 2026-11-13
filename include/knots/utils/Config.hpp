@@ -41,8 +41,8 @@ enum class RequestLoggingVerbosity {
     - rootDirectory
         Root directory for the server
 
-    - maxConnections
-        Maximum number of connections to accept
+    - threadPoolSize
+        Size of the thread pool to maintain
 
     - requestLoggingVerbosity
         Verbosity at which to log the incoming requests, and their response code
@@ -56,7 +56,7 @@ enum class RequestLoggingVerbosity {
 */
 struct HttpServerConfiguration {
     int port;
-    int maxConnections;
+    int threadPoolSize;
     int inputPollingIntevalMs;
     RequestLoggingVerbosity requestLoggingVerbosity;
     std::string_view timeZone;

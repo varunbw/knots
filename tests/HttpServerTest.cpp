@@ -10,7 +10,7 @@
 
 
 constexpr int serverPort = 10000;
-constexpr int serverMaxConnections = 10;
+constexpr int serverThreadPoolSize = 10;
 constexpr int inputPollingIntervalMs = 0;
 constexpr RequestLoggingVerbosity verbosity = RequestLoggingVerbosity::FULL;
 constexpr std::string_view timeZone = "Asia/Kolkata";
@@ -86,7 +86,7 @@ bool Client::ConnectToServer() {
 TEST(HttpServerTest, BasicConnection) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
+        serverPort, serverThreadPoolSize, inputPollingIntervalMs, verbosity, timeZone
     );
     Router router;
 
@@ -122,7 +122,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
         "</body></html>\n";
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
+        serverPort, serverThreadPoolSize, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
@@ -194,7 +194,7 @@ TEST(HttpServerTest, BasicRequestResponse) {
 TEST(HttpServerTest, InvalidRouteReturns404) {
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
+        serverPort, serverThreadPoolSize, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
@@ -269,7 +269,7 @@ TEST(HttpServerTest, ConnectionStaysAlive) {
     );
 
     constexpr HttpServerConfiguration config(
-        serverPort, serverMaxConnections, inputPollingIntervalMs, verbosity, timeZone
+        serverPort, serverThreadPoolSize, inputPollingIntervalMs, verbosity, timeZone
     );
 
     Router router;
