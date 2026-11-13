@@ -275,3 +275,15 @@ TEST(HttpRequestTest, GetRouteParamAPI) {
     EXPECT_EQ(req.GetRouteParam("orderId"), "abc456");
     EXPECT_EQ(req.GetRouteParam("not-present-param"), std::nullopt);
 }
+
+TEST(HttpRequestTest, HeaderWithoutColonTest) {
+
+    HttpRequest req;
+    std::stringstream ss;
+    ss << "GET / HTTP/1.1\r\n"
+       << "Host localhost:8080\r\n"
+       << "Connection: keep-alive\r\n\r\n"
+       << "This is the body of the request";
+
+    EXPECT_FALSE(req.ParseFrom(ss));
+}

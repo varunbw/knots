@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -227,13 +228,12 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
             return true;
         }
 
-        size_t colonPos = line.find(':');
-        if (colonPos == line.npos) {
-            Log::Error(std::format(
-                "ParseHeaders(): Invalid header {}",
-                line
-            ));
-            continue;
+        // Headers without a colon = complete request rejection
+        const size_t colonPos = line.find(':');
+        // Whitespace between key and colon = same outcome
+        const size_t whitespacePos = line.find_first_of(' ');
+        if (colonPos == line.npos || colonPos > whitespacePos) {
+            return false;
         }
 
         const std::string name  = line.substr(0, colonPos);
