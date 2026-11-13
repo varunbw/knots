@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <format>
 #include <string.h>
 #include <string_view>
@@ -16,7 +17,10 @@
 */
 bool NetworkIO::Send(const Socket& socket, const std::string& buffer, const int flags) {
 
-    if (send(socket.Get(), buffer.data(), buffer.size(), flags) < 0) {
+    if (
+        send(socket.Get(), buffer.data(), buffer.size(), flags)
+        != static_cast<ssize_t>(buffer.size())
+    ) {
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
@@ -42,7 +46,10 @@ bool NetworkIO::Send(const Socket& socket, const std::string& buffer, const int 
 */
 bool NetworkIO::Send(const Socket& socket, const std::vector<char>& buffer, const int flags) {
 
-    if (send(socket.Get(), buffer.data(), buffer.size(), flags) < 0) {
+    if (
+        send(socket.Get(), buffer.data(), buffer.size(), flags)
+        != static_cast<ssize_t>(buffer.size())
+    ) {
         // Determine whether to print either the first 5 bytes, or whatever the buffer is
         size_t maxSize = std::min(static_cast<size_t>(5), buffer.size());
 
