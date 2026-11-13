@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
+#include <print>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -417,7 +419,6 @@ void HttpServer::HandleConnection(Socket clientSocket, const sockaddr_in clientA
         }
 
         ss.write(buffer.data(), bytesRead);
-        buffer.clear();
 
         /*
             HandleRequest() returns whether or not to keep a connection alive
