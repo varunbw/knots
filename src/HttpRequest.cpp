@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <string_view>
 
 #include "knots/HttpMessage.hpp"
 #include "knots/utils/Log.hpp"
@@ -60,7 +61,7 @@ bool ParseHttpMethod(std::stringstream& ss, HttpRequest& req) {
 
     @return `true` if method could be parsed successfully, `false` otherwise
 */
-bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
+bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req, size_t& reqMetadataSize) {
 
     std::string urlAndParamsString;
     ss >> urlAndParamsString;
@@ -77,6 +78,7 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
 
     // Basic parse
     req.requestUrl = urlAndParamsString.substr(0, questionPos);
+    reqMetadataSize += req.requestUrl.size();
 
     // Traling '?', no queryParams, end here
     if (questionPos == urlAndParamsString.size() - 1) {
@@ -103,9 +105,14 @@ bool ParseUrlAndParameters(std::stringstream& ss, HttpRequest& req) {
             if (param.size()) {
                 req.queryParams[param] = "";
             }
+                reqMetadataSize += param.size();
         }
         else {
-            req.queryParams[param.substr(0, equalPos)] = param.substr(equalPos + 1);
+            const std::string_view paramView = param;
+            const std::string_view key = paramView.substr(0, equalPos);
+            const std::string_view value = paramView.substr(equalPos + 1);
+            req.queryParams[std::string(key)] = value;
+            reqMetadataSize += key.size() + value.size();
         }
 
         // Skip over '&' and go to next param's start
@@ -165,7 +172,7 @@ bool ParseHttpVersion(std::stringstream& ss, HttpRequest& req) {
 
     @return `true` if start line could be parsed sucessfully, `false` otherwise
 */
-bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
+bool ParseStartLine(std::stringstream& ss, HttpRequest& req, size_t& reqMetadataSize) {
 
     if (ss.good() == false) {
         Log::Error(
@@ -174,31 +181,10 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
         return false;
     }
 
-    // Extract method
-    if (ParseHttpMethod(ss, req) == false) {
-        Log::Error(std::format(
-            "failed here on ParseHttpMethod"
-        ));
-        return false;
-    }
-
-    // Extract URL and parameters
-    if (ParseUrlAndParameters(ss, req) == false) {
-        Log::Error(std::format(
-            "failed here on ParseUrlAndParameters"
-        ));
-        return false;
-    }
-
-    // Extract version
-    if (ParseHttpVersion(ss, req) == false) {
-        Log::Error(std::format(
-            "failed here on ParseHttpVersion"
-        ));
-        return false;
-    }
-
-   return true; 
+    return 
+           ParseHttpMethod(ss, req)
+        && ParseUrlAndParameters(ss, req, reqMetadataSize)
+        && ParseHttpVersion(ss, req);
 }
 
 
@@ -207,7 +193,7 @@ bool ParseStartLine(std::stringstream& ss, HttpRequest& req) {
     @param ss Message in stringstream format
     @param req The HttpRequest structure
 */
-bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
+bool ParseHeaders(std::stringstream& ss, HttpRequest& req, size_t& reqMetadataSize) {
 
     if (ss.good() == false) {
         Log::Error(
@@ -236,11 +222,18 @@ bool ParseHeaders(std::stringstream& ss, HttpRequest& req) {
             return false;
         }
 
-        const std::string name  = line.substr(0, colonPos);
-        const std::string value = line.substr(colonPos + 2);
+        const std::string_view lineView = line;
+        const std::string_view name  = lineView.substr(0, colonPos);
+        const std::string_view value = lineView.substr(colonPos + 2);
+
+        reqMetadataSize += name.size() + value.size();
+        if (reqMetadataSize >= 16 * 1024) {
+            Log::Error("ParseHeaders(): Request too big");
+            return false;
+        }
 
         // HTTP Headers are case-insensitive
-        req.headers[name] = value;
+        req.headers[std::string(name)] = value;
     }
 
     return false;
@@ -348,14 +341,17 @@ bool HttpRequest::ParseFrom(std::stringstream& ss) {
         return false;
     }
 
-    if (ParseStartLine(ss, *this) == false) {
+    size_t reqMetadataSize{};
+    if (ParseStartLine(ss, *this, reqMetadataSize) == false) {
         Log::Error(
             "HttpRequest::ParseFrom(): Could not parse start line, discarding previous request"
         );
         return false;
     }
 
-    if (ParseHeaders(ss, *this) == false) {
+    // 4 bytes for HTTP method, 4 for HTTP version
+    reqMetadataSize += 8;
+    if (ParseHeaders(ss, *this, reqMetadataSize) == false) {
         Log::Error(
             "HttpRequest::ParseFrom(): Could not parse headers, discarding previous request"
         );
